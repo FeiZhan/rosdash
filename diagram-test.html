@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Dashboard Diagram</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+		<meta charset=utf-8 />
+		<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+		<script src="lib/roslibjs/include/EventEmitter2/eventemitter2.js"></script>
+		<script src="lib/roslibjs/build/roslib.js"></script>
+		<script src="rosdashbook.js"></script>
+		<style>
+body { 
+  font: 14px helvetica neue, helvetica, arial, sans-serif;
+}
+#cy {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 100;
+}
+		</style>
+	</head>
+	<body>
+		<input type="text" name="host" id="host" value="localhost">
+		<input type="text" name="topic" id="topic" value="">
+		<input type="button" id="addtopic" value="add topic">
+		<input type="button" id="addblock" value="add block">
+		<div id="cy"></div>
+		<script type="text/javascript">
+$(function() {
+	var style = ROSDASH.default_style;
+	var element = ROSDASH.default_element;
+	var ros = new ROSLIB.Ros();
+	ros.on('error', function(error) {
+		console.log(error);
+	});
+	var host = $("#host").val();
+	ros.connect('ws://' + host + ':9090');
+	$.getJSON('file/test2-diagram.json', function(data)
+	{
+		var djson = data.elements;
+		$('#cy').cytoscape({
+			layout: {
+				name: 'circle'
+			},
+			style: style,
+			elements: djson,
+			ready: function(){
+				window.cy = this;
+				window.cy.elements("node").unlock();
+				$("#addtopic").click(ROSDASH.addTopicCallback);
+				$("#addblock").click(ROSDASH.addBlockCallback);
+				ROSDASH.blockFollowCallback();
+				ROSDASH.getROSNames(ros);
+			}
+		});
+	});
+});
+		</script>
+	</body>
+</html>

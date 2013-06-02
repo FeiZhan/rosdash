@@ -1,0 +1,31 @@
+{
+"widget": [
+	{
+		"widgetTitle" : "Text Widget",
+		"widgetId" : "text000",
+		"widgetContent" : "Lorem ipsum dolor sit amet,consectetur adipiscing elit. Aenean lacinia mollis condimentum. Proin vitae ligula quis ipsum elementum tristique. Vestibulum ut sem erat."
+	}, {
+		"widgetTitle" : "Text Widget",
+		"widgetId" : "text001",
+		"widgetContent" : "text 001"
+	}, {
+		"widgetTitle" : "Table Widget",
+		"widgetId" : "table000",
+		"widgetType" : "table",
+		"widgetContent" : "myExampleData.tableWidgetData"
+	}, {
+		"widgetTitle" : "line Chart Widget",
+		"widgetId" : "linec000",
+		"widgetType" : "chart",
+		"getDataBySelection" : true,
+		"widgetContent" : {
+			"data" : "myExampleData.lineChartData",
+			"options" : "myExampleData.lineChartOptions"
+		}
+	}, {
+		"widgetTitle" : "Google Maps Widget",
+		"widgetId" : "gmap000",
+		"widgetType" : "gmap"
+	}
+]
+}

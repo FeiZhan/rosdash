@@ -1,0 +1,245 @@
+{
+"elements": {
+	"nodes": [
+		{
+			"data": {
+				"id": "alltopics",
+				"name": "all topics",
+				"weight": 70,
+				"faveColor": "green",
+				"faveShape": "rectangle"
+			},
+			"position": {
+				"x": 0,
+				"y": 0
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "alltopics_o00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 80,
+				"y": 0
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "text00",
+				"name": "text00",
+				"weight": 70,
+				"faveColor": "blue",
+				"faveShape": "rectangle"
+			},
+			"position": {
+				"x": 1000,
+				"y": 0
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "text00_i00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 920,
+				"y": 0
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "text00_o00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 1080,
+				"y": 0
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "text01",
+				"name": "text01",
+				"weight": 70,
+				"faveColor": "blue",
+				"faveShape": "rectangle"
+			},
+			"position": {
+				"x": 1000,
+				"y": 200
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "text01_i00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 920,
+				"y": 200
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "text01_o00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 1080,
+				"y": 200
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "/status",
+				"name": "/status",
+				"weight": 70,
+				"faveColor": "green",
+				"faveShape": "rectangle"
+			},
+			"position": {
+				"x": 0,
+				"y": 200
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "/status_o00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 80,
+				"y": 200
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "/speech",
+				"name": "/speech",
+				"weight": 70,
+				"faveColor": "green",
+				"faveShape": "rectangle"
+			},
+			"position": {
+				"x": 0,
+				"y": 100
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "/speech_o00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 80,
+				"y": 100
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "table00",
+				"name": "table00",
+				"weight": 70,
+				"faveColor": "blue",
+				"faveShape": "rectangle"
+			},
+			"position": {
+				"x": 1000,
+				"y": 400
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "table00_i00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 920,
+				"y": 360
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "table00_i01",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 920,
+				"y": 400
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "table00_i02",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 920,
+				"y": 440
+			},
+			"locked": "true"
+		}, {
+			"data": {
+				"id": "table00_o00",
+				"name": "",
+				"weight": 5,
+				"faveColor": "grey",
+				"faveShape": "ellipse"
+			},
+			"position": {
+				"x": 1080,
+				"y": 400
+			},
+			"locked": "true"
+		}
+	],
+	"edges": [
+		{
+			"data": {
+				"source": "/speech_o00",
+				"target": "text00_i00",
+				"faveColor": "grey",
+				"strength": 10
+			}
+		}, {
+			"data": {
+				"source": "/status_o00",
+				"target": "text01_i00",
+				"faveColor": "grey",
+				"strength": 10
+			}
+		}
+	]
+}
+}
