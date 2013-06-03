@@ -1,0 +1,38 @@
+{
+"widget": [
+	{
+		"id_prefix": "text",
+		"input_num": 2,
+		"input": [
+			{
+				"datatype": "String",
+				"name": "title"
+			}, {
+				"datatype": "String",
+				"name": "content"
+			},
+		],
+		"output_num": 0,
+		"output": []
+	}, {
+		"id_prefix": "table",
+		"input_num": 4,
+		"input": [
+			{
+				"datatype": "String",
+				"name": "title"
+			}, {
+				"datatype": "String[]",
+				"name": "header"
+			}, {
+				"datatype": "String[]",
+				"name": "data"
+			}, {
+				"datatype": "DashTableLayout",
+				"name": "layout"
+			}
+		],
+		"output_num": 0,
+		"output": []
+	}
+]}

@@ -26,7 +26,8 @@
 				"x": 80,
 				"y": 0
 			},
-			"locked": "true"
+			"locked": "true",
+			"grabbable": "true"
 		}, {
 			"data": {
 				"id": "text00",

@@ -1,0 +1,95 @@
+{
+"msg": [
+	{
+		"name": "MultiArrayDimension",
+		"package": "std_msgs",
+		"field_num": 3,
+		"field": [
+			{
+				"type": "string",
+				"name": "label"
+			}, {
+				"type": "uint32",
+				"name": "size"
+			}, {
+				"type": "uint32",
+				"name": "stride"
+			}
+		]
+	}, {
+		"name": "MultiArrayLayout",
+		"package": "std_msgs",
+		"field_num": 2,
+		"field": [
+			{
+				"type": "MultiArrayDimension[]",
+				"name": "dim"
+			}, {
+				"type": "uint32",
+				"name": "data_offset"
+			}
+		]
+	}, {
+		"name": "Bool",
+		"package": "std_msgs",
+		"field_num": 1,
+		"field": [
+			{
+				"type": "bool",
+				"name": "data"
+			}
+		]
+	}, {
+		"name": "Float32",
+		"package": "std_msgs",
+		"field_num": 1,
+		"field": [
+			{
+				"type": "float32",
+				"name": "data"
+			}
+		]
+	}, {
+		"name": "Float32MultiArray",
+		"package": "std_msgs",
+		"field_num": 2,
+		"field": [
+			{
+				"type": "MultiArrayLayout",
+				"name": "layout"
+			}, {
+				"type": "float32[]",
+				"name": "data"
+			}
+		]
+	}, {
+		"name": "String",
+		"package": "std_msgs",
+		"field_num": 1,
+		"field": [
+			{
+				"type": "string",
+				"name": "data"
+			}
+		]
+	}, {
+		"name": "ColorRGBA",
+		"package": "std_msgs",
+		"field_num": 4,
+		"field": [
+			{
+				"type": "float32",
+				"name": "r"
+			}, {
+				"type": "float32",
+				"name": "g"
+			}, {
+				"type": "float32",
+				"name": "b"
+			}, {
+				"type": "float32",
+				"name": "a"
+			}
+		]
+	}
+]}

@@ -7,7 +7,7 @@
 		<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
 		<script src="lib/roslibjs/include/EventEmitter2/eventemitter2.js"></script>
 		<script src="lib/roslibjs/build/roslib.js"></script>
-		<script src="rosdashbook.js"></script>
+		<script src="rosdash.js"></script>
 		<style>
 body { 
   font: 14px helvetica neue, helvetica, arial, sans-serif;
@@ -39,7 +39,7 @@ $(function() {
 	ros.connect('ws://' + host + ':9090');
 	$.getJSON('file/test2-diagram.json', function(data)
 	{
-		var djson = data.elements;
+		var djson = ROSDASH.default_element2; //data.elements;
 		$('#cy').cytoscape({
 			layout: {
 				name: 'circle'
@@ -48,10 +48,11 @@ $(function() {
 			elements: djson,
 			ready: function(){
 				window.cy = this;
-				window.cy.elements("node").unlock();
+				window.cy.nodes().unlock();
 				$("#addtopic").click(ROSDASH.addTopicCallback);
 				$("#addblock").click(ROSDASH.addBlockCallback);
 				ROSDASH.blockFollowCallback();
+				ROSDASH.connectBlocksCallback();
 				ROSDASH.getROSNames(ros);
 			}
 		});
