@@ -392,20 +392,45 @@ ROSDASH.addTopicCallback = function ()
 	ROSDASH.ros_blocks.topic.push(name);
 }
 ROSDASH.block_count = new Object();
-ROSDASH.checkNameValid = function (name)
+ROSDASH.blocks = new Object();
+ROSDASH.checkBlockNameValid = function (name)
 {
-	if (undefined === name || "" == name || " " == name)
+	if (undefined === name || "" == name || " " == name || undefined === ROSDASH.checkWidgetNameValid(name))
 	{
+		console.log("block name not valid");
 		return false;
 	}
 	return true;
 }
+ROSDASH.updateDiagram = function ()
+{
+	var json = new Array();
+	cy.elements().each(function(i, ele)
+	{
+		console.log( ele.id() + ' locates ' +  ele.position("x"));
+		var e = new Object();
+		if (ele.isNode())
+		{
+			e = {
+				data: {
+					id: ele.id(),
+					name: ele.name(),
+					weight: ele.weight()
+				},
+				position: {
+					x: ele.position("x"),
+					y: ele.position("y")
+				}
+			};
+		} else {}
+		
+	});
+}
 ROSDASH.addBlockCallback = function ()
 {
 	var name = $("#topic").val();
-	if (! ROSDASH.checkNameValid(name))
+	if (! ROSDASH.checkBlockNameValid(name))
 	{
-		console.log("block name not valid");
 		return;
 	}
 	if (ROSDASH.block_count[name] === undefined)
@@ -415,55 +440,93 @@ ROSDASH.addBlockCallback = function ()
 	{
 		++ ROSDASH.block_count[name];
 	}
-	var id = name + "_" + ROSDASH.block_count[name];
-	window.cy.add({
-		group: "nodes",
-		data: {
-			id: id + "_i0",
-			parent: id,
-			weight: 20,
-			height: 20,
-			faveColor: "black",
-			faveShape: "rectangle"
-		},
-		position: { x: 330, y: 0 },
-		locked: true
-	});
-	window.cy.add({
-		group: "nodes",
-		data: {
-			id: id + "_o0",
-			parent: id,
-			weight: 20,
-			height: 20,
-			faveColor: "black",
-			faveShape: "rectangle"
-		},
-		position: { x: 470, y: 0 },
-		locked: true
-	});
+	var block = {
+		type: name,
+		number: ROSDASH.block_count[name],
+		input_num: undefined,
+		output_num: undefined
+	};
+	var id = name + ROSDASH.block_count[name];
+	var NEW_POS = [400, 0];
 	window.cy.add({
 		group: "nodes",
 		data: {
 			id: id,
+			name: id,
 			weight: 70,
 			faveColor: "blue",
 			faveShape: "rectangle"
 		},
-		position: { x: 400, y: 0 }
+		position: { x: NEW_POS[0], y: NEW_POS[1] }
 	});
+	var widget_template = ROSDASH.checkWidgetNameValid(name);
+	block.input_num = widget_template.input_num;
+	for (var i = 0; i < block.input_num; ++ i)
+	{
+		window.cy.add({
+			group: "nodes",
+			data: {
+				id: id + "_i" + i,
+				weight: 10,
+				height: 20,
+				faveColor: "grey",
+				faveShape: "rectangle"
+			},
+			position: { x: NEW_POS[0] - 70, y: NEW_POS[1] },
+			locked: true
+		});
+	}
+	block.output_num = widget_template.output_num;
+	for (var i = 0; i < block.output_num; ++ i)
+	{
+		window.cy.add({
+			group: "nodes",
+			data: {
+				id: id + "_o" + i,
+				weight: 10,
+				height: 20,
+				faveColor: "grey",
+				faveShape: "rectangle"
+			},
+			position: { x: NEW_POS[0] + 70, y: NEW_POS[1] },
+			locked: true
+		});
+	}
+	ROSDASH.blocks[id] = block;
+	ROSDASH.updateDiagram();
 }
-ROSDASH.blockFollowCallback = function ()
+ROSDASH.blockMoveCallback = function ()
 {
 	window.cy.on('position', function(evt)
 	{
-		window.cy.nodes('[id ^= "' + evt.cyTarget.id() + '"][id !="' + evt.cyTarget.id() + '"]').positions(function (i, ele)
+		var id = evt.cyTarget.id();
+		if (undefined === ROSDASH.blocks[id])
 		{
-			ele.position({
-				x: evt.cyTarget.position('x') + 100,
-				y: evt.cyTarget.position('y')
+			return;
+		}
+		var pin_num = ROSDASH.blocks[id].input_num;
+		for (var i = 0; i < pin_num; ++ i)
+		{
+			window.cy.nodes('[id = "' + id + "_i" + i + '"]').positions(function (i, ele)
+			{
+				ele.position({
+					x: evt.cyTarget.position('x') - 70,
+					y: evt.cyTarget.position('y')
+				});
 			});
-		});
+		}
+		pin_num = ROSDASH.blocks[id].output_num;
+		for (var i = 0; i < pin_num; ++ i)
+		{
+			window.cy.nodes('[id = "' + id + "_i" + i + '"]').positions(function (i, ele)
+			{
+				ele.position({
+					x: evt.cyTarget.position('x') + 70,
+					y: evt.cyTarget.position('y')
+				});
+			});
+		}
+		ROSDASH.updateDiagram();
 	});
 }
 ROSDASH.connect_former;
@@ -508,3 +571,199 @@ ROSDASH.connectBlocksCallback = function ()
 		}
 	});
 }
+ROSDASH.msg_json = {
+	"std_msgs": new Object()
+};
+ROSDASH.widget_json = {
+	"widgets": new Object()
+};
+ROSDASH.initJson = function ()
+{
+	for (var i in ROSDASH.msg_json)
+	{
+		$.getJSON("param/" + i + ".json", function(data, status, xhr)
+		{
+			for (var j in data)
+			{
+				ROSDASH.msg_json[j] = data;
+				console.log("load json " + j + " : " + data[j]);
+			}
+		});
+	}
+	for (var i in ROSDASH.widget_json)
+	{
+		$.getJSON("param/" + i + ".json", function(data, status, xhr)
+		{
+			for (var j in data)
+			{
+				ROSDASH.widget_json[j] = data;
+				console.log("load json " + j + " : " + data[j]);
+			}
+		});
+	}
+}
+ROSDASH.initGmap = function ()
+{
+	if ($("#map-canvas").length)
+	{
+		var mapOptions = {
+		  center: new google.maps.LatLng(-34.397, 150.644),
+		  zoom: 8,
+		  mapTypeId: google.maps.MapTypeId.ROADMAP
+		};
+		var map = new google.maps.Map(document.getElementById("map-canvas"),
+			mapOptions);
+	} else
+	{
+		setTimeout(ROSDASH.initGmap, 300);
+	}
+}
+ROSDASH.parseOneExampleData = function (widget)
+{
+	if (widget.widgetContent == "myExampleData.textWidgetData")
+	{
+		widget.widgetContent = "Lorem ipsum dolor sit amet,consectetur adipiscing elit. Aenean lacinia mollis condimentum. Proin vitae ligula quis ipsum elementum tristique. Vestibulum ut sem erat.";
+	} else if (widget.widgetContent == "myExampleData.tableWidgetData")
+	{
+		widget.widgetContent = myExampleData.tableWidgetData;
+	}
+	if (typeof widget.widgetContent == "undefined" || typeof widget.widgetContent.data == "undefined")
+	{
+		return widget;
+	}
+	switch (widget.widgetContent.data)
+	{
+	case "myExampleData.bubbleChartData":
+		widget.widgetContent.data = myExampleData.bubbleChartData;
+		break;
+	case "myExampleData.pieChartData":
+		widget.widgetContent.data = myExampleData.pieChartData;
+		break;
+	case "myExampleData.barChartData":
+		widget.widgetContent.data = myExampleData.barChartData;
+		break;
+	case "myExampleData.lineChartData":
+		widget.widgetContent.data = myExampleData.lineChartData;
+		break;
+	}
+	switch (widget.widgetContent.options)
+	{
+	case "myExampleData.bubbleChartOptions":
+		widget.widgetContent.options = myExampleData.bubbleChartOptions;
+		break;
+	case "myExampleData.pieChartOptions":
+		widget.widgetContent.options = myExampleData.pieChartOptions;
+		break;
+	case "myExampleData.barChartOptions":
+		widget.widgetContent.options = myExampleData.barChartOptions;
+		break;
+	case "myExampleData.lineChartOptions":
+		widget.widgetContent.options = myExampleData.lineChartOptions;
+		break;
+	}
+	return widget;
+}
+ROSDASH.parseExampleData = function (widgets)
+{
+	for (var i in widgets)
+	{
+		ROSDASH.parseOneExampleData(widgets[i]);
+	}
+	return widgets;
+}
+ROSDASH.widget_num = new Object();
+ROSDASH.checkWidgetNameValid = function (name)
+{
+	for (var i in ROSDASH.widget_json)
+	{
+		var json = ROSDASH.widget_json[i];
+		for (var j in json)
+		{
+			var json2 = json[j];
+			if (undefined === json2.type)
+			{
+				for (var k in json2)
+				{
+					//console.log("checkWidgetNameValid " + json2[k].type + " " + name);
+					if (json2[k].type == name)
+					{
+						return json2[k];
+					}
+				}
+			} else
+			{
+				if (json2.type == name)
+				{
+					return json2;
+				}
+			}
+		}
+	}
+	console.log("wrong widget name");
+	return undefined;
+}
+ROSDASH.addWidget = function (name)
+{
+	if (true) //undefined != ROSDASH.checkWidgetNameValid(name))
+	{
+		if (undefined === ROSDASH.widget_num[name])
+		{
+			ROSDASH.widget_num[name] = 0;
+		} else
+		{
+			++ ROSDASH.widget_num[name];
+		}
+		var widget = {
+			widgetTitle : name + " " + ROSDASH.widget_num[name],
+			widgetId : name + ROSDASH.widget_num[name],
+			widgetType : name,
+			widgetContent : "myExampleData." + name + "WidgetData"
+		};
+		widget = ROSDASH.parseOneExampleData(widget);
+		$("#myDashboard").sDashboard("addWidget", widget);
+		//ROSDASH.updateOrder();
+	}
+}
+ROSDASH.initWidget = function (json)
+{
+	if (undefined === json || null == json || undefined === json.length)
+	{
+		return;
+	}
+	for (var i = json.length - 1; i >= 0; -- i)
+	{
+		ROSDASH.addWidget(json[i].widgetType);
+	}
+}
+ROSDASH.addWidgetCallback = function ()
+{
+	$("#btnAddWidget").click(function()
+	{
+		var name = $("#text").val();
+		ROSDASH.addWidget(name);
+	});
+}
+ROSDASH.widget_order = new Array();
+ROSDASH.updateOrder = function (sorted_widgets)
+{
+	$.ajax({
+		type: "POST",
+		url: "rosdash.php",
+		dataType: 'json',
+		data: {
+			json: {
+				file_name: "test3-panel",
+				data: sorted_widgets
+			}
+		},
+		success: function( data, textStatus, jqXHR )
+		{
+			console.log("save successful");
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			console.log("save error");
+		}
+	});
+}
+

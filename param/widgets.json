@@ -1,7 +1,7 @@
 {
-"widget": [
+"widgets": [
 	{
-		"id_prefix": "text",
+		"type": "text",
 		"input_num": 2,
 		"input": [
 			{
@@ -10,12 +10,12 @@
 			}, {
 				"datatype": "String",
 				"name": "content"
-			},
+			}
 		],
 		"output_num": 0,
 		"output": []
 	}, {
-		"id_prefix": "table",
+		"type": "table",
 		"input_num": 4,
 		"input": [
 			{

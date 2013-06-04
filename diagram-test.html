@@ -29,6 +29,7 @@ body {
 		<div id="cy"></div>
 		<script type="text/javascript">
 $(function() {
+	ROSDASH.initJson();
 	var style = ROSDASH.default_style;
 	var element = ROSDASH.default_element;
 	var ros = new ROSLIB.Ros();
@@ -51,7 +52,7 @@ $(function() {
 				window.cy.nodes().unlock();
 				$("#addtopic").click(ROSDASH.addTopicCallback);
 				$("#addblock").click(ROSDASH.addBlockCallback);
-				ROSDASH.blockFollowCallback();
+				ROSDASH.blockMoveCallback();
 				ROSDASH.connectBlocksCallback();
 				ROSDASH.getROSNames(ros);
 			}
