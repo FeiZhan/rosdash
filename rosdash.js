@@ -69,24 +69,20 @@ ROSDASH.default_element1 = [
 
       classes: 'foo bar' // a space separated list of class names that the element has
     },
-
     { // node n2
       group: 'nodes',
       data: { id: 'n2' },
       renderedPosition: { x: 200, y: 200 } // can alternatively specify position in rendered on-screen pixels
     },
-
     { // node n3
       group: 'nodes',
       data: { id: 'n3', parent: 'nparent' },
       position: { x: 123, y: 234 }
     },
-
     { // node nparent
       group: 'nodes',
       data: { id: 'nparent' }
     },
-
     { // edge e1
       group: 'edges',
       data: {
@@ -834,12 +830,53 @@ ROSDASH.initGmap = function ()
 		setTimeout(ROSDASH.initGmap, 300);
 	}
 }
+ROSDASH.parseWidgetContent = function (widget)
+{
+	switch (widget.widgetType)
+	{
+	case "text":
+		widget.widgetContent = "Lorem ipsum dolor sit amet,consectetur adipiscing elit. Aenean lacinia mollis condimentum. Proin vitae ligula quis ipsum elementum tristique. Vestibulum ut sem erat.";
+		break;
+	case "table":
+		widget.widgetContent = myExampleData.tableWidgetData;
+		break;
+	case "bubbleChart":
+		widget.widgetType = "chart";
+		widget.widgetContent = new Object();
+		widget.widgetContent.data = myExampleData.bubbleChartData;
+		widget.widgetContent.options = myExampleData.bubbleChartOptions;
+		break;
+	case "pieChart":
+		widget.widgetType = "chart";
+		widget.widgetContent = new Object();
+		widget.widgetContent.data = myExampleData.pieChartData;
+		widget.widgetContent.options = myExampleData.pieChartOptions;
+		break;
+	case "barChart":
+		widget.widgetType = "chart";
+		widget.widgetContent = new Object();
+		widget.widgetContent.data = myExampleData.barChartData;
+		widget.widgetContent.options = myExampleData.barChartOptions;
+		break;
+	case "chart":
+	case "lineChart":
+		widget.widgetType = "chart";
+		widget.widgetContent = new Object();
+		widget.widgetContent.data = myExampleData.lineChartData;
+		widget.widgetContent.options = myExampleData.lineChartOptions;
+		break;
+	default:
+		widget.widgetContent = "";
+		break;
+	}
+	return widget;
+}
 ROSDASH.parseOneExampleData = function (widget)
 {
-	if (widget.widgetContent == "myExampleData.textWidgetData")
+	if (widget.widgetContent == "myExampleData.textData")
 	{
 		widget.widgetContent = "Lorem ipsum dolor sit amet,consectetur adipiscing elit. Aenean lacinia mollis condimentum. Proin vitae ligula quis ipsum elementum tristique. Vestibulum ut sem erat.";
-	} else if (widget.widgetContent == "myExampleData.tableWidgetData")
+	} else if (widget.widgetContent == "myExampleData.tableData")
 	{
 		widget.widgetContent = myExampleData.tableWidgetData;
 	}
@@ -858,6 +895,7 @@ ROSDASH.parseOneExampleData = function (widget)
 	case "myExampleData.barChartData":
 		widget.widgetContent.data = myExampleData.barChartData;
 		break;
+	case "myExampleData.chartData":
 	case "myExampleData.lineChartData":
 		widget.widgetContent.data = myExampleData.lineChartData;
 		break;
@@ -873,6 +911,7 @@ ROSDASH.parseOneExampleData = function (widget)
 	case "myExampleData.barChartOptions":
 		widget.widgetContent.options = myExampleData.barChartOptions;
 		break;
+	case "myExampleData.chartOptions":
 	case "myExampleData.lineChartOptions":
 		widget.widgetContent.options = myExampleData.lineChartOptions;
 		break;
@@ -933,9 +972,10 @@ ROSDASH.addWidget = function (name)
 			widgetTitle : name + " " + ROSDASH.widget_num[name],
 			widgetId : name + ROSDASH.widget_num[name],
 			widgetType : name,
-			widgetContent : "myExampleData." + name + "WidgetData"
+			widgetContent : undefined
 		};
-		widget = ROSDASH.parseOneExampleData(widget);
+		widget = ROSDASH.parseWidgetContent(widget);
+		console.debug(widget);
 		$("#myDashboard").sDashboard("addWidget", widget);
 		//ROSDASH.updateOrder();
 	}
