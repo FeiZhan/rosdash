@@ -53,6 +53,13 @@
 	overflow-x: hidden;
 	overflow-y: auto;
 }
+.ArborWidgetContent {
+	margin: 0.3em;
+	padding: 0.4em;
+	height: 150px;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
 
 .sDashboardWidgetContentMaximized {
 	margin: 0.3em;

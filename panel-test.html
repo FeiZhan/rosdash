@@ -41,6 +41,11 @@
 		<!-- google maps -->
 		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+		<!-- arbor -->
+		<link rel="stylesheet" href="lib/arbor/docs/sample-project/style.css" type="text/css">
+		<script src="lib/arbor/docs/sample-project/../../lib/arbor.js"></script>
+		<script src="lib/arbor/docs/sample-project/main.js"></script>
+		<!-- rosdash -->
 		<script src="rosdash.js"></script>
 		<!-- example code -->
 		<script type="text/javascript">
@@ -96,5 +101,9 @@ $(function() {
 			</button>
 		</div>
 		<ul id="myDashboard"></ul>
+		<canvas id="viewport" class="sDashboardWidgetContent"></canvas>
+		<script type="text/javascript">
+arborInit();
+		</script>
 	</body>
 </html>
