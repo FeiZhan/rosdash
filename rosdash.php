@@ -1,4 +1,3 @@
 <?php
-$json = $_POST['json']['response'];
-file_put_contents('file/test3-panel.json', json_encode($_POST['json']));
+file_put_contents('file/'.$_POST['file_name'].'.json', json_encode($_POST['data']));
 ?>
