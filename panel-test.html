@@ -45,6 +45,11 @@
 		<link rel="stylesheet" href="lib/arbor/docs/sample-project/style.css" type="text/css">
 		<script src="lib/arbor/docs/sample-project/../../lib/arbor.js"></script>
 		<script src="lib/arbor/docs/sample-project/main.js"></script>
+		<!-- dracula -->
+		<script type="text/javascript" src="lib/raphael-min.js"></script>
+		<script type="text/javascript" src="lib/dracula/examples/../js/dracula_graffle.js"></script>
+		<script type="text/javascript" src="lib/dracula/examples/../js/dracula_graph.js"></script>
+		<script type="text/javascript" src="lib/dracula/examples/example.js"></script>
 		<!-- rosdash -->
 		<script src="rosdash.js"></script>
 		<!-- example code -->
@@ -54,7 +59,6 @@ $(function() {
 		dashboardData : [],
 		disableSelection : true
 	});
-	google.maps.event.addDomListener(window, 'load', ROSDASH.initGmap);
 	var ros = new ROSLIB.Ros();
 	ros.on('error', function(error) {
 		console.log(error);
@@ -101,9 +105,5 @@ $(function() {
 			</button>
 		</div>
 		<ul id="myDashboard"></ul>
-		<canvas id="viewport" class="sDashboardWidgetContent"></canvas>
-		<script type="text/javascript">
-arborInit();
-		</script>
 	</body>
 </html>

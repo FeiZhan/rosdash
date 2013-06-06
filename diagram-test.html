@@ -30,6 +30,9 @@ body {
 		<div id="cy"></div>
 		<script type="text/javascript">
 $(function() {
+	$("#addtopic").click(ROSDASH.addTopicCallback);
+	$("#addblock").click(ROSDASH.addBlockCallback);
+	$("#removeblock").click(ROSDASH.removeBlockCallback);
 	ROSDASH.initJson();
 	var style = ROSDASH.default_style;
 	var element = ROSDASH.default_element;
@@ -53,9 +56,6 @@ $(function() {
 				window.cy = this;
 				window.cy.elements().unlock();
 				window.cy.elements().unselect();
-				$("#addtopic").click(ROSDASH.addTopicCallback);
-				$("#addblock").click(ROSDASH.addBlockCallback);
-				$("#removeblock").click(ROSDASH.removeBlockCallback);
 				ROSDASH.blockMoveCallback();
 				ROSDASH.connectBlocksCallback();
 				ROSDASH.getROSNames(ros);

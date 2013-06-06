@@ -56,8 +56,15 @@
 .ArborWidgetContent {
 	margin: 0.3em;
 	padding: 0.4em;
-	height: 150px;
-	overflow-x: hidden;
+	height: 170px;
+	overflow-x: auto;
+	overflow-y: auto;
+}
+.draculaWidgetContent {
+	margin: 0.3em;
+	padding: 0.4em;
+	height: 180px;
+	overflow-x: auto;
 	overflow-y: auto;
 }
 

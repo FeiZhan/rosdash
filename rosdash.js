@@ -814,6 +814,7 @@ ROSDASH.initJson = function ()
 		});
 	}
 }
+ROSDASH.gmap = undefined;
 ROSDASH.initGmap = function ()
 {
 	if ($("#map-canvas").length)
@@ -823,12 +824,16 @@ ROSDASH.initGmap = function ()
 		  zoom: 8,
 		  mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
-		var map = new google.maps.Map(document.getElementById("map-canvas"),
+		ROSDASH.gmap = new google.maps.Map(document.getElementById("map-canvas"),
 			mapOptions);
 	} else
 	{
 		setTimeout(ROSDASH.initGmap, 300);
 	}
+}
+ROSDASH.resizeGmap = function ()
+{
+	google.maps.event.trigger(ROSDASH.gmap, "resize");
 }
 ROSDASH.parseWidgetContent = function (widget)
 {
