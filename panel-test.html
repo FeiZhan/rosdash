@@ -55,22 +55,17 @@
 		<!-- example code -->
 		<script type="text/javascript">
 $(function() {
+	$("#addToDiagram").click(ROSDASH.addToDiagram);
 	$("#myDashboard").sDashboard({
 		dashboardData : [],
 		disableSelection : true
 	});
-	var ros = new ROSLIB.Ros();
-	ros.on('error', function(error) {
-		console.log(error);
-	});
-	ros.connect('ws://localhost:9090');
-	var msg = " message not receive";
-	function update()
-	{
-		$("#myDashboard").sDashboard("setContentById", "text000", msg);
-		setTimeout(update, 1000);
-	}
+	ROSDASH.connectROS();
 	ROSDASH.initJson();
+	$.getJSON('file/test4-diagram.json', function(data)
+	{
+		ROSDASH.diagram = data;
+	});
 	$.getJSON('file/test3-panel.json', function(data)
 	{
 		ROSDASH.initWidget(data);
@@ -78,18 +73,17 @@ $(function() {
 		{
 			ROSDASH.updateOrder(data.sortedDefinitions);
 		});
+		$("#myDashboard").bind("sdashboardrowclicked", function(e, data)
+		{
+			console.log("table row clicked, for widget: " + data.selectedWidgetId);
+		});
+		$("#myDashboard").bind("sdashboardheaderclicked", function(e, data)
+		{
+			ROSDASH.selectedWidget = data.selectedWidgetId;
+		});
 		ROSDASH.addWidgetCallback();
-		//Subscribing to a Topic
-		var listener = new ROSLIB.Topic({
-			ros : ros,
-			name : '/listener',
-			messageType : 'std_msgs/String'
-		});
-		listener.subscribe(function(message) {
-			msg = 'Received message on ' + listener.name + ': ' + message.data;
-			//listener.unsubscribe();
-		});
-		update();
+		ROSDASH.Widgets.topic();
+		ROSDASH.updateWidgets();
 	});
 });
 		</script>
@@ -100,7 +94,7 @@ $(function() {
 			<button class="btn" id="btnAddWidget">
 				Add Widget
 			</button>
-			<button class="btn" id="switchToDiagram">
+			<button class="btn" id="addToDiagram">
 				add to diagram
 			</button>
 		</div>

@@ -27,12 +27,14 @@ body {
 		<input type="button" id="addtopic" value="add topic">
 		<input type="button" id="addblock" value="add block">
 		<input type="button" id="removeblock" value="remove block">
+		<input type="button" id="readblocks" value="read block">
 		<div id="cy"></div>
 		<script type="text/javascript">
 $(function() {
 	$("#addtopic").click(ROSDASH.addTopicCallback);
 	$("#addblock").click(ROSDASH.addBlockCallback);
 	$("#removeblock").click(ROSDASH.removeBlockCallback);
+	$("#readblocks").click(ROSDASH.readBlockCallback);
 	ROSDASH.initJson();
 	var style = ROSDASH.default_style;
 	var element = ROSDASH.default_element;
@@ -42,29 +44,29 @@ $(function() {
 	});
 	var host = $("#host").val();
 	ros.connect('ws://' + host + ':9090');
-	$.getJSON('file/test3-diagram.json', function(data)
-	{
-		var json = data.data;
-		var ele = ROSDASH.transformToElements(json);
-		$('#cy').cytoscape({
-			layout: {
-				name: 'circle'
-			},
-			style: style,
-			elements: ele, //ROSDASH.default_element2,
-			ready: function(){
-				window.cy = this;
-				window.cy.elements().unlock();
-				window.cy.elements().unselect();
-				ROSDASH.blockMoveCallback();
-				ROSDASH.connectBlocksCallback();
-				ROSDASH.getROSNames(ros);
-			}
-		});
-	});
-	$.getJSON('file/test4-diagram.json', function(data)
-	{
-		ROSDASH.loadDiagram(data);
+	var empty_ele = {nodes: new Array(), edges: new Array()};
+	//$.getJSON('file/test3-diagram.json', function(data)
+	//var json = data.data;
+	//var ele = ROSDASH.transformToElements(json);
+	$('#cy').cytoscape({
+		layout: {
+			name: 'circle'
+		},
+		style: style,
+		elements: empty_ele, //ele, //ROSDASH.default_element2,
+		ready: function()
+		{
+			window.cy = this;
+			$.getJSON('file/test4-diagram.json', function(data)
+			{
+				ROSDASH.loadDiagram(data);
+			});
+			window.cy.elements().unlock();
+			window.cy.elements().unselect();
+			ROSDASH.blockMoveCallback();
+			ROSDASH.connectBlocksCallback();
+			ROSDASH.getROSNames(ros);
+		}
 	});
 });
 		</script>
