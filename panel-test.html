@@ -88,6 +88,14 @@ $(function() {
 	{
 		ROSDASH.widgetRemoveCallback(e, data);
 	});
+	$("#myDashboard").bind("sdashboardwidgetset", function(e, data)
+	{
+		ROSDASH.widgetSetCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardheaderset", function(e, data)
+	{
+		ROSDASH.headerSetCallback(e, data);
+	});
 	
 	ROSDASH.connectROS();
 	ROSDASH.initJson();

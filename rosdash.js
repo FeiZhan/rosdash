@@ -893,6 +893,12 @@ ROSDASH.parseWidgetContent = function (widget)
 	case "network":
 		widget.widgetContent = '<div id="dracula_canvas" class="draculaWidgetContent"></div>';
 		break;
+	case "doodle god":
+		widget.widgetContent = '<object width="180" height="135"><param name="movie" value="http://www.fupa.com/swf/doodle-god/doodlegod.swf"></param><embed src="http://www.fupa.com/swf/doodle-god/doodlegod.swf" type="application/x-shockwave-flash" width="180" height="135"></embed></object>';
+		break;
+	case "youtube":
+		widget.widgetContent = '<iframe width="560" height="315" src="http://www.youtube.com/embed/SxeVZdJFB4s" frameborder="0" allowfullscreen></iframe>';
+		break;
 	default:
 		widget.widgetContent = '';
 		break;
@@ -1155,5 +1161,19 @@ ROSDASH.widgetAddCallback = function (e, data)
 }
 ROSDASH.widgetRemoveCallback = function (e, data)
 {
-	console.log(data.widgetDefinition);
+	//console.log(data.widgetDefinition);
+}
+ROSDASH.widgetSetCallback = function (e, data)
+{
+	for (var i in data)
+	{
+		//console.log(data[i]);
+	}
+}
+ROSDASH.headerSetCallback = function (e, data)
+{
+	for (var i in data)
+	{
+		//console.log(data[i]);
+	}
 }
