@@ -60,6 +60,35 @@ $(function() {
 		dashboardData : [],
 		disableSelection : true
 	});
+	$("#myDashboard").bind("sdashboardorderchanged", function(e, data)
+	{
+		ROSDASH.updateOrder(data.sortedDefinitions);
+	});
+	$("#myDashboard").bind("sdashboardrowclicked", function(e, data)
+	{
+		console.log("table row clicked, for widget: " + data.selectedWidgetId);
+	});
+	$("#myDashboard").bind("sdashboardheaderclicked", function(e, data)
+	{
+		ROSDASH.selectedWidget = data.selectedWidgetId;
+	});
+	$("#myDashboard").bind("sdashboardwidgetmaximized", function(e, data)
+	{
+		ROSDASH.widgetMaxCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardwidgetminimized", function(e, data)
+	{
+		ROSDASH.widgetMaxCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardwidgetadded", function(e, data)
+	{
+		ROSDASH.widgetAddCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardwidgetremoved", function(e, data)
+	{
+		ROSDASH.widgetRemoveCallback(e, data);
+	});
+	
 	ROSDASH.connectROS();
 	ROSDASH.initJson();
 	$.getJSON('file/test4-diagram.json', function(data)
@@ -69,18 +98,6 @@ $(function() {
 	$.getJSON('file/test3-panel.json', function(data)
 	{
 		ROSDASH.initWidget(data);
-		$("#myDashboard").bind("sdashboardorderchanged", function(e, data)
-		{
-			ROSDASH.updateOrder(data.sortedDefinitions);
-		});
-		$("#myDashboard").bind("sdashboardrowclicked", function(e, data)
-		{
-			console.log("table row clicked, for widget: " + data.selectedWidgetId);
-		});
-		$("#myDashboard").bind("sdashboardheaderclicked", function(e, data)
-		{
-			ROSDASH.selectedWidget = data.selectedWidgetId;
-		});
 		ROSDASH.addWidgetCallback();
 		ROSDASH.Widgets.topic();
 		ROSDASH.updateWidgets();

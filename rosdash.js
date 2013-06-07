@@ -884,8 +884,17 @@ ROSDASH.parseWidgetContent = function (widget)
 		widget.widgetContent.data = myExampleData.lineChartData;
 		widget.widgetContent.options = myExampleData.lineChartOptions;
 		break;
+	case "gmap":
+		widget.widgetContent = '<div id="map-canvas" class="sDashboardWidgetContent" />';
+		break;
+	case "arbor":
+		widget.widgetContent = '<canvas id="viewport" class="ArborWidgetContent"></canvas>';
+		break;
+	case "network":
+		widget.widgetContent = '<div id="dracula_canvas" class="draculaWidgetContent"></div>';
+		break;
 	default:
-		widget.widgetContent = "";
+		widget.widgetContent = '';
 		break;
 	}
 	return widget;
@@ -994,7 +1003,6 @@ ROSDASH.addWidget = function (name)
 			widgetContent : undefined
 		};
 		widget = ROSDASH.parseWidgetContent(widget);
-		console.debug(widget);
 		$("#myDashboard").sDashboard("addWidget", widget);
 		//ROSDASH.updateOrder();
 	}
@@ -1081,6 +1089,7 @@ ROSDASH.Widgets = new Object();
 ROSDASH.rosMsg = new Object();
 ROSDASH.Widgets.topic = function (name, type)
 {
+	ROSDASH.rosMsg['/listener'] = "cannot connect to ROS";
 	var listener = new ROSLIB.Topic({
 		ros : ROSDASH.ros,
 		name : '/listener',
@@ -1096,21 +1105,55 @@ ROSDASH.Widgets.topic = function (name, type)
 ROSDASH.msgToStr = function (msg)
 {
 	var str = "";
-	for (var i in msg)
+	if (typeof msg == "object" || typeof msg == "array")
 	{
-		str += " ( " + i + ": ";
-		if (typeof msg[i] == "object" || typeof msg[i] == "array")
+		for (var i in msg)
 		{
+			str += " ( " + i + ": ";
 			str += ROSDASH.msgToStr(msg[i]);
-		} else
-		{
-			str += msg[i];
+			str += " ) ";
 		}
-		str += " ) ";
+	} else
+	{
+		str += msg;
 	}
 	return str;
 }
 ROSDASH.Widgets.text = function (id, header, content)
 {
 	$("#myDashboard").sDashboard("setContentById", id, content);
+}
+ROSDASH.widgetMaxCallback = function (e, data)
+{
+	switch (data.widgetDefinition.widgetType)
+	{
+	case "gmap":
+		ROSDASH.resizeGmap();
+		break;
+	case "arbor":
+		//arborInit();
+		break;
+	case "network":
+		draculaInit("dracula_canvas");
+		break;
+	}
+}
+ROSDASH.widgetAddCallback = function (e, data)
+{
+	switch (data.widgetDefinition.widgetType)
+	{
+	case "gmap":
+		ROSDASH.initGmap();
+		break;
+	case "arbor":
+		arborInit();
+		break;
+	case "network":
+		draculaInit("dracula_canvas");
+		break;
+	}
+}
+ROSDASH.widgetRemoveCallback = function (e, data)
+{
+	console.log(data.widgetDefinition);
 }
