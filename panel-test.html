@@ -97,7 +97,7 @@ $(function() {
 		ROSDASH.headerSetCallback(e, data);
 	});
 	
-	ROSDASH.connectROS();
+	ROSDASH.connectROS("localhost", "9090");
 	ROSDASH.initJson();
 	$.getJSON('file/test4-diagram.json', function(data)
 	{
