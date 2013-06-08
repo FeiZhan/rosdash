@@ -56,13 +56,17 @@
 		<script type="text/javascript">
 $(function() {
 	$("#addToDiagram").click(ROSDASH.addToDiagram);
+	$("#btnAddWidget").click(function()
+	{
+		ROSDASH.addWidget($("#text").val());
+	});
 	$("#myDashboard").sDashboard({
 		dashboardData : [],
 		disableSelection : true
 	});
 	$("#myDashboard").bind("sdashboardorderchanged", function(e, data)
 	{
-		ROSDASH.updateOrder(data.sortedDefinitions);
+		ROSDASH.savePanel(data.sortedDefinitions);
 	});
 	$("#myDashboard").bind("sdashboardrowclicked", function(e, data)
 	{
@@ -99,15 +103,11 @@ $(function() {
 	
 	ROSDASH.connectROS("localhost", "9090");
 	ROSDASH.initJson();
-	$.getJSON('file/test4-diagram.json', function(data)
-	{
-		ROSDASH.diagram = data;
-	});
+	ROSDASH.readDiagram();
 	$.getJSON('file/test3-panel.json', function(data)
 	{
-		ROSDASH.initWidget(data);
-		ROSDASH.addWidgetCallback();
-		ROSDASH.Widgets.topic();
+		ROSDASH.loadPanel(data);
+		ROSDASH.updateOnceWidgets();
 		ROSDASH.updateWidgets();
 	});
 });
