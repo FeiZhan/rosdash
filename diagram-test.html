@@ -22,6 +22,7 @@ body {
 		</style>
 	</head>
 	<body>
+		<input type="button" id="save" value="save">
 		<input type="text" name="host" id="host" value="localhost">
 		<input type="text" name="topic" id="topic" value="">
 		<input type="button" id="addtopic" value="add topic">
@@ -38,6 +39,10 @@ $(function() {
 	$("#addblock").click(function ()
 	{
 		ROSDASH.addBlock($("#topic").val());
+	});
+	$("#save").click(function ()
+	{
+		ROSDASH.saveDiagram();
 	});
 	$("#removeblock").click(ROSDASH.removeBlockCallback);
 	$("#readblocks").click(ROSDASH.readBlockCallback);
@@ -60,6 +65,8 @@ $(function() {
 			window.cy = this;
 			$.getJSON('file/test4-diagram.json', function(data)
 			{
+				console.log("load diagram: test4-diagram.json");
+				console.debug(data);
 				ROSDASH.loadDiagram(data);
 			});
 			window.cy.elements().unlock();

@@ -58,7 +58,7 @@ $(function() {
 	$("#addToDiagram").click(ROSDASH.addToDiagram);
 	$("#btnAddWidget").click(function()
 	{
-		ROSDASH.addWidget($("#text").val());
+		ROSDASH.addWidgetByType($("#text").val());
 	});
 	$("#myDashboard").sDashboard({
 		dashboardData : [],
@@ -67,11 +67,7 @@ $(function() {
 	$("#myDashboard").bind("sdashboardorderchanged", function(e, data)
 	{
 		ROSDASH.moveWidget(data.sortedDefinitions);
-		ROSDASH.savePanel(data.sortedDefinitions);
-	});
-	$("#myDashboard").bind("sdashboardrowclicked", function(e, data)
-	{
-		console.log("table row clicked, for widget: " + data.selectedWidgetId);
+		ROSDASH.savePanel();
 	});
 	$("#myDashboard").bind("sdashboardheaderclicked", function(e, data)
 	{
