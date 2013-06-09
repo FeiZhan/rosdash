@@ -66,6 +66,7 @@ $(function() {
 	});
 	$("#myDashboard").bind("sdashboardorderchanged", function(e, data)
 	{
+		ROSDASH.moveWidget(data.sortedDefinitions);
 		ROSDASH.savePanel(data.sortedDefinitions);
 	});
 	$("#myDashboard").bind("sdashboardrowclicked", function(e, data)
@@ -90,7 +91,7 @@ $(function() {
 	});
 	$("#myDashboard").bind("sdashboardwidgetremoved", function(e, data)
 	{
-		ROSDASH.widgetRemoveCallback(e, data);
+		ROSDASH.removeWidget(data.widgetDefinition.widgetId);
 	});
 	$("#myDashboard").bind("sdashboardwidgetset", function(e, data)
 	{
@@ -104,11 +105,23 @@ $(function() {
 	ROSDASH.connectROS("localhost", "9090");
 	ROSDASH.initJson();
 	ROSDASH.readDiagram();
-	$.getJSON('file/test3-panel.json', function(data)
+	$.getJSON('file/test4-panel.json', function(data)
 	{
-		ROSDASH.loadPanel(data);
-		ROSDASH.updateOnceWidgets();
-		ROSDASH.updateWidgets();
+		-- ROSDASH.panel_init_count;
+		console.log("panel load: test4-panel.json");
+		function start()
+		{
+			if (0 >= ROSDASH.panel_init_count)
+			{
+				ROSDASH.loadPanel(data);
+				ROSDASH.updateOnceWidgets();
+				ROSDASH.updateWidgets();
+			} else
+			{
+				setTimeout(start, 300);
+			}
+		}
+		start();
 	});
 });
 		</script>

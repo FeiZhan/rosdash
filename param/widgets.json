@@ -1,8 +1,21 @@
 {
 "widgets": [
 	{
+		"type": "topic",
+		"runNamespace": "Topic",
+		"runOnce": "runOnce",
+		"run": "run",
+		"input": [],
+		"output": [
+			{
+				"datatype": "String",
+				"name": "output"
+			}
+		]
+	}, {
 		"type": "text",
-		"input_num": 2,
+		"runNamespace": "Text",
+		"run": "run",
 		"input": [
 			{
 				"datatype": "String",
@@ -12,11 +25,9 @@
 				"name": "content"
 			}
 		],
-		"output_num": 0,
 		"output": []
 	}, {
 		"type": "table",
-		"input_num": 4,
 		"input": [
 			{
 				"datatype": "String",
@@ -32,7 +43,66 @@
 				"name": "layout"
 			}
 		],
-		"output_num": 0,
+		"output": []
+	}, {
+		"type": "chart",
+		"input": [
+			{
+				"datatype": "String",
+				"name": "title"
+			}, {
+				"datatype": "Float32[]",
+				"name": "data"
+			}, {
+				"datatype": "ChartOption",
+				"name": "option"
+			}
+		],
+		"output": []
+	}, {
+		"type": "pie chart",
+		"input": [
+			{
+				"datatype": "String",
+				"name": "title"
+			}, {
+				"datatype": "Float32[]",
+				"name": "data"
+			}, {
+				"datatype": "ChartOption",
+				"name": "option"
+			}
+		],
+		"output": []
+	}, {
+		"type": "gmap",
+		"input": [
+			{
+				"datatype": "String",
+				"name": "title"
+			}, {
+				"datatype": "GmapOption",
+				"name": "option"
+			}, {
+				"datatype": "GmapOverlay[]",
+				"name": "overlay"
+			}
+		],
+		"output": []
+	}, {
+		"type": "network",
+		"input": [
+			{
+				"datatype": "String",
+				"name": "title"
+			}, {
+				"datatype": "String[]",
+				"name": "data"
+			}, {
+				"datatype": "NetworkOption",
+				"name": "option"
+			}
+		],
 		"output": []
 	}
 ]}
