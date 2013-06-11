@@ -355,6 +355,20 @@ ROSDASH.default_element2 = {
 	]
 };
 
+//------------------- basics
+ROSDASH.setUser = function (user)
+{
+	if (undefined === user || "" == user)
+	{
+		console.error("invalid user: " + user);
+		ROSDASH.user = "test";
+	} else
+	{
+		ROSDASH.user = user;
+	}
+	console.log("user name: " + ROSDASH.user);
+}
+
 //------------------- ROS
 ROSDASH.ros;
 ROSDASH.connectROS = function (host, port)
@@ -420,10 +434,85 @@ ROSDASH.ros_blocks = {
 	service: new Array(),
 	param: new Array()
 };
-//@todo need to change to blocks
 ROSDASH.checkROSConflict = function (name, type)
 {
-	return (-1 == jQuery.inArray(name, ROSDASH.ros_blocks[type]));
+	return (-1 != jQuery.inArray(name, ROSDASH.ros_blocks[type]));
+}
+
+//------------------- widget def
+ROSDASH.msg_json = {
+	"std_msgs": new Object()
+};
+ROSDASH.widget_json = {
+	"widgets": new Object()
+};
+ROSDASH.widget_def = new Object();
+ROSDASH.initJson = function ()
+{
+	for (var i in ROSDASH.msg_json)
+	{
+		$.getJSON("param/" + i + ".json", function(data, status, xhr)
+		{
+			for (var j in data)
+			{
+				ROSDASH.msg_json[j] = data;
+				-- ROSDASH.panel_init_count;
+				console.log("load msgs " + i + ": " + j);
+			}
+		});
+	}
+	for (var i in ROSDASH.widget_json)
+	{
+		$.getJSON("param/" + i + ".json", function(data, status, xhr)
+		{
+			for (var j in data)
+			{
+				ROSDASH.widget_json[j] = data;
+				for (var k in data[j])
+				{
+					if (undefined != data[j][k].type)
+					{
+						ROSDASH.widget_def[data[j][k].type] = data[j][k];
+					}
+				}
+				-- ROSDASH.panel_init_count;
+				console.log("load widgets " + i + ": " + j);
+			}
+		});
+	}
+}
+ROSDASH.getWidgetDef = function (name)
+{
+	for (var i in ROSDASH.widget_json)
+	{
+		var json = ROSDASH.widget_json[i];
+		for (var j in json)
+		{
+			var json2 = json[j];
+			if (undefined === json2.type)
+			{
+				for (var k in json2)
+				{
+					if (json2[k].type == name)
+					{
+						return json2[k];
+					}
+				}
+			} else
+			{
+				if (json2.type == name)
+				{
+					return json2;
+				}
+			}
+		}
+	}
+	console.error("wrong widget name: " + name);
+	return undefined;
+}
+ROSDASH.checkWidgetTypeValid = function (name)
+{
+	return (undefined !== ROSDASH.getWidgetDef(name));
 }
 
 //------------------- blocks
@@ -433,10 +522,9 @@ ROSDASH.getNextNewBlockPos = function ()
 {
 	return ROSDASH.NEW_POS;
 }
-//@todo merge with block
 ROSDASH.addTopic = function (name, x, y)
 {
-	if ("" == name) // ! ROSDASH.checkROSValid(name, "topic") || ! ROSDASH.checkROSConflict(name, "topic"))
+	if ("" == name /* ! ROSDASH.checkROSValid(name, "topic")*/ || ROSDASH.checkROSConflict(name, "topic"))
 	{
 		console.error("topic name not valid: " + name);
 		return;
@@ -444,10 +532,12 @@ ROSDASH.addTopic = function (name, x, y)
 	var next_pos = ROSDASH.getNextNewBlockPos();
 	x = (typeof x !== 'undefined') ? x : next_pos[0];
 	y = (typeof y !== 'undefined') ? y : next_pos[1];
+	var count = ROSDASH.ros_blocks.topic.length;
+	var id = "topic-" + count;
 	window.cy.add({
 		group: "nodes",
 		data: {
-			id: "topic_" + name,
+			id: id,
 			name: name,
 			weight: 65,
 			faveColor: "green",
@@ -459,9 +549,9 @@ ROSDASH.addTopic = function (name, x, y)
 	window.cy.add({
 		group: "nodes",
 		data: {
-			id: "topic_" + name + "-o0",
-			weight: 10,
-			height: 20,
+			id: id + "-o0",
+			weight: 5,
+			height: 5,
 			faveColor: "grey",
 			faveShape: "rectangle"
 		},
@@ -469,36 +559,26 @@ ROSDASH.addTopic = function (name, x, y)
 		classes: "output",
 		locked: true
 	});
-	ROSDASH.ros_blocks.topic.push(name);
 	var block = {
-		id: "topic_" + name,
+		id: id,
 		type: "topic",
-		number: ROSDASH.ros_blocks.topic.length,
-		input_num: 0,
-		output_num: 1
+		rosname: name,
+		number: ROSDASH.ros_blocks.topic.length
 	};
-	ROSDASH.blocks["topic_" + name] = block;
+	ROSDASH.blocks[id] = block;
+	ROSDASH.ros_blocks.topic.push(name);
 }
 ROSDASH.block_type = new Object();
-ROSDASH.checkBlockNameValid = function (name)
-{
-	if (undefined === name || "" == name || " " == name || ! ROSDASH.checkWidgetTypeValid(name))
-	{
-		console.error("block name not valid: " + name);
-		return false;
-	}
-	return true;
-}
 ROSDASH.blocks = new Object();
-ROSDASH.addBlock = function (name, x, y)
+ROSDASH.addBlockByType = function (name)
 {
-	if (! ROSDASH.checkBlockNameValid(name))
+	if (! ROSDASH.checkWidgetTypeValid(name))
 	{
 		return;
 	}
 	var next_pos = ROSDASH.getNextNewBlockPos();
-	x = (typeof x !== 'undefined') ? x : next_pos[0];
-	y = (typeof y !== 'undefined') ? y : next_pos[1];
+	var x = next_pos[0];
+	var y = next_pos[1];
 	if (ROSDASH.block_type[name] === undefined)
 	{
 		ROSDASH.block_type[name] = new Object();
@@ -525,11 +605,8 @@ ROSDASH.addBlock = function (name, x, y)
 		position: { x: x, y: y },
 		classes: "body"
 	});
-	//@todo
-	var widget_template = ROSDASH.getWidgetDef(name);
-	//@todo change input_num to block_type
-	block.input_num = widget_template.input.length;
-	for (var i = 0; i < block.input_num; ++ i)
+	var input_num = ROSDASH.widget_def[name].input.length;
+	for (var i = 0; i < input_num; ++ i)
 	{
 		window.cy.add({
 			group: "nodes",
@@ -545,8 +622,8 @@ ROSDASH.addBlock = function (name, x, y)
 			locked: true
 		});
 	}
-	block.output_num = widget_template.output.length;
-	for (var i = 0; i < block.output_num; ++ i)
+	var output_num = ROSDASH.widget_def[name].output.length;
+	for (var i = 0; i < output_num; ++ i)
 	{
 		window.cy.add({
 			group: "nodes",
@@ -564,10 +641,90 @@ ROSDASH.addBlock = function (name, x, y)
 	}
 	ROSDASH.blocks[block.id] = block;
 }
-ROSDASH.removeBlockCallback = function ()
+ROSDASH.addBlockByDef = function (def)
+{
+	if (! ROSDASH.checkWidgetTypeValid(def.type))
+	{
+		return;
+	}
+	var next_pos = ROSDASH.getNextNewBlockPos();
+	x = (typeof def.x != 'undefined') ? parseFloat(def.x) : next_pos[0];
+	y = (typeof def.y != 'undefined') ? parseFloat(def.y) : next_pos[1];
+	if (ROSDASH.block_type[def.type] === undefined)
+	{
+		ROSDASH.block_type[def.type] = new Object();
+		ROSDASH.block_type[def.type].count = def.number;
+	} else if (def.number > ROSDASH.block_type[def.type].count)
+	{
+		ROSDASH.block_type[def.type].count = def.number;
+	} else
+	{
+		for (var i in ROSDASH.blocks)
+		{
+			if (def.type == ROSDASH.blocks[i].type && def.number == ROSDASH.blocks[i].number)
+			{
+				console.error("block number conflicts: " + def.id);
+				return;
+			}
+		}
+	}
+	var block = {
+		type: def.type,
+		number: def.number,
+		id: def.id,
+		name: def.name,
+	};
+	window.cy.add({
+		group: "nodes",
+		data: {
+			id: block.id,
+			name: block.name,
+			weight: 70,
+			faveColor: "blue",
+			faveShape: "rectangle"
+		},
+		position: { x: x, y: y },
+		classes: "body"
+	});
+	var input_num = ROSDASH.widget_def[def.type].input.length;
+	for (var i = 0; i < input_num; ++ i)
+	{
+		window.cy.add({
+			group: "nodes",
+			data: {
+				id: block.id + "-i" + i,
+				weight: 5,
+				height: 5,
+				faveColor: "grey",
+				faveShape: "rectangle"
+			},
+			position: { x: x - 70, y: y },
+			classes: "input",
+			locked: true
+		});
+	}
+	var output_num = ROSDASH.widget_def[def.type].output.length;
+	for (var i = 0; i < output_num; ++ i)
+	{
+		window.cy.add({
+			group: "nodes",
+			data: {
+				id: block.id + "-o" + i,
+				weight: 5,
+				height: 5,
+				faveColor: "grey",
+				faveShape: "rectangle"
+			},
+			position: { x: x + 70, y: y },
+			classes: "output",
+			locked: true
+		});
+	}
+	ROSDASH.blocks[block.id] = block;
+}
+ROSDASH.removeBlock = function (name)
 {
 	var ele = window.cy.$(':selected');
-	var name = $("#topic").val();
 	// priority on selected elements
 	if (ele.size() > 0)
 	{
@@ -586,13 +743,22 @@ ROSDASH.removeBlockCallback = function ()
 			ele.remove();
 		}
 	}
+	if (ele in ROSDASH.blocks)
+	{
+		delete ROSDASH.blocks[ele];
+	}
 }
 ROSDASH.followBlock = function (target)
 {
 	var id = target.id();
+	if (undefined === ROSDASH.blocks[id])
+	{
+		return;
+	}
+	var type = ROSDASH.blocks[id].type;
 	if (undefined != ROSDASH.blocks[id])
 	{
-		var pin_num = ROSDASH.blocks[id].input_num;
+		var pin_num = ROSDASH.widget_def[type].input.length;
 		for (var i = 0; i < pin_num; ++ i)
 		{
 			window.cy.nodes('[id = "' + id + "-i" + i + '"]').positions(function (i, ele)
@@ -603,7 +769,7 @@ ROSDASH.followBlock = function (target)
 				});
 			});
 		}
-		pin_num = ROSDASH.blocks[id].output_num;
+		pin_num = ROSDASH.widget_def[type].output.length;
 		for (var i = 0; i < pin_num; ++ i)
 		{
 			window.cy.nodes('[id = "' + id + "-o" + i + '"]').positions(function (i, ele)
@@ -632,13 +798,13 @@ ROSDASH.connectBlocks = function (source, target)
 {
 	// if source and target exist
 	var body = source.substring(0, source.lastIndexOf("-"));
-	if (! (body in ROSDASH.blocks) || ! (body in ROSDASH.blocks))
+	if (! (body in ROSDASH.blocks))
 	{
 		console.error("cannot connect: " + source);
 		return;
 	}
 	body = target.substring(0, target.lastIndexOf("-"));
-	if (! (body in ROSDASH.blocks) || ! (body in ROSDASH.blocks))
+	if (! (body in ROSDASH.blocks))
 	{
 		console.error("cannot connect: " + target);
 		return;
@@ -721,10 +887,13 @@ ROSDASH.saveDiagram = function ()
 	};
 	for (var i in ROSDASH.blocks)
 	{
-		json.block[i] = ROSDASH.blocks[i];
-		//@todo save the position into blocks
-		json.block[i].x = window.cy.$("#" + ROSDASH.blocks[i].id).position('x');
-		json.block[i].y = window.cy.$("#" + ROSDASH.blocks[i].id).position('y');
+		var node = window.cy.$("#" + ROSDASH.blocks[i].id);
+		if (node)
+		{
+			json.block[i] = ROSDASH.blocks[i];
+			json.block[i].x = node.position('x');
+			json.block[i].y = node.position('y');
+		}
 	}
 	window.cy.edges().each(function (i, ele)
 	{
@@ -742,14 +911,19 @@ ROSDASH.loadDiagram = function (json)
 	{
 		var x = parseFloat(json.block[i].x);
 		var y = parseFloat(json.block[i].y);
-		switch (json.block[i].type)
+		if (x && y)
 		{
-		case "topic":
-			ROSDASH.addTopic(i.substring(6), x, y);
-			break;
-		default:
-			ROSDASH.addBlock(json.block[i].type, x, y);
-			break;
+			switch (json.block[i].type)
+			{
+			case "topic":
+				ROSDASH.addTopic(json.block[i].rosname, x, y);
+				//@todo
+				//ROSDASH.addTopicByDef(json.block[i].rosname, x, y);
+				break;
+			default:
+				ROSDASH.addBlockByDef(json.block[i]);
+				break;
+			}
 		}
 	}
 	for (var i in json.edge)
@@ -758,14 +932,35 @@ ROSDASH.loadDiagram = function (json)
 	}
 	window.cy.fit();
 }
-ROSDASH.readBlockCallback = function ()
+ROSDASH.runDiagram = function (user)
 {
-	$.getJSON('file/' + ROSDASH.user + '-diagram.json', function(data)
-	{
-		ROSDASH.loadDiagram(data);
+	ROSDASH.setUser(user);
+	ROSDASH.initJson();
+	var style = ROSDASH.default_style;
+	var element = ROSDASH.default_element;
+	var empty_ele = {nodes: new Array(), edges: new Array()};
+	ROSDASH.getROSNames(ROSDASH.ros);
+	$('#cy').cytoscape({
+		layout: {
+			name: 'circle'
+		},
+		style: style,
+		elements: empty_ele,
+		ready: function()
+		{
+			window.cy = this;
+			$.getJSON('file/' + ROSDASH.user + '-diagram.json', function(data)
+			{
+				console.log("load diagram: " + ROSDASH.user + "-diagram.json");
+				ROSDASH.loadDiagram(data);
+			});
+			window.cy.elements().unlock();
+			window.cy.elements().unselect();
+			ROSDASH.blockMoveCallback();
+			ROSDASH.connectBlocksCallback();
+		}
 	});
 }
-// deprecated
 ROSDASH.transformToElements = function (json)
 {
 	var ele = {
@@ -800,83 +995,6 @@ ROSDASH.transformToElements = function (json)
 		}
 	}
 	return ele;
-}
-
-//------------------- widget definitions
-ROSDASH.msg_json = {
-	"std_msgs": new Object()
-};
-//@todo
-ROSDASH.widget_json = {
-	"widgets": new Object()
-};
-ROSDASH.widget_def = new Object();
-ROSDASH.initJson = function ()
-{
-	for (var i in ROSDASH.msg_json)
-	{
-		$.getJSON("param/" + i + ".json", function(data, status, xhr)
-		{
-			for (var j in data)
-			{
-				ROSDASH.msg_json[j] = data;
-				-- ROSDASH.panel_init_count;
-				console.log("load msgs " + i + ": " + j);
-			}
-		});
-	}
-	for (var i in ROSDASH.widget_json)
-	{
-		$.getJSON("param/" + i + ".json", function(data, status, xhr)
-		{
-			for (var j in data)
-			{
-				ROSDASH.widget_json[j] = data;
-				for (var k in data[j])
-				{
-					if (undefined != data[j][k].type)
-					{
-						ROSDASH.widget_def[data[j][k].type] = data[j][k];
-					}
-				}
-				-- ROSDASH.panel_init_count;
-				console.log("load widgets " + i + ": " + j);
-			}
-		});
-	}
-}
-ROSDASH.getWidgetDef = function (name)
-{
-	for (var i in ROSDASH.widget_json)
-	{
-		var json = ROSDASH.widget_json[i];
-		for (var j in json)
-		{
-			var json2 = json[j];
-			if (undefined === json2.type)
-			{
-				for (var k in json2)
-				{
-					if (json2[k].type == name)
-					{
-						return json2[k];
-					}
-				}
-			} else
-			{
-				if (json2.type == name)
-				{
-					return json2;
-				}
-			}
-		}
-	}
-	console.error("wrong widget name: " + name);
-	return undefined;
-}
-ROSDASH.checkWidgetTypeValid = function (name)
-{
-	return (undefined != ROSDASH.getWidgetDef(name));
 }
 
 //------------------- widgets
@@ -920,7 +1038,7 @@ ROSDASH.parseWidgetContent = function (widget)
 		widget.widgetContent.options = myExampleData.lineChartOptions;
 		break;
 	case "gmap":
-		widget.widgetContent = '<div id="map-canvas" class="sDashboardWidgetContent" />';
+		//widget.widgetContent = '<div id="map-canvas" class="sDashboardWidgetContent" />';
 		break;
 	case "arbor":
 		widget.widgetContent = '<canvas id="viewport" class="ArborWidgetContent"></canvas>';
@@ -937,6 +1055,15 @@ ROSDASH.parseWidgetContent = function (widget)
 	default:
 		widget.widgetContent = '';
 		break;
+	}
+	var wdef = ROSDASH.widget_def[widget.widgetType];
+	if (undefined !== wdef.runNamespace && undefined !== wdef.init)
+	{
+		var fn = window["ROSDASH"][widget.runNamespace][widget.init];
+		if (typeof fn == "function")
+		{
+			widget = fn(widget);
+		}
 	}
 	return widget;
 }
@@ -987,23 +1114,22 @@ ROSDASH.parseExampleData = function (widget)
 	}
 	return widget;
 }
-ROSDASH.widget_type = new Object();
 ROSDASH.widgets = new Object();
 ROSDASH.addWidgetByType = function (name)
 {
 	if (ROSDASH.checkWidgetTypeValid(name))
 	{
-		if (undefined === ROSDASH.widget_type[name])
+		if (undefined === ROSDASH.widget_def[name])
 		{
-			ROSDASH.widget_type[name] = new Object();
-			ROSDASH.widget_type[name].count = 0;
+			ROSDASH.widget_def[name] = new Object();
+			ROSDASH.widget_def[name].count = 0;
 		} else
 		{
-			++ ROSDASH.widget_type[name].count;
+			++ ROSDASH.widget_def[name].count;
 		}
-		var id = name + "-" + ROSDASH.widget_type[name].count;
+		var id = name + "-" + ROSDASH.widget_def[name].count;
 		var widget = {
-			widgetTitle : name + " " + ROSDASH.widget_type[name].count,
+			widgetTitle : name + " " + ROSDASH.widget_def[name].count,
 			widgetId : id,
 			widgetType : name,
 			widgetContent : undefined,
@@ -1016,7 +1142,6 @@ ROSDASH.addWidgetByType = function (name)
 		ROSDASH.widgets[id] = widget;
 		widget = ROSDASH.parseWidgetContent(widget);
 		$("#myDashboard").sDashboard("addWidget", widget);
-		//ROSDASH.savePanel();
 	}
 }
 ROSDASH.addWidgetByDef = function (def)
@@ -1024,19 +1149,21 @@ ROSDASH.addWidgetByDef = function (def)
 	if (def.widgetId in ROSDASH.widgets)
 	{
 		console.error("widget id duplicate: " + def.widgetId);
+		// show the effect
+		$("#myDashboard").sDashboard("addWidget", def);
 		return;
 	}
 	if (! ROSDASH.checkWidgetTypeValid(def.widgetType))
 	{
 		return;
 	}
-	if (undefined === ROSDASH.widget_type[def.widgetType])
+	if (undefined === ROSDASH.widget_def[def.widgetType])
 	{
-		ROSDASH.widget_type[def.widgetType] = new Object();
-		ROSDASH.widget_type[def.widgetType].count = 0;
+		ROSDASH.widget_def[def.widgetType] = new Object();
+		ROSDASH.widget_def[def.widgetType].count = 0;
 	} else
 	{
-		++ ROSDASH.widget_type[def.widgetType].count;
+		++ ROSDASH.widget_def[def.widgetType].count;
 	}
 	ROSDASH.widgets[def.widgetId] = def;
 	var widget = ROSDASH.parseExampleData(def);
@@ -1096,6 +1223,71 @@ ROSDASH.savePanel = function ()
 {
 	ROSDASH.saveJson(ROSDASH.widgets, ROSDASH.user + "-panel");
 }
+ROSDASH.runPanel = function (user)
+{
+	ROSDASH.setUser(user);
+	$("#myDashboard").sDashboard({
+		dashboardData : [],
+		disableSelection : true
+	});
+	$("#myDashboard").bind("sdashboardorderchanged", function(e, data)
+	{
+		ROSDASH.moveWidget(data.sortedDefinitions);
+		ROSDASH.savePanel();
+	});
+	$("#myDashboard").bind("sdashboardheaderclicked", function(e, data)
+	{
+		ROSDASH.selectedWidget = data.selectedWidgetId;
+	});
+	$("#myDashboard").bind("sdashboardwidgetmaximized", function(e, data)
+	{
+		ROSDASH.widgetMaxCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardwidgetminimized", function(e, data)
+	{
+		ROSDASH.widgetMaxCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardwidgetadded", function(e, data)
+	{
+		ROSDASH.widgetAddCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardwidgetremoved", function(e, data)
+	{
+		ROSDASH.removeWidget(data.widgetDefinition.widgetId);
+	});
+	$("#myDashboard").bind("sdashboardwidgetset", function(e, data)
+	{
+		ROSDASH.widgetSetCallback(e, data);
+	});
+	$("#myDashboard").bind("sdashboardheaderset", function(e, data)
+	{
+		ROSDASH.headerSetCallback(e, data);
+	});
+	
+	ROSDASH.connectROS("localhost", "9090");
+	ROSDASH.initJson();
+	ROSDASH.readDiagram();
+	$.getJSON('file/' + ROSDASH.user + '-panel.json', function(data)
+	{
+		-- ROSDASH.panel_init_count;
+		console.log("panel load: " + ROSDASH.user + "-panel.json");
+		function start()
+		{
+			if (0 >= ROSDASH.panel_init_count)
+			{
+				ROSDASH.loadPanel(data);
+				ROSDASH.updateOnceWidgets();
+				ROSDASH.updateWidgets();
+			} else
+			{
+				setTimeout(start, 300);
+			}
+		}
+		start();
+	}).error(function(d) {
+		console.error("panel error: " + ROSDASH.user + "-panel.json");
+	});
+}
 
 //------------------- diagram execution
 ROSDASH.diagram;
@@ -1108,6 +1300,8 @@ ROSDASH.readDiagram = function ()
 		console.log("read diagram: " + ROSDASH.user + '-diagram.json');
 		ROSDASH.diagram = data;
 		ROSDASH.traverseDiagram();
+	}).error(function(d) {
+		console.error("read error: " + ROSDASH.user + '-diagram.json');
 	});
 }
 ROSDASH.diagram_connection = new Object();
@@ -1166,8 +1360,7 @@ ROSDASH.traverseDiagram = function ()
 ROSDASH.diagram_output = new Object();
 ROSDASH.updateOnceWidgets = function ()
 {
-	ROSDASH.Topic.runOnce('listener', 'std_msgs/String');
-	/*for (var i in diagram_connection)
+	for (var i in ROSDASH.diagram_connection)
 	{
 		if (! ROSDASH.diagram_connection[i].exist)
 		{
@@ -1175,8 +1368,22 @@ ROSDASH.updateOnceWidgets = function ()
 			continue;
 		}
 		var widget = ROSDASH.widget_def[ROSDASH.diagram.block[i].type];
-		window["ROSDASH"][widget.runNamespace][widget.run](i, 'listener');
-	}*/
+		if (undefined !== widget.runNamespace && undefined !== widget.runOnce)
+		{
+			var fn = window["ROSDASH"][widget.runNamespace][widget.runOnce];
+			if (typeof fn == "function")
+			{
+				fn(ROSDASH.diagram.block[i]);
+			} else
+			{
+				console.error("widget's run function does not exist: " + i);
+				continue;
+			}
+		} else
+		{
+			continue;
+		}
+	}
 }
 ROSDASH.done_count = 0;
 ROSDASH.updateWidgets = function ()
@@ -1194,7 +1401,6 @@ ROSDASH.updateWidgets = function ()
 		{
 			if (! ROSDASH.diagram_connection[i].exist)
 			{
-				//console.error("widget does not exist: "+ i);
 				continue;
 			}
 			if (ROSDASH.diagram_connection[i].done)
@@ -1202,6 +1408,8 @@ ROSDASH.updateWidgets = function ()
 				continue;
 			}
 			var ready_flag = true;
+			var input = new Object();
+			var count = 0;
 			for (var j in ROSDASH.diagram_connection[i].parent)
 			{
 				if (! (j in ROSDASH.diagram_output) || undefined === ROSDASH.diagram_output[j])
@@ -1209,89 +1417,28 @@ ROSDASH.updateWidgets = function ()
 					ready_flag = false;
 					break;
 				}
+				input[count] = ROSDASH.diagram_output[j];
+				++ count;
 			}
 			if (ready_flag)
 			{
 				var widget = ROSDASH.widget_def[ROSDASH.diagram.block[i].type];
-				window["ROSDASH"][widget.runNamespace][widget.run](i, 'listener');
+				if (undefined === widget.runNamespace || undefined === widget.run)
+				{
+					continue;
+				}
+				var fn = window["ROSDASH"][widget.runNamespace][widget.run];
+				if (typeof fn != "function")
+				{
+					continue;
+				}
+				fn(ROSDASH.diagram.block[i], input);
 				ROSDASH.diagram_connection[i].done = true;
 				++ ROSDASH.done_count;
 			}
 		}
 	}
-	//ROSDASH.Topic.topic('listener');
-	ROSDASH.Text.run("text-0", "topic listener", ROSDASH.msgToStr(ROSDASH.rosMsg['listener']).o0);
 	setTimeout(ROSDASH.updateWidgets, 200);
-}
-
-//------------------- widget execution
-ROSDASH.rosMsg = new Object();
-
-ROSDASH.Topic = new Object();
-ROSDASH.Topic.runOnce = function (id, name, type)
-{
-	ROSDASH.rosMsg[name] = "cannot connect to ROS";
-	var listener = new ROSLIB.Topic({
-		ros : ROSDASH.ros,
-		name : name,
-		messageType : type
-	});
-	listener.subscribe(function(message)
-	{
-		ROSDASH.rosMsg[name] = message;
-		//listener.unsubscribe();
-	});
-}
-ROSDASH.Topic.run = function (id, name)
-{
-	ROSDASH.rosMsg[name] = "running";
-	ROSDASH.diagram_output['topic-' + name] = ROSDASH.rosMsg[name];
-}
-
-ROSDASH.msgToStr = function (msg)
-{
-	var str = "";
-	if (typeof msg == "object" || typeof msg == "array")
-	{
-		for (var i in msg)
-		{
-			str += " ( " + i + ": ";
-			str += ROSDASH.msgToStr(msg[i]).o0;
-			str += " ) ";
-		}
-	} else
-	{
-		str += msg;
-	}
-	var output = {o0: str};
-	return output;
-}
-ROSDASH.Text = new Object();
-ROSDASH.Text.run = function (id, header, content)
-{
-	$("#myDashboard").sDashboard("setContentById", id, content);
-	$("#myDashboard").sDashboard("setHeaderById", id, header);
-}
-
-ROSDASH.Gmap = new Object();
-ROSDASH.Gmap.gmap = undefined;
-ROSDASH.Gmap.initGmap = function ()
-{
-	var LAB = [49.276802, -122.914913];
-	if ($("#map-canvas").length)
-	{
-		var mapOptions = {
-		  center: new google.maps.LatLng(LAB[0], LAB[1]),
-		  zoom: 14,
-		  mapTypeId: google.maps.MapTypeId.ROADMAP
-		};
-		ROSDASH.Gmap.gmap = new google.maps.Map(document.getElementById("map-canvas"),
-			mapOptions);
-	}
-}
-ROSDASH.Gmap.resizeGmap = function ()
-{
-	google.maps.event.trigger(ROSDASH.Gmap.gmap, "resize");
 }
 
 //------------------- panel callback
@@ -1329,15 +1476,99 @@ ROSDASH.widgetSetCallback = function (e, data)
 {
 	for (var i in data)
 	{
-		//console.debug(data[i]);
+		//console.log(data[i]);
 	}
 }
 ROSDASH.headerSetCallback = function (e, data)
 {
 	for (var i in data)
 	{
-		//console.debug(data[i]);
+		//console.log(data[i]);
 	}
+}
+
+//------------------- widget execution
+ROSDASH.rosMsg = new Object();
+
+ROSDASH.Topic = new Object();
+ROSDASH.Topic.runOnce = function (block)
+{
+	var hyphen = block.id.lastIndexOf("_");
+	var name = block.id.substring(hyphen + 1);
+	var type = 'std_msgs/String';
+	ROSDASH.rosMsg[name] = "cannot connect to ROS";
+	var listener = new ROSLIB.Topic({
+		ros : ROSDASH.ros,
+		name : name,
+		messageType : type
+	});
+	listener.subscribe(function(message)
+	{
+		ROSDASH.rosMsg[name] = message;
+		//listener.unsubscribe();
+	});
+}
+ROSDASH.Topic.run = function (block, input)
+{
+	var hyphen = block.id.lastIndexOf("_");
+	var name = block.id.substring(hyphen + 1);
+	//ROSDASH.rosMsg[name] = "running";
+	ROSDASH.diagram_output[block.id] = ROSDASH.rosMsg[name];
+}
+
+ROSDASH.msgToStr = function (msg)
+{
+	var str = "";
+	if (typeof msg == "object" || typeof msg == "array")
+	{
+		for (var i in msg)
+		{
+			str += " ( " + i + ": ";
+			str += ROSDASH.msgToStr(msg[i]).o0;
+			str += " ) ";
+		}
+	} else
+	{
+		str += msg;
+	}
+	var output = {o0: str};
+	return output;
+}
+ROSDASH.Text = new Object();
+ROSDASH.Text.run = function (block, input)
+{
+	if (undefined === input[0])
+	{
+		return;
+	}
+	$("#myDashboard").sDashboard("setContentById", block.id, input[0]);
+	$("#myDashboard").sDashboard("setHeaderById", block.id, "topic listener");
+}
+
+ROSDASH.Gmap = new Object();
+ROSDASH.Gmap.gmap = undefined;
+ROSDASH.Gmap.init = function (widget)
+{
+	widget.widgetContent = '<div id="map-canvas" class="sDashboardWidgetContent" />';
+	return widget;
+}
+ROSDASH.Gmap.initGmap = function ()
+{
+	var LAB = [49.276802, -122.914913];
+	if ($("#map-canvas").length)
+	{
+		var mapOptions = {
+		  center: new google.maps.LatLng(LAB[0], LAB[1]),
+		  zoom: 14,
+		  mapTypeId: google.maps.MapTypeId.ROADMAP
+		};
+		ROSDASH.Gmap.gmap = new google.maps.Map(document.getElementById("map-canvas"),
+			mapOptions);
+	}
+}
+ROSDASH.Gmap.resizeGmap = function ()
+{
+	google.maps.event.trigger(ROSDASH.Gmap.gmap, "resize");
 }
 
 //@todo

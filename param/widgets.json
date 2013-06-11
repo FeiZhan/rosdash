@@ -3,6 +3,7 @@
 	{
 		"type": "topic",
 		"runNamespace": "Topic",
+		"init": "init",
 		"runOnce": "runOnce",
 		"run": "run",
 		"input": [],
@@ -15,6 +16,7 @@
 	}, {
 		"type": "text",
 		"runNamespace": "Text",
+		"init": "init",
 		"run": "run",
 		"input": [
 			{
@@ -76,6 +78,8 @@
 		"output": []
 	}, {
 		"type": "gmap",
+		"runNamespace": "Gmap",
+		"init": "init",
 		"input": [
 			{
 				"datatype": "String",

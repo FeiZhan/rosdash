@@ -55,70 +55,12 @@
 		<!-- example code -->
 		<script type="text/javascript">
 $(function() {
-	$("#addToDiagram").click(ROSDASH.addToDiagram);
 	$("#btnAddWidget").click(function()
 	{
 		ROSDASH.addWidgetByType($("#text").val());
 	});
-	$("#myDashboard").sDashboard({
-		dashboardData : [],
-		disableSelection : true
-	});
-	$("#myDashboard").bind("sdashboardorderchanged", function(e, data)
-	{
-		ROSDASH.moveWidget(data.sortedDefinitions);
-		ROSDASH.savePanel();
-	});
-	$("#myDashboard").bind("sdashboardheaderclicked", function(e, data)
-	{
-		ROSDASH.selectedWidget = data.selectedWidgetId;
-	});
-	$("#myDashboard").bind("sdashboardwidgetmaximized", function(e, data)
-	{
-		ROSDASH.widgetMaxCallback(e, data);
-	});
-	$("#myDashboard").bind("sdashboardwidgetminimized", function(e, data)
-	{
-		ROSDASH.widgetMaxCallback(e, data);
-	});
-	$("#myDashboard").bind("sdashboardwidgetadded", function(e, data)
-	{
-		ROSDASH.widgetAddCallback(e, data);
-	});
-	$("#myDashboard").bind("sdashboardwidgetremoved", function(e, data)
-	{
-		ROSDASH.removeWidget(data.widgetDefinition.widgetId);
-	});
-	$("#myDashboard").bind("sdashboardwidgetset", function(e, data)
-	{
-		ROSDASH.widgetSetCallback(e, data);
-	});
-	$("#myDashboard").bind("sdashboardheaderset", function(e, data)
-	{
-		ROSDASH.headerSetCallback(e, data);
-	});
-	
-	ROSDASH.connectROS("localhost", "9090");
-	ROSDASH.initJson();
-	ROSDASH.readDiagram();
-	$.getJSON('file/test4-panel.json', function(data)
-	{
-		-- ROSDASH.panel_init_count;
-		console.log("panel load: test4-panel.json");
-		function start()
-		{
-			if (0 >= ROSDASH.panel_init_count)
-			{
-				ROSDASH.loadPanel(data);
-				ROSDASH.updateOnceWidgets();
-				ROSDASH.updateWidgets();
-			} else
-			{
-				setTimeout(start, 300);
-			}
-		}
-		start();
-	});
+	$("#addToDiagram").click(ROSDASH.addToDiagram);
+	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>");
 });
 		</script>
 	</head>

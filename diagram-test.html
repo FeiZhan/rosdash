@@ -44,38 +44,12 @@ $(function() {
 	{
 		ROSDASH.saveDiagram();
 	});
-	$("#removeblock").click(ROSDASH.removeBlockCallback);
-	$("#readblocks").click(ROSDASH.readBlockCallback);
-	ROSDASH.initJson();
-	var style = ROSDASH.default_style;
-	var element = ROSDASH.default_element;
-	ROSDASH.connectROS($("#host").val(), "9090");
-	var empty_ele = {nodes: new Array(), edges: new Array()};
-	//$.getJSON('file/test3-diagram.json', function(data)
-	//var json = data.data;
-	//var ele = ROSDASH.transformToElements(json);
-	$('#cy').cytoscape({
-		layout: {
-			name: 'circle'
-		},
-		style: style,
-		elements: empty_ele, //ele, //ROSDASH.default_element2,
-		ready: function()
-		{
-			window.cy = this;
-			$.getJSON('file/test4-diagram.json', function(data)
-			{
-				console.log("load diagram: test4-diagram.json");
-				console.debug(data);
-				ROSDASH.loadDiagram(data);
-			});
-			window.cy.elements().unlock();
-			window.cy.elements().unselect();
-			ROSDASH.blockMoveCallback();
-			ROSDASH.connectBlocksCallback();
-			ROSDASH.getROSNames(ROSDASH.ros);
-		}
+	$("#removeblock").click(function ()
+	{
+		ROSDASH.removeBlock($("#topic").val());
 	});
+	ROSDASH.connectROS($("#host").val(), "9090");
+	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>");
 });
 		</script>
 	</body>
