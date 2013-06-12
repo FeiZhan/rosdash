@@ -110,6 +110,9 @@
 		"output": []
 	}, {
 		"type": "flot",
+		"runNamespace": "Flot",
+		"init": "init",
+		"runOnce": "runOnce",
 		"input": [
 			{
 				"datatype": "String",
