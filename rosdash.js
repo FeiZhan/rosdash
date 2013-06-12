@@ -1224,7 +1224,7 @@ ROSDASH.parseWidgetContent = function (widget)
 	var wdef = ROSDASH.widget_def[widget.widgetType];
 	if (undefined !== wdef.runNamespace && undefined !== wdef.init)
 	{
-		var fn = window["ROSDASH"][widget.runNamespace][widget.init];
+		var fn = window["ROSDASH"][wdef.runNamespace][wdef.init];
 		if (typeof fn == "function")
 		{
 			widget = fn(widget);
@@ -1335,6 +1335,7 @@ ROSDASH.addWidgetByDef = function (def)
 	}
 	ROSDASH.widgets[def.widgetId] = def;
 	var widget = ROSDASH.parseExampleData(def);
+	widget = ROSDASH.parseWidgetContent(widget);
 	$("#myDashboard").sDashboard("addWidget", widget);
 }
 ROSDASH.removeWidget = function (id)
@@ -1401,6 +1402,21 @@ ROSDASH.loadPanel = function (json)
 		delete json[max_num];
 		-- count;
 	}
+	// add all widgets into diagram_connection, since when adding diagram_connection, the panel is not loaded
+	/*for (var i in ROSDASH.widgets)
+	{
+		if (undefined === ROSDASH.diagram_connection[i])
+		{
+			ROSDASH.diagram_connection[i] = new Object();
+			ROSDASH.diagram_connection[i].parent = new Object();
+			ROSDASH.diagram_connection[i].child = new Object();
+			ROSDASH.diagram_connection[i].exist = true;
+			ROSDASH.diagram_connection[i].done = false;
+		} else
+		{
+			ROSDASH.diagram_connection[i].exist = true;
+		}
+	}*/
 }
 ROSDASH.savePanel = function ()
 {
@@ -1752,6 +1768,31 @@ ROSDASH.Gmap.initGmap = function ()
 ROSDASH.Gmap.resizeGmap = function ()
 {
 	google.maps.event.trigger(ROSDASH.Gmap.gmap, "resize");
+}
+
+ROSDASH.Flot = new Object();
+ROSDASH.Flot.init = function (widget)
+{
+	console.debug("flot init");
+	//widget.widgetContent = '<div id="placeholder" style="width:300px;height:300px;background:#fff;"></div>';
+	widget.widgetContent = '<div id="placeholder" class="draculaWidgetContent" style="height:190px" />';
+	return widget;
+}
+ROSDASH.Flot.runOnce = function ()
+{
+	if ($("#placeholder").length > 0)
+	{
+		$(function() {
+			var d1 = [];
+			for (var i = 0; i < 14; i += 0.5) {
+				d1.push([i, Math.sin(i)]);
+			}
+			var d2 = [[0, 3], [4, 8], [8, 5], [9, 13]];
+			// A null signifies separate line segments
+			var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
+			$.plot("#placeholder", [ d1, d2, d3 ]);
+		});
+	}
 }
 
 //@todo
