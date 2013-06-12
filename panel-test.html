@@ -60,6 +60,7 @@ $(function() {
 		ROSDASH.addWidgetByType($("#text").val());
 	});
 	$("#addToDiagram").click(ROSDASH.addToDiagram);
+	$("#property").click(ROSDASH.showProperty);
 	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>");
 });
 		</script>
@@ -73,6 +74,14 @@ $(function() {
 			<button class="btn" id="addToDiagram">
 				add to diagram
 			</button>
+			<input type="button" class="btn" id="property" value="property">
+			<div id="dialog-form" title="Property">
+				<form>
+				<fieldset>
+					<span id="property"></span>
+				</fieldset>
+				</form>
+			</div>
 		</div>
 		<ul id="myDashboard"></ul>
 	</body>

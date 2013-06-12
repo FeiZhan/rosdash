@@ -1,6 +1,7 @@
 var ROSDASH = new Object();
 ROSDASH.version = "1.0";
 ROSDASH.user = "test4";
+ROSDASH.view_type;
 ROSDASH.default_style = cytoscape.stylesheet()
 	.selector('node')
 	.css({
@@ -356,6 +357,65 @@ ROSDASH.default_element2 = {
 };
 
 //------------------- basics
+// dialog form for diagram
+$(function() {
+	if ($("#cy").length > 0)
+	{
+		$( "#dialog-form" ).dialog({
+			autoOpen: false,
+			draggable: false,
+			resizable: false,
+			position: {my: "0 0", at: "0 800", of: null},
+			height: 700,
+			width: 300,
+			modal: true,
+			buttons: {
+				"OK": function() {
+					$( this ).dialog( "close" );
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+				}
+			},
+			close: function() {
+				if ($("#cy").length > 0)
+				{
+					$( "#cy" ).offset({left:0});
+				}
+				$( [] ).val( "" ).removeClass( "ui-state-error" );
+			}
+		});
+	} else
+	{
+		$( "#dialog-form" ).dialog({
+			autoOpen: false,
+			draggable: true,
+			resizable: true,
+			height: 300,
+			width: 300,
+			modal: true,
+			buttons: {
+				"OK": function() {
+					$( this ).dialog( "close" );
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+				}
+			},
+			close: function() {
+				$( [] ).val( "" ).removeClass( "ui-state-error" );
+			}
+		});
+	}
+});
+ROSDASH.showProperty = function ()
+{
+	if ($("#cy").length > 0)
+	{
+		$("#cy").offset({left: 310});
+	}
+	$( "#dialog-form" ).dialog( "open" );
+}
 ROSDASH.setUser = function (user)
 {
 	if (undefined === user || "" == user)
@@ -522,7 +582,7 @@ ROSDASH.getNextNewBlockPos = function ()
 {
 	return ROSDASH.NEW_POS;
 }
-ROSDASH.addTopic = function (name, x, y)
+ROSDASH.addTopicByName = function (name)
 {
 	if ("" == name /* ! ROSDASH.checkROSValid(name, "topic")*/ || ROSDASH.checkROSConflict(name, "topic"))
 	{
@@ -530,8 +590,8 @@ ROSDASH.addTopic = function (name, x, y)
 		return;
 	}
 	var next_pos = ROSDASH.getNextNewBlockPos();
-	x = (typeof x !== 'undefined') ? x : next_pos[0];
-	y = (typeof y !== 'undefined') ? y : next_pos[1];
+	var x = next_pos[0];
+	var y = next_pos[1];
 	var count = ROSDASH.ros_blocks.topic.length;
 	var id = "topic-" + count;
 	window.cy.add({
@@ -568,6 +628,53 @@ ROSDASH.addTopic = function (name, x, y)
 	ROSDASH.blocks[id] = block;
 	ROSDASH.ros_blocks.topic.push(name);
 }
+ROSDASH.addTopicByDef = function (def)
+{
+	if ("" == def.rosname /* ! ROSDASH.checkROSValid(name, "topic")*/ || ROSDASH.checkROSConflict(def.rosname, "topic"))
+	{
+		console.error("topic name not valid: " + def.rosname);
+		return;
+	}
+	var next_pos = ROSDASH.getNextNewBlockPos();
+	var x = (typeof def.x !== 'undefined') ? parseFloat(def.x) : next_pos[0];
+	var y = (typeof def.y !== 'undefined') ? parseFloat(def.y) : next_pos[1];
+	var count = ROSDASH.ros_blocks.topic.length;
+	var id = "topic-" + count;
+	window.cy.add({
+		group: "nodes",
+		data: {
+			id: id,
+			name: def.rosname,
+			weight: 65,
+			faveColor: "green",
+			faveShape: "rectangle"
+		},
+		position: { x: x, y: y },
+		classes: "body"
+	});
+	window.cy.add({
+		group: "nodes",
+		data: {
+			id: id + "-o0",
+			weight: 5,
+			height: 5,
+			faveColor: "grey",
+			faveShape: "rectangle"
+		},
+		position: { x: x + 70, y: y },
+		classes: "output",
+		locked: true
+	});
+	var block = {
+		id: id,
+		type: "topic",
+		rosname: def.rosname,
+		number: ROSDASH.ros_blocks.topic.length
+	};
+	ROSDASH.blocks[id] = block;
+	ROSDASH.ros_blocks.topic.push(name);
+}
+//@todo
 ROSDASH.block_type = new Object();
 ROSDASH.blocks = new Object();
 ROSDASH.addBlockByType = function (name)
@@ -721,6 +828,70 @@ ROSDASH.addBlockByDef = function (def)
 		});
 	}
 	ROSDASH.blocks[block.id] = block;
+}
+// update the property dialog box
+ROSDASH.selectBlockCallback = function ()
+{
+	window.cy.on('select', function(evt)
+	{
+		if (evt.cyTarget.isNode())
+		{
+			var id = evt.cyTarget.id();
+			if (undefined === evt.cyTarget.hasClass("body") || false == evt.cyTarget.hasClass("body"))
+			{
+				var hyphen = evt.cyTarget.id().lastIndexOf("-");
+				var id = evt.cyTarget.id().substring(0, hyphen);
+			}
+			var block = ROSDASH.blocks[id];
+			var widget = ROSDASH.widget_def[block.type];
+			var div = $("#dialog-form");
+			var html = "";
+			if (undefined !== block.type)
+			{
+				html += "<p>type: " + block.type + "</p>";
+			}
+			if (undefined !== block.id)
+			{
+				html += "<p>id: " + block.id + "</p>";
+			}
+			if (undefined !== widget.input)
+			{
+				html += "<p>input: " + widget.input.length + "</p>";
+				if (widget.input.length > 0)
+				{
+					html += "<ul>";
+					for (var i in widget.input)
+					{
+						html += "<li>" + widget.input[i].name + " (" + widget.input[i].datatype + ")</li>";
+					}
+					html += "</ul>";
+				}
+			}
+			if (undefined !== widget.output)
+			{
+				html += "<p>output: " + widget.output.length + "</p>";
+				if (widget.output.length > 0)
+				{
+					html += "<ul>";
+					for (var i in widget.output)
+					{
+						html += "<li>" + widget.output[i].name + " (" + widget.output[i].datatype + ")</li>";
+					}
+					html += "</ul>";
+				}
+			}
+			if ("topic" == block.type)
+			{
+				html += "<p>topic: " + block.rosname + "</p>";
+			}
+			div.find("#property").html(html);
+		} else
+		{
+			var div = $("#dialog-form");
+			var html = "<p>type: edge</p><p>source: " + evt.cyTarget.source().id() + "</p><p>target: " + evt.cyTarget.target().id() + "</p>";
+			div.find("#property").html(html);
+		}
+	});
 }
 ROSDASH.removeBlock = function (name)
 {
@@ -909,21 +1080,14 @@ ROSDASH.loadDiagram = function (json)
 {
 	for (var i in json.block)
 	{
-		var x = parseFloat(json.block[i].x);
-		var y = parseFloat(json.block[i].y);
-		if (x && y)
+		switch (json.block[i].type)
 		{
-			switch (json.block[i].type)
-			{
-			case "topic":
-				ROSDASH.addTopic(json.block[i].rosname, x, y);
-				//@todo
-				//ROSDASH.addTopicByDef(json.block[i].rosname, x, y);
-				break;
-			default:
-				ROSDASH.addBlockByDef(json.block[i]);
-				break;
-			}
+		case "topic":
+			ROSDASH.addTopicByDef(json.block[i]);
+			break;
+		default:
+			ROSDASH.addBlockByDef(json.block[i]);
+			break;
 		}
 	}
 	for (var i in json.edge)
@@ -958,6 +1122,7 @@ ROSDASH.runDiagram = function (user)
 			window.cy.elements().unselect();
 			ROSDASH.blockMoveCallback();
 			ROSDASH.connectBlocksCallback();
+			ROSDASH.selectBlockCallback();
 		}
 	});
 }
@@ -1123,6 +1288,9 @@ ROSDASH.addWidgetByType = function (name)
 		{
 			ROSDASH.widget_def[name] = new Object();
 			ROSDASH.widget_def[name].count = 0;
+		} else if (undefined === ROSDASH.widget_def[name].count)
+		{
+			ROSDASH.widget_def[name].count = 0;
 		} else
 		{
 			++ ROSDASH.widget_def[name].count;
@@ -1192,6 +1360,21 @@ ROSDASH.moveWidget = function (sorted)
 	}
 }
 ROSDASH.selectedWidget;
+ROSDASH.selectWidgetCallback = function (e, data)
+{
+	ROSDASH.selectedWidget = data.selectedWidgetId;
+	var w = ROSDASH.widgets[ROSDASH.selectedWidget];
+	if (undefined === w)
+	{
+		div.find("#property").html("");
+		return;
+	}
+	var div = $("#dialog-form");
+	var html = "";
+	html += "<p>type: " + w.widgetType + "</p>";
+	html += "<p>id: " + w.widgetId + "</p>";
+	div.find("#property").html(html);
+}
 
 //------------------- panel
 ROSDASH.panel_init_count = 4;
@@ -1237,7 +1420,7 @@ ROSDASH.runPanel = function (user)
 	});
 	$("#myDashboard").bind("sdashboardheaderclicked", function(e, data)
 	{
-		ROSDASH.selectedWidget = data.selectedWidgetId;
+		ROSDASH.selectWidgetCallback(e, data);
 	});
 	$("#myDashboard").bind("sdashboardwidgetmaximized", function(e, data)
 	{

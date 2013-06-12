@@ -108,5 +108,20 @@
 			}
 		],
 		"output": []
+	}, {
+		"type": "flot",
+		"input": [
+			{
+				"datatype": "String",
+				"name": "title"
+			}, {
+				"datatype": "String[]",
+				"name": "data"
+			}, {
+				"datatype": "NetworkOption",
+				"name": "option"
+			}
+		],
+		"output": []
 	}
 ]}
