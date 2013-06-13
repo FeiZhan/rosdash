@@ -26,7 +26,6 @@ body {
 	</head>
 	<body>
 		<input type="button" id="save" value="save" />
-		<input type="text" name="host" id="host" value="localhost" />
 		<input type="text" name="topic" id="topic" value="" />
 		<input type="button" id="addtopic" value="add topic" />
 		<input type="button" id="addblock" value="add block" />
@@ -37,7 +36,6 @@ body {
 			<form>
 			<fieldset>
 				<span id="property"></span>
-				comment<input type="text" name="comment" id="comment" class="text ui-widget-content ui-corner-all" />
 			</fieldset>
 			</form>
 		</div>
@@ -62,7 +60,7 @@ $(function() {
 		ROSDASH.removeBlock($("#topic").val());
 	});
 	$("#property").click(ROSDASH.showProperty);
-	ROSDASH.connectROS($("#host").val(), "9090");
+	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
 	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>");
 });
 		</script>

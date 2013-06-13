@@ -14,6 +14,23 @@
 			}
 		]
 	}, {
+		"type": "msg to str",
+		"runNamespace": "msgToStr",
+		"init": "init",
+		"run": "run",
+		"input": [
+			{
+				"datatype": "msg",
+				"name": "msg"
+			}
+		],
+		"output": [
+			{
+				"datatype": "String",
+				"name": "str"
+			}
+		]
+	}, {
 		"type": "text",
 		"runNamespace": "Text",
 		"init": "init",
@@ -113,6 +130,7 @@
 		"runNamespace": "Flot",
 		"init": "init",
 		"runOnce": "runOnce",
+		"run": "run",
 		"input": [
 			{
 				"datatype": "String",
@@ -121,7 +139,7 @@
 				"datatype": "String[]",
 				"name": "data"
 			}, {
-				"datatype": "NetworkOption",
+				"datatype": "FlotOption",
 				"name": "option"
 			}
 		],
