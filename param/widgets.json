@@ -1,6 +1,42 @@
 {
 "widgets": [
 	{
+		"type": "constant",
+		"runNamespace": "Constant",
+		"run": "run",
+		"input": [],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "value"
+			}
+		]
+	}, {
+		"type": "array",
+		"runNamespace": "Array",
+		"run": "run",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "input0"
+			}, {
+				"datatype": "universal",
+				"name": "input1"
+			}, {
+				"datatype": "universal",
+				"name": "input2"
+			}, {
+				"datatype": "universal",
+				"name": "input3"
+			}
+		],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "output"
+			}
+		]
+	}, {
 		"type": "topic",
 		"runNamespace": "Topic",
 		"init": "init",
@@ -14,7 +50,7 @@
 			}
 		]
 	}, {
-		"type": "msg to str",
+		"type": "msgToStr",
 		"runNamespace": "msgToStr",
 		"init": "init",
 		"run": "run",
@@ -33,13 +69,25 @@
 	}, {
 		"type": "text",
 		"runNamespace": "Text",
-		"init": "init",
 		"run": "run",
 		"input": [
 			{
 				"datatype": "String",
 				"name": "title"
 			}, {
+				"datatype": "String",
+				"name": "content"
+			}
+		],
+		"output": []
+	}, {
+		"type": "speech",
+		"runNamespace": "Speech",
+		"init": "init",
+		"runOnce": "runOnce",
+		"run": "run",
+		"input": [
+			{
 				"datatype": "String",
 				"name": "content"
 			}

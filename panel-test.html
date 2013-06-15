@@ -52,9 +52,10 @@
 		<script type="text/javascript" src="lib/dracula/examples/example.js"></script>
 		<!-- flot -->
 		<script language="javascript" type="text/javascript" src="lib/flot/jquery.flot.js"></script>
+		<!-- speak -->
+		<script language="javascript" type="text/javascript" src="lib/speak-js/speakClient.js"></script>
 		<!-- rosdash -->
 		<script src="rosdash.js"></script>
-		<!-- example code -->
 		<script type="text/javascript">
 $(function() {
 	$("#btnAddWidget").click(function()
@@ -63,6 +64,7 @@ $(function() {
 	});
 	$("#addToDiagram").click(ROSDASH.addToDiagram);
 	$("#property").click(ROSDASH.showProperty);
+	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
 	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>");
 });
 		</script>
