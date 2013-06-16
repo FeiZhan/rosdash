@@ -15,6 +15,52 @@ ROSDASH.Array.run = function (block, input)
 	return {o0: a};
 }
 
+ROSDASH.Addition = new Object();
+ROSDASH.Addition.run = function (block, input)
+{
+	var sum = input[0];
+	for (var i = 1; i < input.length; ++ i)
+	{
+		sum += input[i];
+	}
+	return {o0: sum};
+}
+
+ROSDASH.Switch = new Object();
+ROSDASH.Switch.run = function (block, input)
+{
+	//@todo design default value and compulsory inputs
+	if (input.length < 2)
+	{
+		console.error("input not enough: " + block.id);
+		return undefined;
+	}
+	var output = new Object();
+	if (typeof input[1] == "array")
+	{
+		for (var i in input[1])
+		{
+			if (input[0] == input[1][i])
+			{
+				output["o" + i] = true;
+			} else
+			{
+				output["o" + i] = false;
+			}
+		}
+	} else
+	{
+		if (input[0] == input[1])
+		{
+			output["o0"] = true;
+		} else
+		{
+			output["o0"] = false;
+		}
+	}
+	return output;
+}
+
 ROSDASH.rosMsg = new Object();
 ROSDASH.Topic = new Object();
 ROSDASH.Topic.runOnce = function (block)

@@ -1435,7 +1435,7 @@ ROSDASH.parseExampleData = function (widget)
 ROSDASH.widgets = new Object();
 ROSDASH.addWidgetByType = function (name)
 {
-	if (true) //ROSDASH.checkWidgetTypeValid(name))
+	if (ROSDASH.checkWidgetTypeValid(name))
 	{
 		if (undefined === ROSDASH.widget_def[name])
 		{
@@ -1452,6 +1452,7 @@ ROSDASH.addWidgetByType = function (name)
 		var widget = {
 			widgetTitle : name + " " + ROSDASH.widget_def[name].count,
 			widgetId : id,
+			number : ROSDASH.widget_def[name].count,
 			widgetType : name,
 			widgetContent : undefined,
 			pos : 0
@@ -1481,10 +1482,39 @@ ROSDASH.addWidgetByDef = function (def)
 	if (undefined === ROSDASH.widget_def[def.widgetType])
 	{
 		ROSDASH.widget_def[def.widgetType] = new Object();
-		ROSDASH.widget_def[def.widgetType].count = 0;
-	} else
+		if (undefined === def.number)
+		{
+			ROSDASH.widget_def[def.widgetType].count = 0;
+		} else
+		{
+			ROSDASH.widget_def[def.widgetType].count = def.number;
+		}
+	} else if (undefined === ROSDASH.widget_def[def.widgetType].count)
+	{
+		if (undefined === def.number)
+		{
+			ROSDASH.widget_def[def.widgetType].count = 0;
+		} else
+		{
+			ROSDASH.widget_def[def.widgetType].count = def.number;
+		}
+	} else if (undefined === def.number)
 	{
 		++ ROSDASH.widget_def[def.widgetType].count;
+	} else if (def.number > ROSDASH.widget_def[def.widgetType].count)
+	{
+			ROSDASH.widget_def[def.widgetType].count = def.number;
+	} else
+	{
+		for (var i in ROSDASH.widgets)
+		{
+			if (ROSDASH.widget_def[def.widgetType].count == def.number)
+			{
+				console.error("widget number conflicted: " + def.widgetId);
+				++ ROSDASH.widget_def[def.widgetType].count;
+				def.number = ROSDASH.widget_def[def.widgetType].count;
+			}
+		}
 	}
 	ROSDASH.widgets[def.widgetId] = def;
 	var widget = ROSDASH.parseExampleData(def);
@@ -1518,12 +1548,12 @@ ROSDASH.selectWidgetCallback = function (e, data)
 {
 	ROSDASH.selectedWidget = data.selectedWidgetId;
 	var w = ROSDASH.widgets[ROSDASH.selectedWidget];
+	var div = $("#dialog-form");
 	if (undefined === w)
 	{
 		div.find("#property").html("");
 		return;
 	}
-	var div = $("#dialog-form");
 	var html = "";
 	html += "<p>type: " + w.widgetType + "</p>";
 	html += "<p>id: " + w.widgetId + "</p>";

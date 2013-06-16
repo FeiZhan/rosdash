@@ -37,6 +37,47 @@
 			}
 		]
 	}, {
+		"type": "addition",
+		"runNamespace": "Addition",
+		"run": "run",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "input0"
+			}, {
+				"datatype": "universal",
+				"name": "input1"
+			}, {
+				"datatype": "universal",
+				"name": "input2"
+			}
+		],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "output"
+			}
+		]
+	}, {
+		"type": "switch",
+		"runNamespace": "Switch",
+		"run": "run",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "input"
+			}, {
+				"datatype": "universal",
+				"name": "cases"
+			}
+		],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "output0"
+			}
+		]
+	}, {
 		"type": "topic",
 		"runNamespace": "Topic",
 		"init": "init",
