@@ -13,7 +13,7 @@
 		]
 	}, {
 		"type": "array",
-		"runNamespace": "Array",
+		"runNamespace": "rosArray",
 		"run": "run",
 		"input": [
 			{
@@ -107,6 +107,27 @@
 				"name": "str"
 			}
 		]
+	}, {
+		"type": "turtlesim",
+		"runNamespace": "Turtlesim",
+		"init": "init",
+		"runOnce": "runOnce",
+		"input": [],
+		"output": []
+	}, {
+		"type": "ros2d",
+		"runNamespace": "Ros2d",
+		"init": "init",
+		"runOnce": "runOnce",
+		"input": [],
+		"output": []
+	}, {
+		"type": "ros3d",
+		"runNamespace": "Ros3d",
+		"init": "init",
+		"runOnce": "runOnce",
+		"input": [],
+		"output": []
 	}, {
 		"type": "text",
 		"runNamespace": "Text",

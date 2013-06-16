@@ -453,6 +453,7 @@ ROSDASH.setUser = function (user)
 
 //------------------- ROS
 ROSDASH.ros;
+ROSDASH.ros_connected = false;
 ROSDASH.connectROS = function (host, port)
 {
 	host = (typeof host !== 'undefined') ? host : "localhost";
@@ -462,6 +463,7 @@ ROSDASH.connectROS = function (host, port)
 		console.error(error);
 	});
 	ROSDASH.ros.on('connection', function() {
+		ROSDASH.ros_connected = true;
 		console.log('ROS connection made: ' + host + ":" + port);
 	});
 	ROSDASH.ros.connect('ws://' + host + ':' + port);
@@ -1359,10 +1361,10 @@ ROSDASH.parseWidgetContent = function (widget)
 		//widget.widgetContent = '<div id="map-canvas" class="sDashboardWidgetContent" />';
 		break;
 	case "arbor":
-		widget.widgetContent = '<canvas id="viewport" class="ArborWidgetContent"></canvas>';
+		widget.widgetContent = '<canvas id="viewport" class="sDashboardWidgetContent"></canvas>';
 		break;
 	case "network":
-		widget.widgetContent = '<div id="dracula_canvas" class="draculaWidgetContent"></div>';
+		widget.widgetContent = '<div id="dracula_canvas" class="sDashboardWidgetContent"></div>';
 		break;
 	case "doodle god":
 		widget.widgetContent = '<object width="180" height="135"><param name="movie" value="http://www.fupa.com/swf/doodle-god/doodlegod.swf"></param><embed src="http://www.fupa.com/swf/doodle-god/doodlegod.swf" type="application/x-shockwave-flash" width="180" height="135"></embed></object>';
@@ -1838,6 +1840,7 @@ ROSDASH.widgetMaxCallback = function (e, data)
 		break;
 	}
 }
+//@todo
 ROSDASH.widgetAddCallback = function (e, data)
 {
 	switch (data.widgetDefinition.widgetType)

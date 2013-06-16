@@ -50,20 +50,6 @@
 	margin: 0.3em;
 	padding: 0.4em;
 	height: 180px;
-	overflow-x: hidden;
-	overflow-y: auto;
-}
-.ArborWidgetContent {
-	margin: 0.3em;
-	padding: 0.4em;
-	height: 172px;
-	overflow-x: auto;
-	overflow-y: auto;
-}
-.draculaWidgetContent {
-	margin: 0.3em;
-	padding: 0.4em;
-	height: 180px;
 	overflow-x: auto;
 	overflow-y: auto;
 }

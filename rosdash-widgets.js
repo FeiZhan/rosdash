@@ -4,8 +4,8 @@ ROSDASH.Constant.run = function (block, input)
 	return {o0: block.value};
 }
 
-ROSDASH.Array = new Object();
-ROSDASH.Array.run = function (block, input)
+ROSDASH.rosArray = new Object();
+ROSDASH.rosArray.run = function (block, input)
 {
 	var a = new Array();
 	for (var i in input)
@@ -168,6 +168,86 @@ ROSDASH.Table.run = function (block, input)
 	$("#myDashboard").sDashboard("setContentById", block.id, dataTable);
 }
 
+ROSDASH.Turtlesim = new Object();
+ROSDASH.Turtlesim.init = function (widget)
+{
+	widget.widgetContent = '<canvas id="world" width="100%" height="100%" style="border: 2px solid black"></canvas>';
+	return widget;
+}
+ROSDASH.Turtlesim.runOnce = function (block)
+{
+      var ros = new ROS('ws://192.168.1.123:9090');
+      ros.on('connection', function() {
+        var context = document.getElementById('world').getContext('2d');
+        var turtleSim = new TurtleSim({
+          ros     : ros
+        , context : context
+        });
+        turtleSim.spawnTurtle('turtle1');
+        turtleSim.draw();
+      });
+}
+
+ROSDASH.Ros2d = new Object();
+ROSDASH.Ros2d.init = function (widget)
+{
+	widget.widgetContent = '<div id="ros2d_map"></div>';
+	return widget;
+}
+ROSDASH.Ros2d.runOnce = function (block)
+{
+	if (ROSDASH.ros_connected)
+	{
+		// Create the main viewer.
+		var viewer = new ROS2D.Viewer({
+		  divID : 'ros2d_map',
+		  width : 308,
+		  height : 250
+		});
+		// Setup the map client.
+		var gridClient = new ROS2D.OccupancyGridClient({
+		  ros : ROSDASH.ros,
+		  rootObject : viewer.scene
+		});
+		// Scale the canvas to fit to the map
+		gridClient.on('change', function() {
+		  viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
+		  viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
+		});
+	} else
+	{
+		setTimeout(ROSDASH.Ros2d.runOnce, 500);
+	}
+}
+
+ROSDASH.Ros3d = new Object();
+ROSDASH.Ros3d.init = function (widget)
+{
+	widget.widgetContent = '<div id="ros3d_map"></div>';
+	return widget;
+}
+ROSDASH.Ros3d.runOnce = function (block)
+{
+	if (ROSDASH.ros_connected)
+	{
+		// Create the main viewer.
+		var viewer = new ROS3D.Viewer({
+		  divID : 'ros3d_map',
+		  width : 80,
+		  height : 60,
+		  antialias : true
+		});
+		// Setup the marker client.
+		var gridClient = new ROS3D.OccupancyGridClient({
+		  ros : ROSDASH.ros,
+		  rootObject : viewer.scene
+		});
+	} else
+	{
+		setTimeout(ROSDASH.Ros3d.runOnce, 500);
+	}
+}
+
 ROSDASH.Gmap = new Object();
 ROSDASH.Gmap.gmap = undefined;
 ROSDASH.Gmap.init = function (widget)
@@ -198,7 +278,7 @@ ROSDASH.Flot = new Object();
 ROSDASH.Flot.plot;
 ROSDASH.Flot.init = function (widget)
 {
-	widget.widgetContent = '<div id="placeholder" class="draculaWidgetContent" style="height:190px" />';
+	widget.widgetContent = '<div id="placeholder" class="sDashboardWidgetContent" />';
 	return widget;
 }
 ROSDASH.Flot.getDefaultData = function ()
