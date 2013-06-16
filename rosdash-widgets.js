@@ -73,8 +73,8 @@ ROSDASH.Text.run = function (block, input)
 {
 	input[0] = (undefined === input[0]) ? block.name : input[0];
 	input[1] = (undefined === input[1]) ? "(empty content)" : input[1];
-	$("#myDashboard").sDashboard("setContentById", block.id, input[1]);
 	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
+	$("#myDashboard").sDashboard("setContentById", block.id, input[1]);
 }
 
 ROSDASH.Speech = new Object();
@@ -108,17 +108,18 @@ ROSDASH.Table = new Object();
 ROSDASH.Table.run = function (block, input)
 {
 	input[0] = (undefined === input[0]) ? block.name : input[0];
-	input[1] = (undefined === input[1]) ? "(empty content)" : input[1];
-	$("#myDashboard").sDashboard("setContentById", block.id, input[1]);
+	var aoColumns = new Array();
+	for (var i in input[1])
+	{
+		aoColumns.push({sTitle: input[1][i]});
+	}
 	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
-					var tableDef = {
-						"aaData" : widgetDefinition.widgetContent.aaData,
-						"aoColumns" : widgetDefinition.widgetContent.aoColumns
-					};
-					if (widgetDefinition.setJqueryStyle) {
-						tableDef["bJQueryUI"] = true;
-					}
-					var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
+	var tableDef = {
+		"aaData" : input[2],
+		"aoColumns" : aoColumns
+	};
+	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
+	$("#myDashboard").sDashboard("setContentById", block.id, dataTable);
 }
 
 ROSDASH.Gmap = new Object();

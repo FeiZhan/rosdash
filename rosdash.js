@@ -1685,12 +1685,12 @@ ROSDASH.traverseDiagram = function ()
 		var type2 = edge.target.substring(index + 1);
 		if (type1.substring(0, 1) == "i" && type2.substring(0, 1) == "o")
 		{
-			ROSDASH.diagram_connection[block1].parent[block2] = type1;
-			ROSDASH.diagram_connection[block1].output[block2] = type2;
+			ROSDASH.diagram_connection[block1].parent[type1] = block2;
+			ROSDASH.diagram_connection[block1].output[type1] = type2;
 		} else if (type1.substring(0, 1) == "o" && type2.substring(0, 1) == "i")
 		{
-			ROSDASH.diagram_connection[block2].parent[block1] = type2;
-			ROSDASH.diagram_connection[block2].output[block1] = type1;
+			ROSDASH.diagram_connection[block2].parent[type2] = block1;
+			ROSDASH.diagram_connection[block2].output[type2] = type1;
 		}
 	}
 	for (var i in ROSDASH.diagram.block)
@@ -1762,18 +1762,15 @@ ROSDASH.updateWidgets = function ()
 			var input = new Object();
 			for (var j in ROSDASH.diagram_connection[i].parent)
 			{
-				if (! (j in ROSDASH.diagram_output) || undefined === ROSDASH.diagram_output[j])
+				if (! (ROSDASH.diagram_connection[i].parent[j] in ROSDASH.diagram_output) || undefined === ROSDASH.diagram_output[ROSDASH.diagram_connection[i].parent[j]])
 				{
 					ready_flag = false;
 				} else
 				{
-					var count = ROSDASH.diagram_connection[i].parent[j].substring(1);
-					input[count] = ROSDASH.diagram_output[j][ROSDASH.diagram_connection[i].output[j]];
+					var count = j.substring(1);
+					input[count] = ROSDASH.diagram_output[ROSDASH.diagram_connection[i].parent[j]][ROSDASH.diagram_connection[i].output[j]];
 				}
 			}
-	console.debug(i);
-	console.debug(ROSDASH.diagram_connection[i].parent);
-	console.debug(input);
 			if (ready_flag)
 			{
 				var widget = ROSDASH.widget_def[ROSDASH.diagram.block[i].type];
