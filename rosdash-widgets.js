@@ -1,4 +1,3 @@
-//------------------- widget execution
 ROSDASH.Constant = new Object();
 ROSDASH.Constant.run = function (block, input)
 {
@@ -105,6 +104,23 @@ ROSDASH.Speech.speak = function ()
 	speak(ROSDASH.Speech.content);
 }
 
+ROSDASH.Table = new Object();
+ROSDASH.Table.run = function (block, input)
+{
+	input[0] = (undefined === input[0]) ? block.name : input[0];
+	input[1] = (undefined === input[1]) ? "(empty content)" : input[1];
+	$("#myDashboard").sDashboard("setContentById", block.id, input[1]);
+	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
+					var tableDef = {
+						"aaData" : widgetDefinition.widgetContent.aaData,
+						"aoColumns" : widgetDefinition.widgetContent.aoColumns
+					};
+					if (widgetDefinition.setJqueryStyle) {
+						tableDef["bJQueryUI"] = true;
+					}
+					var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
+}
+
 ROSDASH.Gmap = new Object();
 ROSDASH.Gmap.gmap = undefined;
 ROSDASH.Gmap.init = function (widget)
@@ -193,17 +209,19 @@ ROSDASH.Flot.run = function (block, input)
 	var data = new Array();
 	for (var i in input[1])
 	{
+		var d = new Array();
 		for (var j in input[1][i])
 		{
 			if (input[1][i][j].length < 2)
 			{
-				data.push([j, input[1][i][j]]);
+				d.push([j, input[1][i][j]]);
 			} else
 			{
-				data.push([input[1][i][j][0], input[1][i][j][1]]);
+				d.push([input[1][i][j][0], input[1][i][j][1]]);
 			}
 		}
+		data.push(d);
 	}
-	ROSDASH.Flot.plot.setData( [data] );
+	ROSDASH.Flot.plot.setData( data );
 	ROSDASH.Flot.plot.draw();
 }

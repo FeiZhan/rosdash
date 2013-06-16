@@ -95,6 +95,8 @@
 		"output": []
 	}, {
 		"type": "table",
+		"runNamespace": "Table",
+		"run": "run",
 		"input": [
 			{
 				"datatype": "String",

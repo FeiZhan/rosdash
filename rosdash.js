@@ -1771,6 +1771,9 @@ ROSDASH.updateWidgets = function ()
 					input[count] = ROSDASH.diagram_output[j][ROSDASH.diagram_connection[i].output[j]];
 				}
 			}
+	console.debug(i);
+	console.debug(ROSDASH.diagram_connection[i].parent);
+	console.debug(input);
 			if (ready_flag)
 			{
 				var widget = ROSDASH.widget_def[ROSDASH.diagram.block[i].type];
