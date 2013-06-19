@@ -21,7 +21,7 @@
 	padding: 1px;
 	float: left;
 	width: 400px;
-	height: auto;
+	height: 230px; /*auto;*/
 }
 
 /*dashboard widget css*/
@@ -37,6 +37,7 @@
 	padding-right: 0.2em;
 	padding-top: 2px;
 	cursor: move;
+	height: 16px;
 }
 
 .sDashboardWidgetHeader .ui-icon {
