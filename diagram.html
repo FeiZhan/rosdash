@@ -10,6 +10,9 @@
 		<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
 		<script src="lib/roslibjs/include/EventEmitter2/eventemitter2.js"></script>
 		<script src="lib/roslibjs/build/roslib.js"></script>
+		<!-- bootstrap -->
+		<link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+		<script src="lib/bootstrap/js/bootstrap.js"></script>
 		<script src="rosdash.js"></script>
 		<script src="rosdash-widgets.js"></script>
 		<style>
@@ -28,8 +31,32 @@ body {
 	<body>
 		<input type="button" id="save" value="save" />
 		<input type="text" name="topic" id="topic" value="" />
-		<input type="button" id="addtopic" value="add topic" />
-		<input type="button" id="addblock" value="add block" />
+		<div class="btn-group">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addtopic">
+				add topic
+				<span class="caret"></span>
+			</a>
+			<ul class="dropdown-menu">
+				<li><a href="">a</a></li>
+				<li><a href="">b</a></li>
+			</ul>
+		</div>
+		<div class="btn-group">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addblock">
+				add block
+				<span class="caret"></span>
+			</a>
+			<ul class="dropdown-menu" id="widget-list">
+			</ul>
+		</div>
+		<div class="btn-group">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addconst">
+				add constant
+				<span class="caret"></span>
+			</a>
+			<ul class="dropdown-menu" id="msg-list">
+			</ul>
+		</div>
 		<input type="button" id="removeblock" value="remove block" />
 		<input type="button" id="property" value="property" />
 

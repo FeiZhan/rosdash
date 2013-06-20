@@ -574,8 +574,14 @@ ROSDASH.initJson = function ()
 			for (var j in data)
 			{
 				ROSDASH.msg_json[j] = data;
+				for (var k in data[j])
+				{
+					if (undefined != data[j][k].name)
+					{
+						$("#msg-list").append('<li><a href="">' + data[j][k].name + '</a></li>');
+					}
+				}
 				-- ROSDASH.panel_init_count;
-				console.log("load msgs " + i + ": " + j);
 			}
 		});
 	}
@@ -591,10 +597,10 @@ ROSDASH.initJson = function ()
 					if (undefined != data[j][k].type)
 					{
 						ROSDASH.widget_def[data[j][k].type] = data[j][k];
+						$("#widget-list").append('<li><a href="">' + data[j][k].type + '</a></li>');
 					}
 				}
 				-- ROSDASH.panel_init_count;
-				console.log("load widgets " + i + ": " + j);
 			}
 		});
 	}

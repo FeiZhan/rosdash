@@ -64,6 +64,19 @@
 		<!-- ros3djs -->
 		<script type="text/javascript" src="lib/ros3djs/examples/../include/threejs/three.js"></script>
 		<script type="text/javascript" src="lib/ros3djs/examples/../build/ros3d.js"></script>
+		<!-- highcharts -->
+		<script src="lib/Highcharts/js/highcharts.js"></script>
+		<script src="lib/Highcharts/js/highcharts-more.js"></script>
+		<script src="lib/Highcharts/js/modules/exporting.js"></script>
+		<!-- bootstrap switch -->
+		<meta http-equiv="X-UA-Compatible" content="IE=9; IE=8;" />
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css">
+		<link rel="stylesheet" href="lib/bootstrap-switch/static/stylesheets/bootstrapSwitch.css">
+		<script src="lib/bootstrap-switch/static/js/bootstrapSwitch.js"></script>
+		<!-- bootstrap -->
+		<script src="lib/bootstrap/js/bootstrap.js"></script>
+		<!-- taffydb -->
+		<script src="lib/taffydb/taffy.js"></script>
 		<!-- rosdash -->
 		<script src="rosdash.js"></script>
 		<script src="rosdash-widgets.js"></script>
@@ -77,15 +90,24 @@ $(function() {
 	$("#property").click(ROSDASH.showProperty);
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
 	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>");
+	
+	var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
+	cities.insert({name:"Portland",state:"OR"});
+	console.debug("db: " + cities({name:"Boston"}).count());
 });
 		</script>
 	</head>
 	<body>
 		<div style="padding-top: 5px;">
 			<input type="text" name="text" id="text" value="">
-			<button class="btn" id="btnAddWidget">
-				Add Widget
-			</button>
+			<div class="btn-group">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="btnAddWidget">
+					Add Widget
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu" id="widget-list">
+				</ul>
+			</div>
 			<button class="btn" id="addToDiagram">
 				add to diagram
 			</button>

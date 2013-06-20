@@ -91,6 +91,13 @@
 			}
 		]
 	}, {
+		"type": "toggle button",
+		"runNamespace": "ToggleButton",
+		"init": "init",
+		"runOnce": "runOnce",
+		"input": [],
+		"output": []
+	}, {
 		"type": "msgToStr",
 		"runNamespace": "msgToStr",
 		"init": "init",
@@ -260,5 +267,35 @@
 		"type": "youtube",
 		"input": [],
 		"output": []
+	}, {
+		"type": "vumeter",
+		"runNamespace": "Vumeter",
+		"init": "init",
+		"runOnce": "runOnce",
+		"run": "run",
+		"input": [],
+		"output": []
+	}, {
+		"type": "simrobot",
+		"runNamespace": "SimRobot",
+		"init": "init",
+		"runOnce": "runOnce",
+		"run": "run",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Float32[]",
+				"name": "location"
+			}, {
+				"datatype": "Float32",
+				"name": "speed"
+			}, {
+				"datatype": "Float32",
+				"name": "voltage"
+			}, {
+				"datatype": "Float32",
+				"name": "current"
+			}
+		]
 	}
 ]}
