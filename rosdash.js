@@ -438,6 +438,8 @@ ROSDASH.saveProperty = function (dialog)
 		ROSDASH.blocks[ROSDASH.selected_block][$(ele).attr("name")] = $(ele).val();
 	});
 }
+
+//------------------- user
 ROSDASH.setUser = function (user)
 {
 	if (undefined === user || "" == user)
@@ -450,6 +452,12 @@ ROSDASH.setUser = function (user)
 	}
 	console.log("user name: " + ROSDASH.user);
 }
+ROSDASH.user_conf = {
+	widget_width: 400,
+	widget_height: 230,
+	header_height: 16,
+	content_height: 180
+};
 
 //------------------- ROS
 ROSDASH.ros;
@@ -652,11 +660,14 @@ ROSDASH.INPUT_POS = {
 	"2": [[-70, -20], [-70, 20]],
 	"3": [[-70, -20], [-70, 0], [-70, 20]],
 	"4": [[-70, -30], [-70, -10], [-70, 10], [-70, 30]],
+	"5": [[-70, -40], [-70, -20], [-70, 0], [-70, 20], [-70, 40]],
 };
 ROSDASH.OUTPUT_POS = {
 	"1": [[70, 0]],
 	"2": [[70, -20], [70, 20]],
 	"3": [[70, -20], [70, 0], [70, 20]],
+	"4": [[70, -30], [70, -10], [70, 10], [70, 30]],
+	"5": [[70, -40], [70, -20], [70, 0], [70, 20], [70, 40]],
 };
 //@todo
 ROSDASH.getNextNewBlockPos = function ()
@@ -1370,7 +1381,7 @@ ROSDASH.parseWidgetContent = function (widget)
 		widget.widgetContent = '<canvas id="viewport" class="sDashboardWidgetContent"></canvas>';
 		break;
 	case "network":
-		widget.widgetContent = '<div id="dracula_canvas" class="sDashboardWidgetContent"></div>';
+		widget.widgetContent = '<div id="dracula_canvas" style="height:100%; width:100%;" />';
 		break;
 	case "doodle god":
 		widget.widgetContent = '<object width="180" height="135"><param name="movie" value="http://www.fupa.com/swf/doodle-god/doodlegod.swf"></param><embed src="http://www.fupa.com/swf/doodle-god/doodlegod.swf" type="application/x-shockwave-flash" width="180" height="135"></embed></object>';

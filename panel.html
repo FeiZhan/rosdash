@@ -52,6 +52,11 @@
 		<script type="text/javascript" src="lib/dracula/examples/example.js"></script>
 		<!-- flot -->
 		<script language="javascript" type="text/javascript" src="lib/flot/jquery.flot.js"></script>
+		<script language="javascript" type="text/javascript" src="lib/flot/jquery.flot.time.js"></script>
+		<script language="javascript" type="text/javascript" src="lib/flot/jquery.flot.selection.js"></script>
+		<script language="javascript" type="text/javascript" src="lib/flot/jquery.flot.crosshair.js"></script>
+		<script language="javascript" type="text/javascript" src="lib/flot/jquery.flot.threshold.js"></script>
+		<script language="javascript" type="text/javascript" src="lib/flot/jquery.flot.navigate.js"></script>
 		<!-- speak -->
 		<script language="javascript" type="text/javascript" src="lib/speak-js/speakClient.js"></script>
 		<!-- turtlesimjs -->
@@ -97,28 +102,30 @@ $(function() {
 });
 		</script>
 	</head>
-	<body>
-		<div style="padding-top: 5px;">
-			<input type="text" name="text" id="text" value="">
+	<body style="background-color:AliceBlue;">
+		<div style="padding-top:5px; background-color:DarkSeaGreen;">
+			<span style="font-size:50px; background-color:DarkSeaGreen; color:Indigo; font-family:fantasy;">ROS DASH </span>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<input type="text" class="span2" name="text" id="text" value="">
 			<div class="btn-group">
-				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="btnAddWidget">
+				<a class="btn dropdown-toggle btn-primary" data-toggle="dropdown" href="#" id="btnAddWidget">
 					Add Widget
 					<span class="caret"></span>
 				</a>
 				<ul class="dropdown-menu" id="widget-list">
 				</ul>
 			</div>
-			<button class="btn" id="addToDiagram">
+			<button class="btn btn-primary" id="addToDiagram">
 				add to diagram
 			</button>
-			<input type="button" class="btn" id="property" value="property">
-			<div id="dialog-form" title="Property">
-				<form>
-				<fieldset>
-					<span id="property"></span>
-				</fieldset>
-				</form>
-			</div>
+			<input type="button" class="btn btn-primary" id="property" value="property" />
+		</div>
+		<div id="dialog-form" title="Property">
+			<form>
+			<fieldset>
+				<span id="property"></span>
+			</fieldset>
+			</form>
 		</div>
 		<ul id="myDashboard"></ul>
 	</body>

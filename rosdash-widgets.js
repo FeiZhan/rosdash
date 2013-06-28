@@ -15,6 +15,24 @@ ROSDASH.rosArray.run = function (block, input)
 	return {o0: a};
 }
 
+//@todo must change to class
+ROSDASH.memArray = new Object();
+ROSDASH.memArray.data = new Object();
+ROSDASH.memArray.length = 100;
+ROSDASH.memArray.run = function (block, input)
+{
+	if (! (block.id in ROSDASH.memArray.data))
+	{
+		ROSDASH.memArray.data[block.id] = new Array();
+	}
+	ROSDASH.memArray.data[block.id].push(input[0]);
+	if (ROSDASH.memArray.length < ROSDASH.memArray.data[block.id].length)
+	{
+		ROSDASH.memArray.data[block.id].splice(0, ROSDASH.memArray.data[block.id].length - ROSDASH.memArray.length);
+	}
+	return {o0: ROSDASH.memArray.data[block.id]};
+}
+
 ROSDASH.Addition = new Object();
 ROSDASH.Addition.run = function (block, input)
 {
@@ -276,7 +294,7 @@ ROSDASH.Gmap = new Object();
 ROSDASH.Gmap.gmap = undefined;
 ROSDASH.Gmap.init = function (widget)
 {
-	widget.widgetContent = '<div id="map-canvas" class="sDashboardWidgetContent" />';
+	widget.widgetContent = '<div id="map-canvas" style="height:100%; width:100%;" />';
 	return widget;
 }
 ROSDASH.Gmap.initGmap = function ()
@@ -298,11 +316,54 @@ ROSDASH.Gmap.resizeGmap = function ()
 	google.maps.event.trigger(ROSDASH.Gmap.gmap, "resize");
 }
 
+ROSDASH.GmapTraj = new Object();
+ROSDASH.GmapTraj.robot = new Object();
+ROSDASH.GmapTraj.run = function (block, input)
+{
+	if (input.length < 2 || undefined === input[0])
+	{
+		return;
+	}
+	if (! (block.id in ROSDASH.GmapTraj.robot))
+	{
+		ROSDASH.GmapTraj.robot[block.id] = new Object();
+	}
+	for (var i in input[1])
+	{
+		if (undefined !== ROSDASH.GmapTraj.robot[block.id].robot)
+		{
+			ROSDASH.GmapTraj.robot[block.id].robot.setMap(null);
+		}
+		ROSDASH.GmapTraj.robot[block.id].robot = new google.maps.Marker({
+			position: new google.maps.LatLng(input[1][i].x, input[1][i].y),
+			map: input[0],
+			title: "robot " + i,
+			icon: "resource/cabs.png",
+			//shadow: {url: 'resource/cabs.shadow.png',}
+		});
+	}
+}
+
+ROSDASH.SafeRange = new Object();
+ROSDASH.SafeRange.min = 0;
+ROSDASH.SafeRange.max = 100;
+ROSDASH.SafeRange.run = function (block, input)
+{
+	if (input[0] < ROSDASH.SafeRange.min || input[0] > ROSDASH.SafeRange.max)
+	{
+		return {o0: false};
+	} else
+	{
+		return {o0: true};
+	}
+}
+
 ROSDASH.Flot = new Object();
 ROSDASH.Flot.plot;
 ROSDASH.Flot.init = function (widget)
 {
-	widget.widgetContent = '<div id="placeholder" class="sDashboardWidgetContent" />';
+	var id = "flot_" + widget.widgetId;
+	widget.widgetContent = '<div id="' + id + '" style="height:100%;width:100%;" />';
 	return widget;
 }
 ROSDASH.Flot.getDefaultData = function ()
@@ -345,10 +406,11 @@ ROSDASH.Flot.option = {
 };
 ROSDASH.Flot.runOnce = function (block)
 {
-	if ($("#placeholder").length > 0)
+	var id = "flot_" + block.id;
+	if ($("#" + id).length > 0)
 	{
 		$(function() {
-			ROSDASH.Flot.plot = $.plot("#placeholder", ROSDASH.Flot.getDefaultData(), ROSDASH.Flot.option);
+			ROSDASH.Flot.plot = $.plot("#" + id, ROSDASH.Flot.getDefaultData(), ROSDASH.Flot.option);
 		});
 	}
 }
@@ -356,31 +418,36 @@ ROSDASH.Flot.run = function (block, input)
 {
 	input[0] = (undefined === input[0]) ? block.name : input[0];
 	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
-	input[1] = (undefined === input[1]) ? ROSDASH.Flot.getDefaultData() : input[1];
-	var data = new Array();
-	for (var i in input[1])
+	if (undefined !== input[1])
 	{
-		var d = new Array();
-		for (var j in input[1][i])
+		var data = new Array();
+		for (var i in input[1])
 		{
-			if (input[1][i][j].length < 2)
+			var d = new Array();
+			for (var j in input[1][i])
 			{
-				d.push([j, input[1][i][j]]);
-			} else
-			{
-				d.push([input[1][i][j][0], input[1][i][j][1]]);
+				if (typeof input[1][i][j] != "array")
+				{
+					d.push([j, input[1][i][j]]);
+				} else if (input[1][i][j].length < 2)
+				{
+					d.push([j, input[1][i][j][0]]);
+				} else
+				{
+					d.push([input[1][i][j][0], input[1][i][j][1]]);
+				}
 			}
+			data.push(d);
 		}
-		data.push(d);
+		ROSDASH.Flot.plot.setData( data );
+		ROSDASH.Flot.plot.draw();
 	}
-	ROSDASH.Flot.plot.setData( data );
-	ROSDASH.Flot.plot.draw();
 }
 
 ROSDASH.Vumeter = new Object();
 ROSDASH.Vumeter.init = function (widget)
 {
-	widget.widgetContent = '<div id="vumeter_container" style="width: 600px; height: 300px; margin: 0 auto"></div>';
+	widget.widgetContent = '<div id="vumeter_container" style="width:100%; height:100%; margin: 0 auto;"></div>';
 	return widget;
 }
 ROSDASH.Vumeter.runOnce = function (block)
@@ -503,7 +570,7 @@ ROSDASH.Vumeter.runOnce = function (block)
 }
 
 ROSDASH.SimRobot = new Object();
-ROSDASH.SimRobot.boundary = [0, 100];
+ROSDASH.SimRobot.boundary = [-100, 100];
 ROSDASH.SimRobot.last_loc = [0, 0];
 ROSDASH.SimRobot.loc_step = 5;
 ROSDASH.SimRobot.run = function (block, input)
@@ -511,7 +578,7 @@ ROSDASH.SimRobot.run = function (block, input)
 	var loc = new Array();
 	for (var i = 0; i < 2; ++ i)
 	{
-		loc[i] = ROSDASH.SimRobot.last_loc + (Math.random() - 0.5) * ROSDASH.SimRobot.loc_step;
+		loc[i] = ROSDASH.SimRobot.last_loc[0] + (Math.random() - 0.5) * ROSDASH.SimRobot.loc_step;
 		if (loc[i] < ROSDASH.SimRobot.boundary[0])
 		{
 			loc[i] = ROSDASH.SimRobot.boundary[0];
@@ -520,10 +587,12 @@ ROSDASH.SimRobot.run = function (block, input)
 			loc[i] = ROSDASH.SimRobot.boundary[1];
 		}
 	}
-	return {
-		o0: loc, //location
-		o1: Math.random() * 10, //speed
-		o2: Math.random() * 100, //voltage
-		o3: Math.random() * 100 //current
-	}
+	var output = {
+		o0: loc[0], //location x
+		o1: loc[1], //location y
+		o2: Math.random() * 10, //speed
+		o3: Math.random() * 100, //voltage
+		o4: Math.random() * 100 //current
+	};
+	return output;
 }

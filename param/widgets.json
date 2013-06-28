@@ -37,6 +37,22 @@
 			}
 		]
 	}, {
+		"type": "memarray",
+		"runNamespace": "memArray",
+		"run": "run",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "input"
+			}
+		],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "output"
+			}
+		]
+	}, {
 		"type": "addition",
 		"runNamespace": "Addition",
 		"run": "run",
@@ -230,6 +246,20 @@
 		],
 		"output": []
 	}, {
+		"type": "gmap traj",
+		"runNamespace": "GmapTraj",
+		"run": "run",
+		"input": [
+			{
+				"datatype": "Gmap",
+				"name": "gmap"
+			}, {
+				"datatype": "robot",
+				"name": "robot"
+			}
+		],
+		"output": []
+	}, {
 		"type": "network",
 		"input": [
 			{
@@ -244,6 +274,30 @@
 			}
 		],
 		"output": []
+	}, {
+		"type": "saferange",
+		"runNamespace": "SafeRange",
+		"init": "init",
+		"runOnce": "runOnce",
+		"run": "run",
+		"input": [
+			{
+				"datatype": "Float32",
+				"name": "data"
+			}, {
+				"datatype": "Float32",
+				"name": "min"
+			}, {
+				"datatype": "Float32",
+				"name": "max"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Bool",
+				"name": "isSafe"
+			}
+		]
 	}, {
 		"type": "flot",
 		"runNamespace": "Flot",
@@ -260,6 +314,9 @@
 			}, {
 				"datatype": "FlotOption",
 				"name": "option"
+			}, {
+				"datatype": "SafeRange",
+				"name": "SafeRange"
 			}
 		],
 		"output": []
@@ -278,14 +335,15 @@
 	}, {
 		"type": "simrobot",
 		"runNamespace": "SimRobot",
-		"init": "init",
-		"runOnce": "runOnce",
 		"run": "run",
 		"input": [],
 		"output": [
 			{
-				"datatype": "Float32[]",
-				"name": "location"
+				"datatype": "Float32",
+				"name": "x"
+			}, {
+				"datatype": "Float32",
+				"name": "y"
 			}, {
 				"datatype": "Float32",
 				"name": "speed"
