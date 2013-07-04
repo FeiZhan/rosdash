@@ -160,20 +160,21 @@ ROSDASH.Topic.prototype.run = function (input)
 ROSDASH.ToggleButton = function (block)
 {
 	this.block = block;
+	this.canvas_id = "togglebutton_" + this.block.id;
+	this.button_id = "togglebutton2_" + this.block.id;
 }
 //@todo change name into addToWidget
 ROSDASH.ToggleButton.prototype.init = function (widget)
 {
-	//@todo change the id based on the block id
-	widget.widgetContent = '<input id="mySwitch" type="checkbox" checked />';
+	widget.widgetContent = '<input id="' + this.canvas_id + '" type="checkbox" checked />';
 	return widget;
 }
 ROSDASH.ToggleButton.prototype.runOnce = function ()
 {
-	if ($('#mySwitch').length > 0)
+	if ($('#' + this.canvas_id).length > 0)
 	{
-		$('#mySwitch').wrap('<div id="mySwitch2" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
-		$('#mySwitch2').on('switch-change', function (e, data) {
+		$('#' + this.canvas_id).wrap('<div id="' + this.button_id + '" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
+		$('#' + this.button_id).on('switch-change', function (e, data) {
 			var $el = $(data.el)
 			  , value = data.value;
 			console.log("toggled button");
@@ -308,11 +309,11 @@ ROSDASH.Table.prototype.run = function (input)
 ROSDASH.Turtlesim = function (block)
 {
 	this.block = block;
+	this.canvas_id = "turtlesim_" + this.block.id;
 }
 ROSDASH.Turtlesim.prototype.init = function (widget)
 {
-	//@bug id
-	widget.widgetContent = '<canvas id="world" width="100%" height="100%" style="border: 2px solid black"></canvas>';
+	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="100%" height="100%" style="border: 2px solid black"></canvas>';
 	return widget;
 }
 ROSDASH.Turtlesim.prototype.runOnce = function ()
@@ -320,7 +321,7 @@ ROSDASH.Turtlesim.prototype.runOnce = function ()
 	//@bug a tradition ROS connection
 	var ros = new ROS('ws://192.168.1.123:9090');
 	ros.on('connection', function() {
-		var context = document.getElementById('world').getContext('2d');
+		var context = document.getElementById(this.canvas_id).getContext('2d');
 		var turtleSim = new TurtleSim({
 			  ros     : ros
 			, context : context
@@ -334,11 +335,11 @@ ROSDASH.Turtlesim.prototype.runOnce = function ()
 ROSDASH.Ros2d = function (block)
 {
 	this.block = block;
+	this.canvas_id = "ros2d_" + this.block.id;
 }
 ROSDASH.Ros2d.prototype.init = function (widget)
 {
-	//@bug id
-	widget.widgetContent = '<div id="ros2d_map"></div>';
+	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
 	return widget;
 }
 ROSDASH.Ros2d.prototype.runOnce = function ()
@@ -348,7 +349,7 @@ ROSDASH.Ros2d.prototype.runOnce = function ()
 		//@bug width and height
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
-		  divID : 'ros2d_map',
+		  divID : this.canvas_id,
 		  width : 308,
 		  height : 250
 		});
@@ -373,11 +374,11 @@ ROSDASH.Ros2d.prototype.runOnce = function ()
 ROSDASH.Ros3d = function (block)
 {
 	this.block = block;
+	this.canvas_id = "ros3d_" + this.block.id;
 }
 ROSDASH.Ros3d.prototype.init = function (widget)
 {
-	//@bug id
-	widget.widgetContent = '<div id="ros3d_map"></div>';
+	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
 	return widget;
 }
 ROSDASH.Ros3d.prototype.runOnce = function ()
@@ -387,7 +388,7 @@ ROSDASH.Ros3d.prototype.runOnce = function ()
 		//@bug height and width
 		// Create the main viewer.
 		var viewer = new ROS3D.Viewer({
-		  divID : 'ros3d_map',
+		  divID : this.canvas_id,
 		  width : 80,
 		  height : 60,
 		  antialias : true
@@ -408,26 +409,27 @@ ROSDASH.Ros3d.prototype.runOnce = function ()
 ROSDASH.Gmap = function (block)
 {
 	this.block = block;
+	this.canvas_id = "gmap_" + this.block.id;
 	this.gmap = undefined;
 }
 ROSDASH.Gmap.prototype.init = function (widget)
 {
-	//@bug id
-	widget.widgetContent = '<div id="map-canvas" style="height:100%; width:100%;" />';
+	widget.widgetContent = '<div id="' + this.canvas_id + '" style="height:100%; width:100%;" />';
 	return widget;
 }
 //@bug runOnce
 ROSDASH.Gmap.prototype.initGmap = function ()
 {
 	var LAB = [49.276802, -122.914913];
-	if ($("#map-canvas").length)
+	// if canvas exists
+	if ($("#" + this.canvas_id).length)
 	{
 		var mapOptions = {
 		  center: new google.maps.LatLng(LAB[0], LAB[1]),
 		  zoom: 14,
 		  mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
-		this.gmap = new google.maps.Map(document.getElementById("map-canvas"),
+		this.gmap = new google.maps.Map(document.getElementById(this.canvas_id),
 			mapOptions);
 	}
 }
@@ -601,16 +603,16 @@ ROSDASH.Flot.prototype.run = function (input)
 ROSDASH.Vumeter = function (block)
 {
 	this.block = block;
+	this.canvas_id = "vumeter_" + this.block.id;
 }
 ROSDASH.Vumeter.prototype.init = function (widget)
 {
-	//@bug id
-	widget.widgetContent = '<div id="vumeter_container" style="width:100%; height:100%; margin: 0 auto;"></div>';
+	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; margin: 0 auto;"></div>';
 	return widget;
 }
 ROSDASH.Vumeter.prototype.runOnce = function ()
 {
-	$('#vumeter_container').highcharts({
+	$('#' + this.canvas_id).highcharts({
 	    chart: {
 	        type: 'gauge',
 	        plotBorderWidth: 1,

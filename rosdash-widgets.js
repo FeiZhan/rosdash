@@ -15,7 +15,6 @@ ROSDASH.rosArray.run = function (block, input)
 	return {o0: a};
 }
 
-//@todo must change to class
 ROSDASH.memArray = new Object();
 ROSDASH.memArray.data = new Object();
 ROSDASH.memArray.length = 100;

@@ -1587,21 +1587,6 @@ ROSDASH.loadPanel = function (json)
 		delete json[max_num];
 		-- count;
 	}
-	//@bug add all widgets into diagram_connection, since when adding diagram_connection, the panel is not loaded
-	/*for (var i in ROSDASH.widgets)
-	{
-		if (undefined === ROSDASH.diagram_connection[i])
-		{
-			ROSDASH.diagram_connection[i] = new Object();
-			ROSDASH.diagram_connection[i].parent = new Object();
-			ROSDASH.diagram_connection[i].child = new Object();
-			ROSDASH.diagram_connection[i].exist = true;
-			ROSDASH.diagram_connection[i].done = false;
-		} else
-		{
-			ROSDASH.diagram_connection[i].exist = true;
-		}
-	}*/
 }
 ROSDASH.savePanel = function ()
 {
@@ -1728,6 +1713,8 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[i].output = new Object();
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].done = false;
+			//@todo
+			//ROSDASH.diagram_connection[i].instance = new 
 		} else // if in the connection
 		{
 			// validate the existence of the block
