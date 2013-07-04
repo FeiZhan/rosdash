@@ -299,41 +299,53 @@ ROSDASH.Table.prototype.run = function (input)
 		"aaData" : input[2],
 		"aoColumns" : aoColumns
 	};
+	//@todo considering the layout
 	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
 	$("#myDashboard").sDashboard("setContentById", block.id, dataTable);
 }
 
-/*
-ROSDASH.Turtlesim = new Object();
-ROSDASH.Turtlesim.init = function (widget)
+// Turtlesim from ROS desktop widget
+ROSDASH.Turtlesim = function (block)
 {
+	this.block = block;
+}
+ROSDASH.Turtlesim.prototype.init = function (widget)
+{
+	//@bug id
 	widget.widgetContent = '<canvas id="world" width="100%" height="100%" style="border: 2px solid black"></canvas>';
 	return widget;
 }
-ROSDASH.Turtlesim.runOnce = function (block)
+ROSDASH.Turtlesim.prototype.runOnce = function ()
 {
-      var ros = new ROS('ws://192.168.1.123:9090');
-      ros.on('connection', function() {
-        var context = document.getElementById('world').getContext('2d');
-        var turtleSim = new TurtleSim({
-          ros     : ros
-        , context : context
-        });
-        turtleSim.spawnTurtle('turtle1');
-        turtleSim.draw();
-      });
+	//@bug a tradition ROS connection
+	var ros = new ROS('ws://192.168.1.123:9090');
+	ros.on('connection', function() {
+		var context = document.getElementById('world').getContext('2d');
+		var turtleSim = new TurtleSim({
+			  ros     : ros
+			, context : context
+		});
+		turtleSim.spawnTurtle('turtle1');
+		turtleSim.draw();
+	});
 }
 
-ROSDASH.Ros2d = new Object();
-ROSDASH.Ros2d.init = function (widget)
+// ros2djs
+ROSDASH.Ros2d = function (block)
 {
+	this.block = block;
+}
+ROSDASH.Ros2d.prototype.init = function (widget)
+{
+	//@bug id
 	widget.widgetContent = '<div id="ros2d_map"></div>';
 	return widget;
 }
-ROSDASH.Ros2d.runOnce = function (block)
+ROSDASH.Ros2d.prototype.runOnce = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
+		//@bug width and height
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
 		  divID : 'ros2d_map',
@@ -352,20 +364,27 @@ ROSDASH.Ros2d.runOnce = function (block)
 		});
 	} else
 	{
+		// wait for ROS to start
 		setTimeout(ROSDASH.Ros2d.runOnce, 500);
 	}
 }
 
-ROSDASH.Ros3d = new Object();
-ROSDASH.Ros3d.init = function (widget)
+// ros3djs
+ROSDASH.Ros3d = function (block)
 {
+	this.block = block;
+}
+ROSDASH.Ros3d.prototype.init = function (widget)
+{
+	//@bug id
 	widget.widgetContent = '<div id="ros3d_map"></div>';
 	return widget;
 }
-ROSDASH.Ros3d.runOnce = function (block)
+ROSDASH.Ros3d.prototype.runOnce = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
+		//@bug height and width
 		// Create the main viewer.
 		var viewer = new ROS3D.Viewer({
 		  divID : 'ros3d_map',
@@ -380,18 +399,25 @@ ROSDASH.Ros3d.runOnce = function (block)
 		});
 	} else
 	{
+		// wait for ROS to start
 		setTimeout(ROSDASH.Ros3d.runOnce, 500);
 	}
 }
 
-ROSDASH.Gmap = new Object();
-ROSDASH.Gmap.gmap = undefined;
-ROSDASH.Gmap.init = function (widget)
+// google maps
+ROSDASH.Gmap = function (block)
 {
+	this.block = block;
+	this.gmap = undefined;
+}
+ROSDASH.Gmap.prototype.init = function (widget)
+{
+	//@bug id
 	widget.widgetContent = '<div id="map-canvas" style="height:100%; width:100%;" />';
 	return widget;
 }
-ROSDASH.Gmap.initGmap = function ()
+//@bug runOnce
+ROSDASH.Gmap.prototype.initGmap = function ()
 {
 	var LAB = [49.276802, -122.914913];
 	if ($("#map-canvas").length)
@@ -401,36 +427,51 @@ ROSDASH.Gmap.initGmap = function ()
 		  zoom: 14,
 		  mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
-		ROSDASH.Gmap.gmap = new google.maps.Map(document.getElementById("map-canvas"),
+		this.gmap = new google.maps.Map(document.getElementById("map-canvas"),
 			mapOptions);
 	}
 }
-ROSDASH.Gmap.resizeGmap = function ()
+//@input	none
+//@output	gmap object
+ROSDASH.Gmap.prototype.run = function (input)
 {
-	google.maps.event.trigger(ROSDASH.Gmap.gmap, "resize");
+	return {o0: this.gmap};
+}
+ROSDASH.Gmap.prototype.resizeGmap = function ()
+{
+	google.maps.event.trigger(this.gmap, "resize");
 }
 
-ROSDASH.GmapTraj = new Object();
-ROSDASH.GmapTraj.robot = new Object();
-ROSDASH.GmapTraj.run = function (block, input)
+// google maps robot trajectory overlay (temporarily it is just position)
+ROSDASH.GmapTraj = function (block)
+{
+	this.block = block;
+	this.robot = new Object();
+}
+//@input	google maps object, array of robot positions
+//@output	google maps object
+ROSDASH.GmapTraj.prototype.run = function (input)
 {
 	if (input.length < 2 || undefined === input[0])
 	{
+		console.error("not enough arguments: " + this.block.id);
 		return;
 	}
-	if (! (block.id in ROSDASH.GmapTraj.robot))
+	// for a new robot
+	if (! (this.block.id in ROSDASH.GmapTraj.robot))
 	{
-		ROSDASH.GmapTraj.robot[block.id] = new Object();
+		this.robot[block.id] = new Object();
 	}
 	for (var i in input[1])
 	{
-		if (undefined !== ROSDASH.GmapTraj.robot[block.id].robot)
+		// clear the old position
+		if (undefined !== this.robot[block.id].robot)
 		{
-			ROSDASH.GmapTraj.robot[block.id].robot.setMap(null);
+			this.robot[block.id].robot.setMap(null);
 		}
-		ROSDASH.GmapTraj.robot[block.id].robot = new google.maps.Marker({
+		this.robot[block.id].robot = new google.maps.Marker({
 			position: new google.maps.LatLng(input[1][i].x, input[1][i].y),
-			map: input[0],
+			map: input[0],	// google maps object
 			title: "robot " + i,
 			icon: "resource/cabs.png",
 			//shadow: {url: 'resource/cabs.shadow.png',}
@@ -438,12 +479,18 @@ ROSDASH.GmapTraj.run = function (block, input)
 	}
 }
 
-ROSDASH.SafeRange = new Object();
-ROSDASH.SafeRange.min = 0;
-ROSDASH.SafeRange.max = 100;
-ROSDASH.SafeRange.run = function (block, input)
+// safe range for text or plot widget
+ROSDASH.SafeRange = function (block)
 {
-	if (input[0] < ROSDASH.SafeRange.min || input[0] > ROSDASH.SafeRange.max)
+	this.block = block;
+	this.min = 0;
+	this.max = 100;
+}
+//@input	the value to be tested
+//@output	if it is in safe range
+ROSDASH.SafeRange.prototype.run = function (input)
+{
+	if (input[0] < this.min || input[0] > this.max)
 	{
 		return {o0: false};
 	} else
@@ -452,15 +499,47 @@ ROSDASH.SafeRange.run = function (block, input)
 	}
 }
 
-ROSDASH.Flot = new Object();
-ROSDASH.Flot.plot;
-ROSDASH.Flot.init = function (widget)
+// a plot widget
+ROSDASH.Flot = function (block)
 {
+	this.block = block;
+	this.plot;
+	this.option = {
+		// drawing is faster without shadows
+		series: {
+			shadowSize: 0,
+			lines: {show: true},
+			points: {show: true}
+		},
+		crosshair: {mode: "x"},
+		zoom: {interactive: true},
+		pan: {interactive: true},
+		// it can adjust automatically
+		//@bug still some bugs
+		//yaxis: { min: 0, max: 100 },
+		yaxis: {
+			tickFormatter: function (v, axis)
+			{
+				return v.toFixed(2);
+			}
+		},
+		grid: {show: true},
+		legend: { position: "nw" },
+		grid: {
+			show: true,
+			hoverable: true,
+			autoHighlight: false
+		}
+	};
+}
+ROSDASH.Flot.prototype.init = function (widget)
+{
+	//@note id
 	var id = "flot_" + widget.widgetId;
 	widget.widgetContent = '<div id="' + id + '" style="height:100%;width:100%;" />';
 	return widget;
 }
-ROSDASH.Flot.getDefaultData = function ()
+ROSDASH.Flot.prototype.getDefaultData = function ()
 {
 	var d1 = [];
 	for (var i = 0; i < 14; i += 0.5) {
@@ -471,49 +550,29 @@ ROSDASH.Flot.getDefaultData = function ()
 	var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
 	return [ d1, d2, d3 ];
 }
-ROSDASH.Flot.option = {
-	// drawing is faster without shadows
-	series: {
-		shadowSize: 0,
-		lines: {show: true},
-		points: {show: true}
-	},
-	crosshair: {mode: "x"},
-	zoom: {interactive: true},
-	pan: {interactive: true},
-	// it can adjust automatically
-	//@bug still some bugs
-	//yaxis: { min: 0, max: 100 },
-	yaxis: {
-		tickFormatter: function (v, axis)
-		{
-			return v.toFixed(2);
-		}
-	},
-	grid: {show: true},
-	legend: { position: "nw" },
-	grid: {
-		show: true,
-		hoverable: true,
-		autoHighlight: false
-	}
-};
-ROSDASH.Flot.runOnce = function (block)
+ROSDASH.Flot.prototype.runOnce = function ()
 {
-	var id = "flot_" + block.id;
+	var id = "flot_" + this.block.id;
+	// if the canvas exists
 	if ($("#" + id).length > 0)
 	{
+		// create the canvas with default data
 		$(function() {
-			ROSDASH.Flot.plot = $.plot("#" + id, ROSDASH.Flot.getDefaultData(), ROSDASH.Flot.option);
+			this.plot = $.plot("#" + id, ROSDASH.Flot.getDefaultData(), this.option);
 		});
 	}
 }
-ROSDASH.Flot.run = function (block, input)
+//@input	title, data, option, saferange
+//@output	none
+ROSDASH.Flot.prototype.run = function (input)
 {
-	input[0] = (undefined === input[0]) ? block.name : input[0];
-	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
+	//i0 title
+	input[0] = (undefined === input[0]) ? this.block.name : input[0];
+	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
+	//i1 data
 	if (undefined !== input[1])
 	{
+		// change data format into [[x, data], ...]
 		var data = new Array();
 		for (var i in input[1])
 		{
@@ -538,13 +597,18 @@ ROSDASH.Flot.run = function (block, input)
 	}
 }
 
-ROSDASH.Vumeter = new Object();
-ROSDASH.Vumeter.init = function (widget)
+// V U meter
+ROSDASH.Vumeter = function (block)
 {
+	this.block = block;
+}
+ROSDASH.Vumeter.prototype.init = function (widget)
+{
+	//@bug id
 	widget.widgetContent = '<div id="vumeter_container" style="width:100%; height:100%; margin: 0 auto;"></div>';
 	return widget;
 }
-ROSDASH.Vumeter.runOnce = function (block)
+ROSDASH.Vumeter.prototype.runOnce = function ()
 {
 	$('#vumeter_container').highcharts({
 	    chart: {
@@ -663,31 +727,36 @@ ROSDASH.Vumeter.runOnce = function (block)
 	});
 }
 
-ROSDASH.SimRobot = new Object();
-ROSDASH.SimRobot.boundary = [-100, 100];
-ROSDASH.SimRobot.last_loc = [0, 0];
-ROSDASH.SimRobot.loc_step = 5;
-ROSDASH.SimRobot.run = function (block, input)
+// a simulated mobile robot
+ROSDASH.SimRobot = function (block)
+{
+	this.block = block;
+	this.boundary = [-100, 100];
+	this.last_loc = [0, 0];
+	this.loc_step = 5;
+}
+//@input	none
+//@output	location x, location y, speed, voltage, current
+ROSDASH.SimRobot.prototype.run = function (input)
 {
 	var loc = new Array();
 	for (var i = 0; i < 2; ++ i)
 	{
-		loc[i] = ROSDASH.SimRobot.last_loc[0] + (Math.random() - 0.5) * ROSDASH.SimRobot.loc_step;
-		if (loc[i] < ROSDASH.SimRobot.boundary[0])
+		loc[i] = this.last_loc[0] + (Math.random() - 0.5) * this.loc_step;
+		if (loc[i] < this.boundary[0])
 		{
-			loc[i] = ROSDASH.SimRobot.boundary[0];
-		} else if (loc[i] > ROSDASH.SimRobot.boundary[1])
+			loc[i] = this.boundary[0];
+		} else if (loc[i] > this.boundary[1])
 		{
-			loc[i] = ROSDASH.SimRobot.boundary[1];
+			loc[i] = this.boundary[1];
 		}
 	}
 	var output = {
-		o0: loc[0], //location x
-		o1: loc[1], //location y
-		o2: Math.random() * 10, //speed
-		o3: Math.random() * 100, //voltage
-		o4: Math.random() * 100 //current
+		o0: loc[0], // location x
+		o1: loc[1], // location y
+		o2: Math.random() * 10, // speed
+		o3: Math.random() * 100, // voltage
+		o4: Math.random() * 100 // current
 	};
 	return output;
 }
-*/

@@ -258,7 +258,12 @@
 				"name": "robot"
 			}
 		],
-		"output": []
+		"output": [
+			{
+				"datatype": "Gmap",
+				"name": "gmap"
+			}
+		]
 	}, {
 		"type": "network",
 		"input": [
