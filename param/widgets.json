@@ -185,10 +185,10 @@
 		"input": [
 			{
 				"datatype": "String",
-				"name": "title"
+				"name": "header"
 			}, {
 				"datatype": "String[]",
-				"name": "header"
+				"name": "title"
 			}, {
 				"datatype": "String[]",
 				"name": "data"
@@ -232,6 +232,7 @@
 		"type": "gmap",
 		"runNamespace": "Gmap",
 		"init": "init",
+		"runOnce": "runOnce",
 		"input": [
 			{
 				"datatype": "String",

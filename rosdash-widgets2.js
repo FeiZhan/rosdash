@@ -277,7 +277,6 @@ ROSDASH.Speech.prototype.run = function (input)
 	$("#myDashboard").sDashboard("setContentById", this.block.id, input[0]);
 }
 
-//@bug title? header? heading? in json
 // table
 ROSDASH.Table = function (block)
 {
@@ -296,6 +295,7 @@ ROSDASH.Table.prototype.run = function (input)
 	{
 		aoColumns.push({sTitle: input[1][i]});
 	}
+	// for contents
 	var tableDef = {
 		"aaData" : input[2],
 		"aoColumns" : aoColumns
@@ -318,7 +318,7 @@ ROSDASH.Turtlesim.prototype.init = function (widget)
 }
 ROSDASH.Turtlesim.prototype.runOnce = function ()
 {
-	//@bug a tradition ROS connection
+	//@note a tradition ROS connection
 	var ros = new ROS('ws://192.168.1.123:9090');
 	ros.on('connection', function() {
 		var context = document.getElementById(this.canvas_id).getContext('2d');
@@ -346,7 +346,7 @@ ROSDASH.Ros2d.prototype.runOnce = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
-		//@bug width and height
+		//@note width and height
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
 		  divID : this.canvas_id,
@@ -385,7 +385,7 @@ ROSDASH.Ros3d.prototype.runOnce = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
-		//@bug height and width
+		//@note height and width
 		// Create the main viewer.
 		var viewer = new ROS3D.Viewer({
 		  divID : this.canvas_id,
@@ -417,12 +417,11 @@ ROSDASH.Gmap.prototype.init = function (widget)
 	widget.widgetContent = '<div id="' + this.canvas_id + '" style="height:100%; width:100%;" />';
 	return widget;
 }
-//@bug runOnce
-ROSDASH.Gmap.prototype.initGmap = function ()
+ROSDASH.Gmap.prototype.runOnce = function ()
 {
 	var LAB = [49.276802, -122.914913];
 	// if canvas exists
-	if ($("#" + this.canvas_id).length)
+	if ($("#" + this.canvas_id).length > 0)
 	{
 		var mapOptions = {
 		  center: new google.maps.LatLng(LAB[0], LAB[1]),
@@ -431,6 +430,9 @@ ROSDASH.Gmap.prototype.initGmap = function ()
 		};
 		this.gmap = new google.maps.Map(document.getElementById(this.canvas_id),
 			mapOptions);
+	} else
+	{
+		setTimeout(ROSDASH.Gmap.runOnce, 500);
 	}
 }
 //@input	none
@@ -517,7 +519,7 @@ ROSDASH.Flot = function (block)
 		zoom: {interactive: true},
 		pan: {interactive: true},
 		// it can adjust automatically
-		//@bug still some bugs
+		//@note still some bugs
 		//yaxis: { min: 0, max: 100 },
 		yaxis: {
 			tickFormatter: function (v, axis)

@@ -1,3 +1,9 @@
+ROSDASH.test = new Object();
+ROSDASH.test.run = function (block, input)
+{
+	console.debug("testing", block, input);
+}
+
 ROSDASH.Constant = new Object();
 ROSDASH.Constant.run = function (block, input)
 {
@@ -296,7 +302,7 @@ ROSDASH.Gmap.init = function (widget)
 	widget.widgetContent = '<div id="map-canvas" style="height:100%; width:100%;" />';
 	return widget;
 }
-ROSDASH.Gmap.initGmap = function ()
+ROSDASH.Gmap.runOnce = function ()
 {
 	var LAB = [49.276802, -122.914913];
 	if ($("#map-canvas").length)
@@ -308,6 +314,9 @@ ROSDASH.Gmap.initGmap = function ()
 		};
 		ROSDASH.Gmap.gmap = new google.maps.Map(document.getElementById("map-canvas"),
 			mapOptions);
+	} else
+	{
+		setTimeout(ROSDASH.Gmap.runOnce, 500);
 	}
 }
 ROSDASH.Gmap.resizeGmap = function ()
@@ -387,7 +396,7 @@ ROSDASH.Flot.option = {
 	zoom: {interactive: true},
 	pan: {interactive: true},
 	// it can adjust automatically
-	//@bug still some bugs
+	//@note still some bugs
 	//yaxis: { min: 0, max: 100 },
 	yaxis: {
 		tickFormatter: function (v, axis)
