@@ -93,6 +93,7 @@ $(function() {
 	});
 	$("#addToDiagram").click(ROSDASH.addToDiagram);
 	$("#property").click(ROSDASH.showProperty);
+	$("#savePanel").click(ROSDASH.savePanel);
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
 	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>");
 	
@@ -118,7 +119,12 @@ $(function() {
 			<button class="btn btn-primary" id="addToDiagram">
 				add to diagram
 			</button>
-			<input type="button" class="btn btn-primary" id="property" value="property" />
+			<button class="btn btn-primary" id="property">
+				property
+			</button>
+			<button class="btn btn-primary" id="savePanel">
+				save
+			</button>
 		</div>
 		<div id="dialog-form" title="Property">
 			<form>
