@@ -448,6 +448,14 @@ ROSDASH.saveProperty = function (dialog)
 }
 
 //------------------- user
+ROSDASH.checkUserConfValid = function ()
+{
+	if (ROSDASH.user_conf.run_msec < 100)
+	{
+		console.error("run_msec is too low: ", ROSDASH.user_conf.run_msec);
+		ROSDASH.user_conf.run_msec = 100;
+	}
+}
 ROSDASH.setUser = function (user)
 {
 	if (undefined === user || "" == user)
@@ -458,10 +466,12 @@ ROSDASH.setUser = function (user)
 	{
 		ROSDASH.user = user;
 	}
+	ROSDASH.checkUserConfValid();
 	console.log("user name: " + ROSDASH.user);
 }
 ROSDASH.user_conf = {
 	disable_selection: true,
+	run_msec: 200,
 	widget_width: 400,
 	widget_height: 230,
 	header_height: 16,
@@ -1695,7 +1705,7 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[block2].done = false;
 		}
 		var type2 = edge.target.substring(index + 1);
-		//
+		// save into ROSDASH.diagram_connection
 		if (type1.substring(0, 1) == "i" && type2.substring(0, 1) == "o")
 		{
 			ROSDASH.diagram_connection[block1].parent[type1] = block2;
@@ -1706,17 +1716,21 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[block2].output[type2] = type1;
 		}
 	}
+	// for each block
 	for (var i in ROSDASH.diagram.block)
 	{
+		// if it is not in the connection
 		if (undefined === ROSDASH.diagram_connection[i])
 		{
+			// generate that block with no connection
 			ROSDASH.diagram_connection[i] = new Object();
 			ROSDASH.diagram_connection[i].parent = new Object();
 			ROSDASH.diagram_connection[i].output = new Object();
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].done = false;
-		} else
+		} else // if in the connection
 		{
+			// validate the existence of the block
 			ROSDASH.diagram_connection[i].exist = true;
 		}
 	}
@@ -1726,23 +1740,30 @@ ROSDASH.traverseDiagram = function ()
 ROSDASH.diagram_output = new Object();
 ROSDASH.updateOnceWidgets = function ()
 {
+	/*var widget_exec = new Object();
+	widget_exec["constant1"] = new ROSDASH.Constant2({value: 123});
+	console.debug(widget_exec["constant1"].run());*/
+
 	for (var i in ROSDASH.diagram_connection)
 	{
+		// validate the existence of each block just once
 		if (! ROSDASH.diagram_connection[i].exist)
 		{
 			console.error("widget does not exist: "+ i);
 			continue;
 		}
 		var widget = ROSDASH.widget_def[ROSDASH.diagram.block[i].type];
+		// if widget has runOnce function
 		if (undefined !== widget.runNamespace && undefined !== widget.runOnce)
 		{
 			var fn = window["ROSDASH"][widget.runNamespace][widget.runOnce];
+			// if runOnce function is valid
 			if (typeof fn == "function")
 			{
 				fn(ROSDASH.diagram.block[i]);
 			} else
 			{
-				console.error("widget's run function does not exist: " + i);
+				console.error("widget's runOnce function does not exist: " + i);
 				continue;
 			}
 		} else
@@ -1756,55 +1777,64 @@ ROSDASH.updateWidgets = function ()
 {
 	ROSDASH.done_count = 0;
 	var last_count = -1;
+	// reset all blocks as undone
 	for (var i in ROSDASH.diagram_connection)
 	{
 		ROSDASH.diagram_connection[i].done = false;
 	}
+	// if ROSDASH.done_count does not change, the diagram execution ends
 	while (last_count < ROSDASH.done_count)
 	{
 		last_count = ROSDASH.done_count;
 		for (var i in ROSDASH.diagram_connection)
 		{
-			if (! ROSDASH.diagram_connection[i].exist)
-			{
-				continue;
-			}
-			if (ROSDASH.diagram_connection[i].done)
+			if (! ROSDASH.diagram_connection[i].exist || ROSDASH.diagram_connection[i].done)
 			{
 				continue;
 			}
 			var ready_flag = true;
 			var input = new Object();
+			// for all the parents of this block
 			for (var j in ROSDASH.diagram_connection[i].parent)
 			{
+				// if the parent is not ready
 				if (! (ROSDASH.diagram_connection[i].parent[j] in ROSDASH.diagram_output) || undefined === ROSDASH.diagram_output[ROSDASH.diagram_connection[i].parent[j]])
 				{
 					ready_flag = false;
+					break;
 				} else
 				{
+					// get the corresponding order of this input
 					var count = j.substring(1);
+					// save this input
 					input[count] = ROSDASH.diagram_output[ROSDASH.diagram_connection[i].parent[j]][ROSDASH.diagram_connection[i].output[j]];
 				}
 			}
+			// if the block is ready to be execute with all the inputs are ready
 			if (ready_flag)
 			{
 				var widget = ROSDASH.widget_def[ROSDASH.diagram.block[i].type];
+				// if no run function
 				if (undefined === widget.runNamespace || undefined === widget.run)
 				{
 					continue;
 				}
 				var fn = window["ROSDASH"][widget.runNamespace][widget.run];
+				//@todo should be checked earlier and once
+				// if run function does not exist
 				if (typeof fn != "function")
 				{
 					continue;
 				}
+				// save the output into ROSDASH.diagram_output
 				ROSDASH.diagram_output[i] = fn(ROSDASH.diagram.block[i], input);
 				ROSDASH.diagram_connection[i].done = true;
 				++ ROSDASH.done_count;
 			}
 		}
 	}
-	setTimeout(ROSDASH.updateWidgets, 200);
+	// sleep for a while and start next cycle
+	setTimeout(ROSDASH.updateWidgets, ROSDASH.user_conf.run_msec);
 }
 
 //------------------- panel callback
@@ -1824,6 +1854,7 @@ ROSDASH.widgetMaxCallback = function (e, data)
 	}
 }
 //@todo
+// init the HTML for each widget when it is added
 ROSDASH.widgetAddCallback = function (e, data)
 {
 	switch (data.widgetDefinition.widgetType)
