@@ -1,9 +1,13 @@
 {
 	"user":"tester",
+	"version":"1.0",
 	"panel_names": [
 		"test"
 	],
-	"version":"1.0",
+	"js": [],
+	"css": [],
+	"json": [],
+
 	"disable_selection":"true",
 	"run_msec":"200",
 	"widget_width":"400",

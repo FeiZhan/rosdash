@@ -2,8 +2,8 @@
 "widgets": [
 	{
 		"type": "constant",
-		"runNamespace": "Constant",
-		"run": "run",
+		"class_name": "ROSDASH.test",
+		"run": "ROSDASH.Constant.run",
 		"input": [],
 		"output": [
 			{
@@ -13,8 +13,8 @@
 		]
 	}, {
 		"type": "array",
-		"runNamespace": "rosArray",
-		"run": "run",
+		"class_name": "ROSDASH.rosArray",
+		"run": "ROSDASH.rosArray.run",
 		"input": [
 			{
 				"datatype": "universal",
@@ -38,8 +38,8 @@
 		]
 	}, {
 		"type": "memarray",
-		"runNamespace": "memArray",
-		"run": "run",
+		"class_name": "ROSDASH.memArray",
+		"run": "ROSDASH.memArray.run",
 		"input": [
 			{
 				"datatype": "universal",
@@ -54,8 +54,8 @@
 		]
 	}, {
 		"type": "addition",
-		"runNamespace": "Addition",
-		"run": "run",
+		"class_name": "ROSDASH.Addition",
+		"run": "ROSDASH.Addition.run",
 		"input": [
 			{
 				"datatype": "universal",
@@ -76,8 +76,8 @@
 		]
 	}, {
 		"type": "switch",
-		"runNamespace": "Switch",
-		"run": "run",
+		"class_name": "ROSDASH.Switch",
+		"run": "ROSDASH.Switch.run",
 		"input": [
 			{
 				"datatype": "universal",
@@ -95,10 +95,10 @@
 		]
 	}, {
 		"type": "topic",
-		"runNamespace": "Topic",
-		"init": "init",
-		"runOnce": "runOnce",
-		"run": "run",
+		"class_name": "ROSDASH.Topic",
+		"init": "ROSDASH.Topic.init",
+		"runOnce": "ROSDASH.Topic.runOnce",
+		"run": "ROSDASH.Topic.run",
 		"input": [],
 		"output": [
 			{
@@ -108,16 +108,16 @@
 		]
 	}, {
 		"type": "toggle button",
-		"runNamespace": "ToggleButton",
-		"init": "init",
-		"runOnce": "runOnce",
+		"class_name": "ROSDASH.ToggleButton",
+		"init": "ROSDASH.ToggleButton.init",
+		"runOnce": "ROSDASH.ToggleButton.runOnce",
 		"input": [],
 		"output": []
 	}, {
 		"type": "msgToStr",
-		"runNamespace": "msgToStr",
-		"init": "init",
-		"run": "run",
+		"class_name": "ROSDASH.msgToStr",
+		"init": "ROSDASH.msgToStr.init",
+		"run": "ROSDASH.msgToStr.run",
 		"input": [
 			{
 				"datatype": "msg",
@@ -132,29 +132,29 @@
 		]
 	}, {
 		"type": "turtlesim",
-		"runNamespace": "Turtlesim",
-		"init": "init",
-		"runOnce": "runOnce",
+		"class_name": "ROSDASH.Turtlesim",
+		"init": "ROSDASH.Turtlesim.init",
+		"runOnce": "ROSDASH.Turtlesim.runOnce",
 		"input": [],
 		"output": []
 	}, {
 		"type": "ros2d",
-		"runNamespace": "Ros2d",
-		"init": "init",
-		"runOnce": "runOnce",
+		"class_name": "ROSDASH.Ros2d",
+		"init": "ROSDASH.Ros2d.init",
+		"runOnce": "ROSDASH.Ros2d.runOnce",
 		"input": [],
 		"output": []
 	}, {
 		"type": "ros3d",
-		"runNamespace": "Ros3d",
-		"init": "init",
-		"runOnce": "runOnce",
+		"class_name": "ROSDASH.Ros3d",
+		"init": "ROSDASH.Ros3d.init",
+		"runOnce": "ROSDASH.Ros3d.runOnce",
 		"input": [],
 		"output": []
 	}, {
 		"type": "text",
-		"runNamespace": "Text",
-		"run": "run",
+		"class_name": "ROSDASH.Text",
+		"run": "ROSDASH.Text.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -167,10 +167,10 @@
 		"output": []
 	}, {
 		"type": "speech",
-		"runNamespace": "Speech",
-		"init": "init",
-		"runOnce": "runOnce",
-		"run": "run",
+		"class_name": "ROSDASH.Speech",
+		"init": "ROSDASH.Speech.init",
+		"runOnce": "ROSDASH.Speech.runOnce",
+		"run": "ROSDASH.Speech.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -180,8 +180,8 @@
 		"output": []
 	}, {
 		"type": "table",
-		"runNamespace": "Table",
-		"run": "run",
+		"class_name": "ROSDASH.Table",
+		"run": "ROSDASH.Table.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -230,9 +230,9 @@
 		"output": []
 	}, {
 		"type": "gmap",
-		"runNamespace": "Gmap",
-		"init": "init",
-		"runOnce": "runOnce",
+		"class_name": "ROSDASH.Gmap",
+		"init": "ROSDASH.Gmap.init",
+		"runOnce": "ROSDASH.Gmap.runOnce",
 		"input": [
 			{
 				"datatype": "String",
@@ -248,8 +248,8 @@
 		"output": []
 	}, {
 		"type": "gmap traj",
-		"runNamespace": "GmapTraj",
-		"run": "run",
+		"class_name": "ROSDASH.GmapTraj",
+		"run": "ROSDASH.GmapTraj.run",
 		"input": [
 			{
 				"datatype": "Gmap",
@@ -282,10 +282,10 @@
 		"output": []
 	}, {
 		"type": "saferange",
-		"runNamespace": "SafeRange",
-		"init": "init",
-		"runOnce": "runOnce",
-		"run": "run",
+		"class_name": "ROSDASH.SafeRange",
+		"init": "ROSDASH.SafeRange.init",
+		"runOnce": "ROSDASH.SafeRange.runOnce",
+		"run": "ROSDASH.SafeRange.run",
 		"input": [
 			{
 				"datatype": "Float32",
@@ -306,10 +306,10 @@
 		]
 	}, {
 		"type": "flot",
-		"runNamespace": "Flot",
-		"init": "init",
-		"runOnce": "runOnce",
-		"run": "run",
+		"class_name": "ROSDASH.Flot",
+		"init": "ROSDASH.Flot.init",
+		"runOnce": "ROSDASH.Flot.runOnce",
+		"run": "ROSDASH.Flot.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -332,16 +332,16 @@
 		"output": []
 	}, {
 		"type": "vumeter",
-		"runNamespace": "Vumeter",
-		"init": "init",
-		"runOnce": "runOnce",
-		"run": "run",
+		"class_name": "ROSDASH.Vumeter",
+		"init": "ROSDASH.Vumeter.init",
+		"runOnce": "ROSDASH.Vumeter.runOnce",
+		"run": "ROSDASH.Vumeter.run",
 		"input": [],
 		"output": []
 	}, {
 		"type": "simrobot",
-		"runNamespace": "SimRobot",
-		"run": "run",
+		"class_name": "ROSDASH.SimRobot",
+		"run": "ROSDASH.SimRobot.run",
 		"input": [],
 		"output": [
 			{

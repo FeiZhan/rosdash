@@ -318,9 +318,11 @@ ROSDASH.Turtlesim.prototype.init = function (widget)
 }
 ROSDASH.Turtlesim.prototype.runOnce = function ()
 {
-	//@note a tradition ROS connection
+	//@note a traditional ROS connection
 	var ros = new ROS('ws://192.168.1.123:9090');
-	ros.on('connection', function() {
+	ros.on('connection', function()
+	{
+		console.log("traditional ROS connected");
 		var context = document.getElementById(this.canvas_id).getContext('2d');
 		var turtleSim = new TurtleSim({
 			  ros     : ros
@@ -561,9 +563,7 @@ ROSDASH.Flot.prototype.runOnce = function ()
 	if ($("#" + id).length > 0)
 	{
 		// create the canvas with default data
-		$(function() {
 			this.plot = $.plot("#" + id, ROSDASH.Flot.getDefaultData(), this.option);
-		});
 	}
 }
 //@input	title, data, option, saferange

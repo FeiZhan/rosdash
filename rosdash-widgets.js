@@ -1,5 +1,5 @@
-ROSDASH.test = new Object();
-ROSDASH.test.run = function (block, input)
+ROSDASH.test = function() {}
+ROSDASH.test.prototype.run = function (block, input)
 {
 	console.debug("testing", block, input);
 }
@@ -417,9 +417,7 @@ ROSDASH.Flot.runOnce = function (block)
 	var id = "flot_" + block.id;
 	if ($("#" + id).length > 0)
 	{
-		$(function() {
 			ROSDASH.Flot.plot = $.plot("#" + id, ROSDASH.Flot.getDefaultData(), ROSDASH.Flot.option);
-		});
 	}
 }
 ROSDASH.Flot.run = function (block, input)
