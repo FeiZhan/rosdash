@@ -1,25 +1,23 @@
-ROSDASH.test = function() {}
-ROSDASH.test.prototype.init = function ()
+// constant value
+ROSDASH.Constant = function (block)
 {
-	console.debug("init");
+	this.block = block;
 }
-ROSDASH.test.prototype.runOnce = function ()
+//@input	none
+//@output	the value of the constant
+ROSDASH.Constant.prototype.run = function (input)
 {
-	console.debug("runOnce");
-}
-ROSDASH.test.prototype.run = function (input)
-{
-	//console.debug("testing", block, input);
+	return {o0: this.block.value};
 }
 
-ROSDASH.Constant = new Object();
-ROSDASH.Constant.run = function (block, input)
+// multiArray
+ROSDASH.multiArray = function (block)
 {
-	return {o0: block.value};
+	this.block = block;
 }
-
-ROSDASH.rosArray = new Object();
-ROSDASH.rosArray.run = function (block, input)
+//@input	each value
+//@output	an array of all the values
+ROSDASH.multiArray.prototype.run = function (input)
 {
 	var a = new Array();
 	for (var i in input)
@@ -29,25 +27,35 @@ ROSDASH.rosArray.run = function (block, input)
 	return {o0: a};
 }
 
-ROSDASH.memArray = new Object();
-ROSDASH.memArray.data = new Object();
-ROSDASH.memArray.length = 100;
-ROSDASH.memArray.run = function (block, input)
+// memorable array - can memorize historic data with max length
+ROSDASH.memArray = function (block)
 {
-	if (! (block.id in ROSDASH.memArray.data))
+	this.block = block;
+	this.data = new Array();
+	this.max_length = 100;
+}
+//@input	one new data
+//@output	an array of historic data with length of this.max_length
+ROSDASH.memArray.prototype.run = function (input)
+{
+	this.data.push(input[0]);
+	// if exceeds
+	if (this.max_length < this.data.length)
 	{
-		ROSDASH.memArray.data[block.id] = new Array();
+		// cut the beginning ones
+		this.data.splice(0, this.data.length - this.max_length);
 	}
-	ROSDASH.memArray.data[block.id].push(input[0]);
-	if (ROSDASH.memArray.length < ROSDASH.memArray.data[block.id].length)
-	{
-		ROSDASH.memArray.data[block.id].splice(0, ROSDASH.memArray.data[block.id].length - ROSDASH.memArray.length);
-	}
-	return {o0: ROSDASH.memArray.data[block.id]};
+	return {o0: this.data};
 }
 
-ROSDASH.Addition = new Object();
-ROSDASH.Addition.run = function (block, input)
+// add inputs up
+ROSDASH.Addition = function (block)
+{
+	this.block = block;
+}
+//@input	all elements to be added
+//@output	sum
+ROSDASH.Addition.prototype.run = function (input)
 {
 	var sum = input[0];
 	for (var i = 1; i < input.length; ++ i)
@@ -57,16 +65,23 @@ ROSDASH.Addition.run = function (block, input)
 	return {o0: sum};
 }
 
-ROSDASH.Switch = new Object();
-ROSDASH.Switch.run = function (block, input)
+// switch case function
+ROSDASH.Switch = function (block)
+{
+	this.block = block;
+}
+//@input	the input value and all cases
+//@output	true if the case matches the input value, false if not
+ROSDASH.Switch.prototype.run = function (input)
 {
 	//@todo design default value and compulsory inputs
 	if (input.length < 2)
 	{
-		console.error("input not enough: " + block.id);
+		console.error("input not enough: " + this.block.id);
 		return undefined;
 	}
 	var output = new Object();
+	// if input[1] is an array of cases
 	if (typeof input[1] == "array")
 	{
 		for (var i in input[1])
@@ -79,24 +94,36 @@ ROSDASH.Switch.run = function (block, input)
 				output["o" + i] = false;
 			}
 		}
-	} else
+	} else // if not, means all the following inputs are cases
 	{
-		if (input[0] == input[1])
+		// avoid input[0]
+		for (var i = 0; i < input.length - 1; ++ i)
 		{
-			output["o0"] = true;
-		} else
-		{
-			output["o0"] = false;
+			if (input[0] == input[i + 1])
+			{
+				output["o" + i] = true;
+			} else
+			{
+				output["o" + i] = false;
+			}
 		}
 	}
 	return output;
 }
 
+//@deprecated
 ROSDASH.rosMsg = new Object();
-ROSDASH.Topic = new Object();
-ROSDASH.Topic.runOnce = function (block)
+// ROS topic
+ROSDASH.Topic = function (block)
 {
-	var rosname = block.rosname;
+	this.block = block;
+	this.ros_msg = {error: "cannot connect to this topic"};
+}
+// subscribe a ROS topic for once
+ROSDASH.Topic.prototype.runOnce = function ()
+{
+	var rosname = this.block.rosname;
+	//@todo how can we choose the type?
 	var type = 'std_msgs/String';
 	ROSDASH.rosMsg[rosname] = {error: "cannot connect to this topic"};
 	var listener = new ROSLIB.Topic({
@@ -104,35 +131,47 @@ ROSDASH.Topic.runOnce = function (block)
 		name : rosname,
 		messageType : type
 	});
+	var self = this;
+	// subscribe a ROS topic
 	listener.subscribe(function(message)
 	{
+		self.ros_msg = message;
 		ROSDASH.rosMsg[rosname] = message;
 		//listener.unsubscribe();
 	});
 }
-ROSDASH.Topic.run = function (block, input)
+//@input	none
+//@output	ROS topic message
+ROSDASH.Topic.prototype.run = function (input)
 {
 	var output = new Object();
-	if (undefined !== block.rosname)
+	if (undefined !== this.block.rosname)
 	{
 		//ROSDASH.rosMsg[name] = "running";
-		output.o0 = ROSDASH.rosMsg[block.rosname];
+		output.o0 = ROSDASH.rosMsg[this.block.rosname];
 	}
 	return output;
 }
 
-ROSDASH.ToggleButton = new Object();
-ROSDASH.ToggleButton.init = function (widget)
+// toggle button (don't use the name of switch since it is used)
+ROSDASH.ToggleButton = function (block)
 {
-	widget.widgetContent = '<input id="mySwitch" type="checkbox" checked />';
+	this.block = block;
+	this.canvas_id = "togglebutton_" + this.block.id;
+	this.button_id = "togglebutton2_" + this.block.id;
+}
+//@todo change name into addToWidget
+ROSDASH.ToggleButton.prototype.init = function (widget)
+{
+	widget.widgetContent = '<input id="' + this.canvas_id + '" type="checkbox" checked />';
 	return widget;
 }
-ROSDASH.ToggleButton.runOnce = function (block)
+ROSDASH.ToggleButton.prototype.runOnce = function ()
 {
-	if ($('#mySwitch').length > 0)
+	if ($('#' + this.canvas_id).length > 0)
 	{
-		$('#mySwitch').wrap('<div id="mySwitch2" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
-		$('#mySwitch2').on('switch-change', function (e, data) {
+		$('#' + this.canvas_id).wrap('<div id="' + this.button_id + '" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
+		$('#' + this.button_id).on('switch-change', function (e, data) {
 			var $el = $(data.el)
 			  , value = data.value;
 			console.log("toggled button");
@@ -145,9 +184,16 @@ ROSDASH.ToggleButton.runOnce = function (block)
 	}
 }
 
-ROSDASH.msgToStr = new Object();
-ROSDASH.msgToStr.run = function (block, input)
+// transform array (object, associative array, or topic message) into string
+ROSDASH.arrayToStr = function (block)
 {
+	this.block = block;
+}
+//@input	the array (object, associative array, or topic message)
+//@output	the corresponding string
+ROSDASH.arrayToStr.prototype.run = function (input)
+{
+	// if empty
 	if (undefined === input || undefined === input[0])
 	{
 		return {o0: ""};
@@ -159,33 +205,53 @@ ROSDASH.msgToStr.run = function (block, input)
 		for (var i in msg)
 		{
 			str += " ( " + i + ": ";
-			str += ROSDASH.msgToStr.run(block, {0: msg[i]}).o0;
+			// recursive call for sub-array
+			str += this.run({0: msg[i]}).o0;
 			str += " ) ";
 		}
 	} else
 	{
 		str += msg;
 	}
-	var output = {o0: str};
-	return output;
-}
-ROSDASH.Text = new Object();
-ROSDASH.Text.run = function (block, input)
-{
-	input[0] = (undefined === input[0]) ? block.name : input[0];
-	input[1] = (undefined === input[1]) ? "(empty content)" : input[1];
-	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
-	$("#myDashboard").sDashboard("setContentById", block.id, input[1]);
+	return {o0: str};
 }
 
-ROSDASH.Speech = new Object();
-ROSDASH.Speech.init = function (widget)
+// text widget
+ROSDASH.Text = function (block)
 {
+	this.block = block;
+}
+//@input	header and content strings
+//@output	none
+ROSDASH.Text.prototype.run = function (input)
+{
+	// default value for inputs
+	input[0] = (undefined === input[0]) ? this.block.name : input[0];
+	input[1] = (undefined === input[1]) ? "(empty content)" : input[1];
+	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
+	$("#myDashboard").sDashboard("setContentById", this.block.id, input[1]);
+}
+
+// text widget with speaking widget
+ROSDASH.Speech = function (block)
+{
+	this.block = block;
+	this.content = "";
+}
+ROSDASH.Speech.prototype.init = function (widget)
+{
+	//@change id
 	widget.widgetTitle = widget.widgetId + ' <input type="button" id="speak" value="speak" /><span id="audio"></span>';
 	widget.widgetContent = "";
 	return widget;
 }
-ROSDASH.Speech.runOnce = function (block)
+// speak by speak.js
+ROSDASH.Speech.prototype.speak = function ()
+{
+	speak(this.content);
+}
+// add callback function to speak button
+ROSDASH.Speech.prototype.runOnce = function ()
 {
 	var s = $("#speak");
 	if (s.length > 0)
@@ -193,69 +259,95 @@ ROSDASH.Speech.runOnce = function (block)
 		$("#speak").click(ROSDASH.Speech.speak);
 	}
 }
-ROSDASH.Speech.content = "";
-ROSDASH.Speech.run = function (block, input)
+//@input	the content to speak
+//@output	none
+ROSDASH.Speech.prototype.run = function (input)
 {
 	input[0] = (undefined === input[0]) ? "(empty content)" : input[0];
-	ROSDASH.Speech.content = input[0];
-	$("#myDashboard").sDashboard("setContentById", block.id, input[0]);
-}
-ROSDASH.Speech.speak = function ()
-{
-	speak(ROSDASH.Speech.content);
+	// if new message comes, speak
+	if (ROSDASH.Speech.content != input[0])
+	{
+		//ROSDASH.Speech.speak();
+		ROSDASH.Speech.content = input[0];
+	}
+	$("#myDashboard").sDashboard("setContentById", this.block.id, input[0]);
 }
 
-ROSDASH.Table = new Object();
-ROSDASH.Table.run = function (block, input)
+// table
+ROSDASH.Table = function (block)
 {
-	input[0] = (undefined === input[0]) ? block.name : input[0];
+	this.block = block;
+}
+//@input	header, titles, contents, and layout for table
+//@output	none
+ROSDASH.Table.prototype.run = function (input)
+{
+	// default value for header
+	input[0] = (undefined === input[0]) ? this.block.name : input[0];
+	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
+	// for titles
 	var aoColumns = new Array();
 	for (var i in input[1])
 	{
 		aoColumns.push({sTitle: input[1][i]});
 	}
-	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
+	// for contents
 	var tableDef = {
 		"aaData" : input[2],
 		"aoColumns" : aoColumns
 	};
+	//@todo considering the layout
 	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
 	$("#myDashboard").sDashboard("setContentById", block.id, dataTable);
 }
 
-ROSDASH.Turtlesim = new Object();
-ROSDASH.Turtlesim.init = function (widget)
+// Turtlesim from ROS desktop widget
+ROSDASH.Turtlesim = function (block)
 {
-	widget.widgetContent = '<canvas id="world" width="100%" height="100%" style="border: 2px solid black"></canvas>';
+	this.block = block;
+	this.canvas_id = "turtlesim_" + this.block.id;
+}
+ROSDASH.Turtlesim.prototype.init = function (widget)
+{
+	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="100%" height="100%" style="border: 2px solid black"></canvas>';
 	return widget;
 }
-ROSDASH.Turtlesim.runOnce = function (block)
+ROSDASH.Turtlesim.prototype.runOnce = function ()
 {
-      var ros = new ROS('ws://192.168.1.123:9090');
-      ros.on('connection', function() {
-        var context = document.getElementById('world').getContext('2d');
-        var turtleSim = new TurtleSim({
-          ros     : ros
-        , context : context
-        });
-        turtleSim.spawnTurtle('turtle1');
-        turtleSim.draw();
-      });
+	//@note a traditional ROS connection
+	var ros = new ROS('ws://192.168.1.123:9090');
+	ros.on('connection', function()
+	{
+		console.log("traditional ROS connected");
+		var context = document.getElementById(this.canvas_id).getContext('2d');
+		var turtleSim = new TurtleSim({
+			  ros     : ros
+			, context : context
+		});
+		turtleSim.spawnTurtle('turtle1');
+		turtleSim.draw();
+	});
 }
 
-ROSDASH.Ros2d = new Object();
-ROSDASH.Ros2d.init = function (widget)
+// ros2djs
+ROSDASH.Ros2d = function (block)
 {
-	widget.widgetContent = '<div id="ros2d_map"></div>';
+	this.block = block;
+	this.canvas_id = "ros2d_" + this.block.id;
+}
+ROSDASH.Ros2d.prototype.init = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
 	return widget;
 }
-ROSDASH.Ros2d.runOnce = function (block)
+ROSDASH.Ros2d.prototype.runOnce = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
+		//@note width and height
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
-		  divID : 'ros2d_map',
+		  divID : this.canvas_id,
 		  width : 308,
 		  height : 250
 		});
@@ -271,23 +363,30 @@ ROSDASH.Ros2d.runOnce = function (block)
 		});
 	} else
 	{
+		// wait for ROS to start
 		setTimeout(ROSDASH.Ros2d.runOnce, 500);
 	}
 }
 
-ROSDASH.Ros3d = new Object();
-ROSDASH.Ros3d.init = function (widget)
+// ros3djs
+ROSDASH.Ros3d = function (block)
 {
-	widget.widgetContent = '<div id="ros3d_map"></div>';
+	this.block = block;
+	this.canvas_id = "ros3d_" + this.block.id;
+}
+ROSDASH.Ros3d.prototype.init = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
 	return widget;
 }
-ROSDASH.Ros3d.runOnce = function (block)
+ROSDASH.Ros3d.prototype.runOnce = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
+		//@note height and width
 		// Create the main viewer.
 		var viewer = new ROS3D.Viewer({
-		  divID : 'ros3d_map',
+		  divID : this.canvas_id,
 		  width : 80,
 		  height : 60,
 		  antialias : true
@@ -299,60 +398,82 @@ ROSDASH.Ros3d.runOnce = function (block)
 		});
 	} else
 	{
+		// wait for ROS to start
 		setTimeout(ROSDASH.Ros3d.runOnce, 500);
 	}
 }
 
-ROSDASH.Gmap = new Object();
-ROSDASH.Gmap.gmap = undefined;
-ROSDASH.Gmap.init = function (widget)
+// google maps
+ROSDASH.Gmap = function (block)
 {
-	widget.widgetContent = '<div id="map-canvas" style="height:100%; width:100%;" />';
+	this.block = block;
+	this.canvas_id = "gmap_" + this.block.id;
+	this.gmap = undefined;
+}
+ROSDASH.Gmap.prototype.init = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas_id + '" style="height:100%; width:100%;" />';
 	return widget;
 }
-ROSDASH.Gmap.runOnce = function ()
+ROSDASH.Gmap.prototype.runOnce = function ()
 {
 	var LAB = [49.276802, -122.914913];
-	if ($("#map-canvas").length)
+	// if canvas exists
+	if ($("#" + this.canvas_id).length > 0)
 	{
 		var mapOptions = {
 		  center: new google.maps.LatLng(LAB[0], LAB[1]),
 		  zoom: 14,
 		  mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
-		ROSDASH.Gmap.gmap = new google.maps.Map(document.getElementById("map-canvas"),
+		this.gmap = new google.maps.Map(document.getElementById(this.canvas_id),
 			mapOptions);
 	} else
 	{
 		setTimeout(ROSDASH.Gmap.runOnce, 500);
 	}
 }
-ROSDASH.Gmap.resizeGmap = function ()
+//@input	none
+//@output	gmap object
+ROSDASH.Gmap.prototype.run = function (input)
 {
-	google.maps.event.trigger(ROSDASH.Gmap.gmap, "resize");
+	return {o0: this.gmap};
+}
+ROSDASH.Gmap.prototype.resizeGmap = function ()
+{
+	google.maps.event.trigger(this.gmap, "resize");
 }
 
-ROSDASH.GmapTraj = new Object();
-ROSDASH.GmapTraj.robot = new Object();
-ROSDASH.GmapTraj.run = function (block, input)
+// google maps robot trajectory overlay (temporarily it is just position)
+ROSDASH.GmapTraj = function (block)
+{
+	this.block = block;
+	this.robot = new Object();
+}
+//@input	google maps object, array of robot positions
+//@output	google maps object
+ROSDASH.GmapTraj.prototype.run = function (input)
 {
 	if (input.length < 2 || undefined === input[0])
 	{
+		console.error("not enough arguments: " + this.block.id);
 		return;
 	}
-	if (! (block.id in ROSDASH.GmapTraj.robot))
+	// for a new robot
+	if (! (this.block.id in ROSDASH.GmapTraj.robot))
 	{
-		ROSDASH.GmapTraj.robot[block.id] = new Object();
+		this.robot[block.id] = new Object();
 	}
 	for (var i in input[1])
 	{
-		if (undefined !== ROSDASH.GmapTraj.robot[block.id].robot)
+		// clear the old position
+		if (undefined !== this.robot[block.id].robot)
 		{
-			ROSDASH.GmapTraj.robot[block.id].robot.setMap(null);
+			this.robot[block.id].robot.setMap(null);
 		}
-		ROSDASH.GmapTraj.robot[block.id].robot = new google.maps.Marker({
+		this.robot[block.id].robot = new google.maps.Marker({
 			position: new google.maps.LatLng(input[1][i].x, input[1][i].y),
-			map: input[0],
+			map: input[0],	// google maps object
 			title: "robot " + i,
 			icon: "resource/cabs.png",
 			//shadow: {url: 'resource/cabs.shadow.png',}
@@ -360,12 +481,18 @@ ROSDASH.GmapTraj.run = function (block, input)
 	}
 }
 
-ROSDASH.SafeRange = new Object();
-ROSDASH.SafeRange.min = 0;
-ROSDASH.SafeRange.max = 100;
-ROSDASH.SafeRange.run = function (block, input)
+// safe range for text or plot widget
+ROSDASH.SafeRange = function (block)
 {
-	if (input[0] < ROSDASH.SafeRange.min || input[0] > ROSDASH.SafeRange.max)
+	this.block = block;
+	this.min = 0;
+	this.max = 100;
+}
+//@input	the value to be tested
+//@output	if it is in safe range
+ROSDASH.SafeRange.prototype.run = function (input)
+{
+	if (input[0] < this.min || input[0] > this.max)
 	{
 		return {o0: false};
 	} else
@@ -374,15 +501,46 @@ ROSDASH.SafeRange.run = function (block, input)
 	}
 }
 
-ROSDASH.Flot = new Object();
-ROSDASH.Flot.plot;
-ROSDASH.Flot.init = function (widget)
+// a plot widget
+ROSDASH.Flot = function (block)
+{
+	this.block = block;
+	this.plot;
+	this.option = {
+		// drawing is faster without shadows
+		series: {
+			shadowSize: 0,
+			lines: {show: true},
+			points: {show: true}
+		},
+		crosshair: {mode: "x"},
+		zoom: {interactive: true},
+		pan: {interactive: true},
+		// it can adjust automatically
+		//@note still some bugs
+		//yaxis: { min: 0, max: 100 },
+		yaxis: {
+			tickFormatter: function (v, axis)
+			{
+				return v.toFixed(2);
+			}
+		},
+		grid: {show: true},
+		legend: { position: "nw" },
+		grid: {
+			show: true,
+			hoverable: true,
+			autoHighlight: false
+		}
+	};
+}
+ROSDASH.Flot.prototype.init = function (widget)
 {
 	var id = "flot_" + widget.widgetId;
 	widget.widgetContent = '<div id="' + id + '" style="height:100%;width:100%;" />';
 	return widget;
 }
-ROSDASH.Flot.getDefaultData = function ()
+ROSDASH.Flot.prototype.getDefaultData = function ()
 {
 	var d1 = [];
 	for (var i = 0; i < 14; i += 0.5) {
@@ -393,47 +551,27 @@ ROSDASH.Flot.getDefaultData = function ()
 	var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
 	return [ d1, d2, d3 ];
 }
-ROSDASH.Flot.option = {
-	// drawing is faster without shadows
-	series: {
-		shadowSize: 0,
-		lines: {show: true},
-		points: {show: true}
-	},
-	crosshair: {mode: "x"},
-	zoom: {interactive: true},
-	pan: {interactive: true},
-	// it can adjust automatically
-	//@note still some bugs
-	//yaxis: { min: 0, max: 100 },
-	yaxis: {
-		tickFormatter: function (v, axis)
-		{
-			return v.toFixed(2);
-		}
-	},
-	grid: {show: true},
-	legend: { position: "nw" },
-	grid: {
-		show: true,
-		hoverable: true,
-		autoHighlight: false
-	}
-};
-ROSDASH.Flot.runOnce = function (block)
+ROSDASH.Flot.prototype.runOnce = function ()
 {
-	var id = "flot_" + block.id;
+	var id = "flot_" + this.block.id;
+	// if the canvas exists
 	if ($("#" + id).length > 0)
 	{
-			ROSDASH.Flot.plot = $.plot("#" + id, ROSDASH.Flot.getDefaultData(), ROSDASH.Flot.option);
+		// create the canvas with default data
+			this.plot = $.plot("#" + id, this.getDefaultData(), this.option);
 	}
 }
-ROSDASH.Flot.run = function (block, input)
+//@input	title, data, option, saferange
+//@output	none
+ROSDASH.Flot.prototype.run = function (input)
 {
-	input[0] = (undefined === input[0]) ? block.name : input[0];
-	$("#myDashboard").sDashboard("setHeaderById", block.id, input[0]);
+	//i0 title
+	input[0] = (undefined === input[0]) ? this.block.name : input[0];
+	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
+	//i1 data
 	if (undefined !== input[1])
 	{
+		// change data format into [[x, data], ...]
 		var data = new Array();
 		for (var i in input[1])
 		{
@@ -453,20 +591,25 @@ ROSDASH.Flot.run = function (block, input)
 			}
 			data.push(d);
 		}
-		ROSDASH.Flot.plot.setData( data );
-		ROSDASH.Flot.plot.draw();
+		this.plot.setData( data );
+		this.plot.draw();
 	}
 }
 
-ROSDASH.Vumeter = new Object();
-ROSDASH.Vumeter.init = function (widget)
+// V U meter
+ROSDASH.Vumeter = function (block)
 {
-	widget.widgetContent = '<div id="vumeter_container" style="width:100%; height:100%; margin: 0 auto;"></div>';
+	this.block = block;
+	this.canvas_id = "vumeter_" + this.block.id;
+}
+ROSDASH.Vumeter.prototype.init = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; margin: 0 auto;"></div>';
 	return widget;
 }
-ROSDASH.Vumeter.runOnce = function (block)
+ROSDASH.Vumeter.prototype.runOnce = function ()
 {
-	$('#vumeter_container').highcharts({
+	$('#' + this.canvas_id).highcharts({
 	    chart: {
 	        type: 'gauge',
 	        plotBorderWidth: 1,
@@ -583,30 +726,36 @@ ROSDASH.Vumeter.runOnce = function (block)
 	});
 }
 
-ROSDASH.SimRobot = new Object();
-ROSDASH.SimRobot.boundary = [-100, 100];
-ROSDASH.SimRobot.last_loc = [0, 0];
-ROSDASH.SimRobot.loc_step = 5;
-ROSDASH.SimRobot.run = function (block, input)
+// a simulated mobile robot
+ROSDASH.SimRobot = function (block)
+{
+	this.block = block;
+	this.boundary = [-100, 100];
+	this.last_loc = [0, 0];
+	this.loc_step = 5;
+}
+//@input	none
+//@output	location x, location y, speed, voltage, current
+ROSDASH.SimRobot.prototype.run = function (input)
 {
 	var loc = new Array();
 	for (var i = 0; i < 2; ++ i)
 	{
-		loc[i] = ROSDASH.SimRobot.last_loc[0] + (Math.random() - 0.5) * ROSDASH.SimRobot.loc_step;
-		if (loc[i] < ROSDASH.SimRobot.boundary[0])
+		loc[i] = this.last_loc[0] + (Math.random() - 0.5) * this.loc_step;
+		if (loc[i] < this.boundary[0])
 		{
-			loc[i] = ROSDASH.SimRobot.boundary[0];
-		} else if (loc[i] > ROSDASH.SimRobot.boundary[1])
+			loc[i] = this.boundary[0];
+		} else if (loc[i] > this.boundary[1])
 		{
-			loc[i] = ROSDASH.SimRobot.boundary[1];
+			loc[i] = this.boundary[1];
 		}
 	}
 	var output = {
-		o0: loc[0], //location x
-		o1: loc[1], //location y
-		o2: Math.random() * 10, //speed
-		o3: Math.random() * 100, //voltage
-		o4: Math.random() * 100 //current
+		o0: loc[0], // location x
+		o1: loc[1], // location y
+		o2: Math.random() * 10, // speed
+		o3: Math.random() * 100, // voltage
+		o4: Math.random() * 100 // current
 	};
 	return output;
 }

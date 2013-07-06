@@ -3,7 +3,6 @@
 	{
 		"type": "constant",
 		"class_name": "ROSDASH.test",
-		"run": "ROSDASH.Constant.run",
 		"input": [],
 		"output": [
 			{
@@ -12,9 +11,8 @@
 			}
 		]
 	}, {
-		"type": "array",
-		"class_name": "ROSDASH.rosArray",
-		"run": "ROSDASH.rosArray.run",
+		"type": "multiArray",
+		"class_name": "ROSDASH.multiArray",
 		"input": [
 			{
 				"datatype": "universal",
@@ -39,7 +37,6 @@
 	}, {
 		"type": "memarray",
 		"class_name": "ROSDASH.memArray",
-		"run": "ROSDASH.memArray.run",
 		"input": [
 			{
 				"datatype": "universal",
@@ -55,7 +52,6 @@
 	}, {
 		"type": "addition",
 		"class_name": "ROSDASH.Addition",
-		"run": "ROSDASH.Addition.run",
 		"input": [
 			{
 				"datatype": "universal",
@@ -77,7 +73,6 @@
 	}, {
 		"type": "switch",
 		"class_name": "ROSDASH.Switch",
-		"run": "ROSDASH.Switch.run",
 		"input": [
 			{
 				"datatype": "universal",
@@ -96,9 +91,6 @@
 	}, {
 		"type": "topic",
 		"class_name": "ROSDASH.Topic",
-		"init": "ROSDASH.Topic.init",
-		"runOnce": "ROSDASH.Topic.runOnce",
-		"run": "ROSDASH.Topic.run",
 		"input": [],
 		"output": [
 			{
@@ -109,19 +101,15 @@
 	}, {
 		"type": "toggle button",
 		"class_name": "ROSDASH.ToggleButton",
-		"init": "ROSDASH.ToggleButton.init",
-		"runOnce": "ROSDASH.ToggleButton.runOnce",
 		"input": [],
 		"output": []
 	}, {
-		"type": "msgToStr",
-		"class_name": "ROSDASH.msgToStr",
-		"init": "ROSDASH.msgToStr.init",
-		"run": "ROSDASH.msgToStr.run",
+		"type": "arrayToStr",
+		"class_name": "ROSDASH.arrayToStr",
 		"input": [
 			{
-				"datatype": "msg",
-				"name": "msg"
+				"datatype": "array",
+				"name": "multiArray"
 			}
 		],
 		"output": [
@@ -133,28 +121,21 @@
 	}, {
 		"type": "turtlesim",
 		"class_name": "ROSDASH.Turtlesim",
-		"init": "ROSDASH.Turtlesim.init",
-		"runOnce": "ROSDASH.Turtlesim.runOnce",
 		"input": [],
 		"output": []
 	}, {
 		"type": "ros2d",
 		"class_name": "ROSDASH.Ros2d",
-		"init": "ROSDASH.Ros2d.init",
-		"runOnce": "ROSDASH.Ros2d.runOnce",
 		"input": [],
 		"output": []
 	}, {
 		"type": "ros3d",
 		"class_name": "ROSDASH.Ros3d",
-		"init": "ROSDASH.Ros3d.init",
-		"runOnce": "ROSDASH.Ros3d.runOnce",
 		"input": [],
 		"output": []
 	}, {
 		"type": "text",
 		"class_name": "ROSDASH.Text",
-		"run": "ROSDASH.Text.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -168,9 +149,6 @@
 	}, {
 		"type": "speech",
 		"class_name": "ROSDASH.Speech",
-		"init": "ROSDASH.Speech.init",
-		"runOnce": "ROSDASH.Speech.runOnce",
-		"run": "ROSDASH.Speech.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -181,7 +159,6 @@
 	}, {
 		"type": "table",
 		"class_name": "ROSDASH.Table",
-		"run": "ROSDASH.Table.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -231,8 +208,6 @@
 	}, {
 		"type": "gmap",
 		"class_name": "ROSDASH.Gmap",
-		"init": "ROSDASH.Gmap.init",
-		"runOnce": "ROSDASH.Gmap.runOnce",
 		"input": [
 			{
 				"datatype": "String",
@@ -249,7 +224,6 @@
 	}, {
 		"type": "gmap traj",
 		"class_name": "ROSDASH.GmapTraj",
-		"run": "ROSDASH.GmapTraj.run",
 		"input": [
 			{
 				"datatype": "Gmap",
@@ -283,9 +257,6 @@
 	}, {
 		"type": "saferange",
 		"class_name": "ROSDASH.SafeRange",
-		"init": "ROSDASH.SafeRange.init",
-		"runOnce": "ROSDASH.SafeRange.runOnce",
-		"run": "ROSDASH.SafeRange.run",
 		"input": [
 			{
 				"datatype": "Float32",
@@ -307,9 +278,6 @@
 	}, {
 		"type": "flot",
 		"class_name": "ROSDASH.Flot",
-		"init": "ROSDASH.Flot.init",
-		"runOnce": "ROSDASH.Flot.runOnce",
-		"run": "ROSDASH.Flot.run",
 		"input": [
 			{
 				"datatype": "String",
@@ -333,15 +301,11 @@
 	}, {
 		"type": "vumeter",
 		"class_name": "ROSDASH.Vumeter",
-		"init": "ROSDASH.Vumeter.init",
-		"runOnce": "ROSDASH.Vumeter.runOnce",
-		"run": "ROSDASH.Vumeter.run",
 		"input": [],
 		"output": []
 	}, {
 		"type": "simrobot",
 		"class_name": "ROSDASH.SimRobot",
-		"run": "ROSDASH.SimRobot.run",
 		"input": [],
 		"output": [
 			{

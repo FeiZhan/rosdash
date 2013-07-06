@@ -494,17 +494,17 @@ ROSDASH.setUserConf = function (conf)
 		{
 			if ("version" == i && ROSDASH.user_conf.version != conf.version)
 			{
-				console.debug("configure version conflicts");
+				console.error("configure version conflicts");
 				return;
 			}
 			if ("name" == i && ROSDASH.user_conf.name != conf.name)
 			{
-				console.debug("configure user name conflicts");
+				console.error("configure user name conflicts");
 				return;
 			}
 			if ("panel_name" == i && ROSDASH.user_conf.panel_name != conf.panel_name)
 			{
-				console.debug("configure panel name conflicts");
+				console.error("configure panel name conflicts");
 				return;
 			}
 			ROSDASH.user_conf[i] = conf[i];
@@ -1447,11 +1447,19 @@ ROSDASH.parseWidgetContent = function (widget)
 	{
 		// the object of widget class
 		var obj = ROSDASH.diagram_connection[widget.widgetId].instance;
-		ROSDASH.runFuncByName("init", obj, widget);
+		// if cannot pass checking, do not run
+		if ( ROSDASH.checkFuncByName("init", obj) )
+		{
+			widget = ROSDASH.runFuncByName("init", obj, widget);
+		}
 	}
 	else // for jsobject
 	{
-		widget = ROSDASH.runFuncByName(ROSDASH.widget_def[widget.widgetType].init, undefined, widget);
+		var w = ROSDASH.runFuncByName(ROSDASH.widget_def[widget.widgetType].init, undefined, widget);
+		if (undefined !== w)
+		{
+			widget = w;
+		}
 	}
 	return widget;
 }
@@ -1862,44 +1870,70 @@ ROSDASH.newObjByName = function (name, arg1, arg2)
 		return undefined;
 	}
 }
-// run function by a string of name with at most two arguments
-ROSDASH.runFuncByName = function (name, context, arg1, arg2)
+// just check, no run
+ROSDASH.checkFuncByName = function (name, context)
 {
 	if (typeof name != "string")
 	{
 		//console.error("function name error");
-		// return the first argument to be compatible with init
-		return arg1;
+		return false;
 	}
 	// if context is undfined, it should be window
 	context = (undefined !== context) ? context : window;
 	// split by . to parse function with namespaces
 	var namespaces = name.split(".");
 	// parse namespaces one by one
-	for (var i in namespaces)
+	// cannot put the last function name here, or else that function cannot use class public variables
+	for (var i = 0; i < namespaces.length - 1; ++ i)
 	{
 		context = context[namespaces[i]];
 	}
 	// if the function is valid
-	if(typeof context == "function")
+	if(typeof context == "object" && typeof context[namespaces[namespaces.length - 1]] == "function")
 	{
-		//console.debug(context)
+		return true;
+	} else
+	{
+		//console.error("function does not exist: " + name);
+		return false;
+	}
+}
+// check and run function by a string of name with at most two arguments
+ROSDASH.runFuncByName = function (name, context, arg1, arg2)
+{
+	if (typeof name != "string")
+	{
+		//console.error("function name error");
+		return undefined;
+	}
+	// if context is undfined, it should be window
+	context = (undefined !== context) ? context : window;
+	// split by . to parse function with namespaces
+	var namespaces = name.split(".");
+	// parse namespaces one by one
+	// cannot put the last function name here, or else that function cannot use class public variables
+	for (var i = 0; i < namespaces.length - 1; ++ i)
+	{
+		context = context[namespaces[i]];
+	}
+	// if the function is valid
+	if(typeof context == "object" && typeof context[namespaces[namespaces.length - 1]] == "function")
+	{
 		// support 0, 1, 2 arguments
-		if (undefined === arg1)
+		if (undefined === arg1 && undefined === arg2)
 		{
-			return context();
+			return context[namespaces[namespaces.length - 1]] ();
 		} else if (undefined === arg2)
 		{
-			return context(arg1);
+			return context[namespaces[namespaces.length - 1]] (arg1);
 		} else
 		{
-			return context(arg1, arg2);
+			return context[namespaces[namespaces.length - 1]] (arg1, arg2);
 		}
 	} else
 	{
 		//console.error("function does not exist: " + name);
-		// return the first argument to be compatible with init
-		return arg1;
+		return undefined;
 	}
 }
 ROSDASH.diagram_output = new Object();
@@ -1918,7 +1952,7 @@ ROSDASH.updateOnceWidgets = function ()
 		{
 			if ("topic" == ROSDASH.diagram.block[i].type)
 			{
-				ROSDASH.diagram_connection[i].instance["runOnce"] ();
+				//ROSDASH.diagram_connection[i].instance["runOnce"] ();
 			}
 			// run function by instance of widget class
 			ROSDASH.runFuncByName("runOnce", ROSDASH.diagram_connection[i].instance, ROSDASH.diagram.block[i]);
@@ -1976,7 +2010,7 @@ ROSDASH.updateWidgets = function ()
 				{
 					// the object of widget class
 					var obj = ROSDASH.diagram_connection[i].instance;
-					ROSDASH.diagram_output[i] = ROSDASH.runFuncByName("run", obj, ROSDASH.diagram.block[i], input);
+					ROSDASH.diagram_output[i] = ROSDASH.runFuncByName("run", obj, input);
 				}
 				else // for jsobject
 				{
