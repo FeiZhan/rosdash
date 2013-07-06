@@ -84,7 +84,7 @@
 		<script src="lib/taffydb/taffy.js"></script>
 		<!-- rosdash -->
 		<script src="rosdash.js"></script>
-		<script src="rosdash-widgets.js"></script>
+		<script src="rosdash-widgets2.js"></script>
 		<script type="text/javascript">
 $(function() {
 	$("#btnAddWidget").click(function()
@@ -96,10 +96,21 @@ $(function() {
 	$("#savePanel").click(ROSDASH.savePanel);
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
 	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>");
-	
-	var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
+
+	ROSDASH.a = function()
+	{
+		console.debug("a")
+	}
+	ROSDASH.a.prototype.b = function ()
+	{
+		console.debug("b", this)
+	}
+	aa = new ROSDASH.a();
+	aa.b();
+
+	/*var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
 	cities.insert({name:"Portland",state:"OR"});
-	console.debug("db: " + cities({name:"Boston"}).count());
+	console.debug("db: " + cities({name:"Boston"}).count());*/
 });
 		</script>
 	</head>

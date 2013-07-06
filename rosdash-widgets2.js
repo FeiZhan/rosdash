@@ -125,6 +125,7 @@ ROSDASH.Topic = function (block)
 // subscribe a ROS topic for once
 ROSDASH.Topic.prototype.runOnce = function ()
 {
+			console.debug(this.block)
 	var rosname = this.block.rosname;
 	//@todo how can we choose the type?
 	var type = 'std_msgs/String';

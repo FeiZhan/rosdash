@@ -1,7 +1,15 @@
 ROSDASH.test = function() {}
-ROSDASH.test.prototype.run = function (block, input)
+ROSDASH.test.prototype.init = function ()
 {
-	console.debug("testing", block, input);
+	console.debug("init");
+}
+ROSDASH.test.prototype.runOnce = function ()
+{
+	console.debug("runOnce");
+}
+ROSDASH.test.prototype.run = function (input)
+{
+	//console.debug("testing", block, input);
 }
 
 ROSDASH.Constant = new Object();

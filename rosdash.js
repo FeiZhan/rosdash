@@ -1442,11 +1442,16 @@ ROSDASH.parseWidgetContent = function (widget)
 		widget.widgetContent = '';
 		break;
 	}
-	var w = ROSDASH.diagram_connection[widget.widgetId];
-	// test if init function exists, if not, don't run
-	if (undefined !== w && undefined !== w.instance)
+	// for class
+	if (undefined !== ROSDASH.diagram_connection[widget.widgetId] && undefined !== ROSDASH.diagram_connection[widget.widgetId].instance)
 	{
-		widget = ROSDASH.runFuncByName(w.instance + ".init", widget);
+		// the object of widget class
+		var obj = ROSDASH.diagram_connection[widget.widgetId].instance;
+		ROSDASH.runFuncByName("init", obj, widget);
+	}
+	else // for jsobject
+	{
+		widget = ROSDASH.runFuncByName(ROSDASH.widget_def[widget.widgetType].init, undefined, widget);
 	}
 	return widget;
 }
@@ -1810,24 +1815,24 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].done = false;
 			//@todo
-			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name);
+			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
 		} else // if in the connection
 		{
 			// validate the existence of the block
 			ROSDASH.diagram_connection[i].exist = true;
-			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name);
+			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
 		}
 	}
 }
 
 //------------------- diagram execution
 // new object by a string of name
-ROSDASH.newObjByName = function (name)
+ROSDASH.newObjByName = function (name, arg1, arg2)
 {
 	if (typeof name != "string")
 	{
 		//console.error("class name error");
-		return;
+		return undefined;
 	}
 	// split by . to parse class with namespaces
 	var namespaces = name.split(".");
@@ -1839,43 +1844,46 @@ ROSDASH.newObjByName = function (name)
 		context = context[namespaces[i]];
 	}
 	// if the class is valid
-	if(typeof context == "object" && )
+	if(typeof context == "object" && typeof context[class_name] == "function")
 	{
-		console.debug(class_name, typeof context[class_name])
-		return undefined; //new context[class_name];
+		if (undefined === arg1 && undefined === arg2)
+		{
+			return new context[class_name] ();
+		} else if (undefined === arg2)
+		{
+			return new context[class_name] (arg1);
+		} else
+		{
+			return new context[class_name] (arg1, arg2);
+		}
 	} else
 	{
-		//console.error("function does not exist: " + name);
-		// return the first argument to be compatible with init
+		//console.error("class does not exist: " + name);
 		return undefined;
 	}
 }
 // run function by a string of name with at most two arguments
-ROSDASH.runFuncByName = function (name, arg1, arg2)
+ROSDASH.runFuncByName = function (name, context, arg1, arg2)
 {
 	if (typeof name != "string")
 	{
 		//console.error("function name error");
+		// return the first argument to be compatible with init
 		return arg1;
 	}
+	// if context is undfined, it should be window
+	context = (undefined !== context) ? context : window;
 	// split by . to parse function with namespaces
 	var namespaces = name.split(".");
-	var context = window;
 	// parse namespaces one by one
 	for (var i in namespaces)
 	{
-		if (typeof context[namespaces[i]] == "object")
-		{
-			context = context[namespaces[i]];
-		} else
-		{
-			// namespaces in error
-			return arg1;
-		}
+		context = context[namespaces[i]];
 	}
 	// if the function is valid
 	if(typeof context == "function")
 	{
+		//console.debug(context)
 		// support 0, 1, 2 arguments
 		if (undefined === arg1)
 		{
@@ -1897,10 +1905,6 @@ ROSDASH.runFuncByName = function (name, arg1, arg2)
 ROSDASH.diagram_output = new Object();
 ROSDASH.updateOnceWidgets = function ()
 {
-	/*var widget_exec = new Object();
-	widget_exec["constant1"] = new ROSDASH.Constant2({value: 123});
-	console.debug(widget_exec["constant1"].run());*/
-
 	for (var i in ROSDASH.diagram_connection)
 	{
 		// validate the existence of each block just once
@@ -1909,7 +1913,20 @@ ROSDASH.updateOnceWidgets = function ()
 			console.error("widget does not exist: "+ i);
 			continue;
 		}
-		ROSDASH.runFuncByName(ROSDASH.diagram_connection[i].instance + ".runOnce", ROSDASH.diagram.block[i]);
+		// for class
+		if (undefined !== ROSDASH.diagram_connection[i].instance)
+		{
+			if ("topic" == ROSDASH.diagram.block[i].type)
+			{
+				ROSDASH.diagram_connection[i].instance["runOnce"] ();
+			}
+			// run function by instance of widget class
+			ROSDASH.runFuncByName("runOnce", ROSDASH.diagram_connection[i].instance, ROSDASH.diagram.block[i]);
+		}
+		else // for jsobject
+		{
+			ROSDASH.runFuncByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].runOnce, undefined, ROSDASH.diagram.block[i]);
+		}
 	}
 }
 ROSDASH.done_count = 0;
@@ -1953,15 +1970,18 @@ ROSDASH.updateWidgets = function ()
 			// if the block is ready to be execute with all the inputs are ready
 			if (ready_flag)
 			{
-				var run = ROSDASH.diagram_connection[i].instance + ".run";
-				// if no run function
-				if (undefined === run)
-				{
-					continue;
-				}
-				//@todo should be checked earlier and once if run function does not exist
 				// run the widget, and save the output into ROSDASH.diagram_output
-				ROSDASH.diagram_output[i] = ROSDASH.runFuncByName(run, ROSDASH.diagram.block[i], input);
+				// for class
+				if (undefined !== ROSDASH.diagram_connection[i].instance)
+				{
+					// the object of widget class
+					var obj = ROSDASH.diagram_connection[i].instance;
+					ROSDASH.diagram_output[i] = ROSDASH.runFuncByName("run", obj, ROSDASH.diagram.block[i], input);
+				}
+				else // for jsobject
+				{
+					ROSDASH.diagram_output[i] = ROSDASH.runFuncByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].run, undefined, ROSDASH.diagram.block[i], input);
+				}
 				ROSDASH.diagram_connection[i].done = true;
 				++ ROSDASH.done_count;
 			}
