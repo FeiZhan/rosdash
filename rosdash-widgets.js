@@ -120,7 +120,7 @@ ROSDASH.Topic = function (block)
 	this.ros_msg = {error: "cannot connect to this topic"};
 }
 // subscribe a ROS topic for once
-ROSDASH.Topic.prototype.runOnce = function ()
+ROSDASH.Topic.prototype.init = function ()
 {
 	var rosname = this.block.rosname;
 	//@todo how can we choose the type?
@@ -160,13 +160,12 @@ ROSDASH.ToggleButton = function (block)
 	this.canvas_id = "togglebutton_" + this.block.id;
 	this.button_id = "togglebutton2_" + this.block.id;
 }
-//@todo change name into addToWidget
-ROSDASH.ToggleButton.prototype.init = function (widget)
+ROSDASH.ToggleButton.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<input id="' + this.canvas_id + '" type="checkbox" checked />';
 	return widget;
 }
-ROSDASH.ToggleButton.prototype.runOnce = function ()
+ROSDASH.ToggleButton.prototype.init = function ()
 {
 	if ($('#' + this.canvas_id).length > 0)
 	{
@@ -180,7 +179,7 @@ ROSDASH.ToggleButton.prototype.runOnce = function ()
 		//$('#toggle-state-switch').bootstrapSwitch('setState', false); // true || false
 	} else
 	{
-		setTimeout(ROSDASH.ToggleButton.runOnce, 500);
+		setTimeout(ROSDASH.ToggleButton.init, 500);
 	}
 }
 
@@ -238,7 +237,7 @@ ROSDASH.Speech = function (block)
 	this.block = block;
 	this.content = "";
 }
-ROSDASH.Speech.prototype.init = function (widget)
+ROSDASH.Speech.prototype.addWidget = function (widget)
 {
 	//@change id
 	widget.widgetTitle = widget.widgetId + ' <input type="button" id="speak" value="speak" /><span id="audio"></span>';
@@ -251,7 +250,7 @@ ROSDASH.Speech.prototype.speak = function ()
 	speak(this.content);
 }
 // add callback function to speak button
-ROSDASH.Speech.prototype.runOnce = function ()
+ROSDASH.Speech.prototype.init = function ()
 {
 	var s = $("#speak");
 	if (s.length > 0)
@@ -307,12 +306,12 @@ ROSDASH.Turtlesim = function (block)
 	this.block = block;
 	this.canvas_id = "turtlesim_" + this.block.id;
 }
-ROSDASH.Turtlesim.prototype.init = function (widget)
+ROSDASH.Turtlesim.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="100%" height="100%" style="border: 2px solid black"></canvas>';
 	return widget;
 }
-ROSDASH.Turtlesim.prototype.runOnce = function ()
+ROSDASH.Turtlesim.prototype.init = function ()
 {
 	//@note a traditional ROS connection
 	var ros = new ROS('ws://192.168.1.123:9090');
@@ -335,12 +334,12 @@ ROSDASH.Ros2d = function (block)
 	this.block = block;
 	this.canvas_id = "ros2d_" + this.block.id;
 }
-ROSDASH.Ros2d.prototype.init = function (widget)
+ROSDASH.Ros2d.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
 	return widget;
 }
-ROSDASH.Ros2d.prototype.runOnce = function ()
+ROSDASH.Ros2d.prototype.init = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
@@ -364,7 +363,7 @@ ROSDASH.Ros2d.prototype.runOnce = function ()
 	} else
 	{
 		// wait for ROS to start
-		setTimeout(ROSDASH.Ros2d.runOnce, 500);
+		setTimeout(ROSDASH.Ros2d.init, 500);
 	}
 }
 
@@ -374,12 +373,12 @@ ROSDASH.Ros3d = function (block)
 	this.block = block;
 	this.canvas_id = "ros3d_" + this.block.id;
 }
-ROSDASH.Ros3d.prototype.init = function (widget)
+ROSDASH.Ros3d.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
 	return widget;
 }
-ROSDASH.Ros3d.prototype.runOnce = function ()
+ROSDASH.Ros3d.prototype.init = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
@@ -399,7 +398,7 @@ ROSDASH.Ros3d.prototype.runOnce = function ()
 	} else
 	{
 		// wait for ROS to start
-		setTimeout(ROSDASH.Ros3d.runOnce, 500);
+		setTimeout(ROSDASH.Ros3d.init, 500);
 	}
 }
 
@@ -410,12 +409,12 @@ ROSDASH.Gmap = function (block)
 	this.canvas_id = "gmap_" + this.block.id;
 	this.gmap = undefined;
 }
-ROSDASH.Gmap.prototype.init = function (widget)
+ROSDASH.Gmap.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<div id="' + this.canvas_id + '" style="height:100%; width:100%;" />';
 	return widget;
 }
-ROSDASH.Gmap.prototype.runOnce = function ()
+ROSDASH.Gmap.prototype.init = function ()
 {
 	var LAB = [49.276802, -122.914913];
 	// if canvas exists
@@ -430,7 +429,7 @@ ROSDASH.Gmap.prototype.runOnce = function ()
 			mapOptions);
 	} else
 	{
-		setTimeout(ROSDASH.Gmap.runOnce, 500);
+		setTimeout(ROSDASH.Gmap.init, 500);
 	}
 }
 //@input	none
@@ -534,7 +533,7 @@ ROSDASH.Flot = function (block)
 		}
 	};
 }
-ROSDASH.Flot.prototype.init = function (widget)
+ROSDASH.Flot.prototype.addWidget = function (widget)
 {
 	var id = "flot_" + widget.widgetId;
 	widget.widgetContent = '<div id="' + id + '" style="height:100%;width:100%;" />';
@@ -551,7 +550,7 @@ ROSDASH.Flot.prototype.getDefaultData = function ()
 	var d3 = [[0, 12], [7, 12], null, [7, 2.5], [12, 2.5]];
 	return [ d1, d2, d3 ];
 }
-ROSDASH.Flot.prototype.runOnce = function ()
+ROSDASH.Flot.prototype.init = function ()
 {
 	var id = "flot_" + this.block.id;
 	// if the canvas exists
@@ -559,6 +558,9 @@ ROSDASH.Flot.prototype.runOnce = function ()
 	{
 		// create the canvas with default data
 			this.plot = $.plot("#" + id, this.getDefaultData(), this.option);
+	} else
+	{
+		setTimeout(this.init, 500);
 	}
 }
 //@input	title, data, option, saferange
@@ -568,6 +570,10 @@ ROSDASH.Flot.prototype.run = function (input)
 	//i0 title
 	input[0] = (undefined === input[0]) ? this.block.name : input[0];
 	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
+	if (undefined === this.plot)
+	{
+		return;
+	}
 	//i1 data
 	if (undefined !== input[1])
 	{
@@ -602,12 +608,12 @@ ROSDASH.Vumeter = function (block)
 	this.block = block;
 	this.canvas_id = "vumeter_" + this.block.id;
 }
-ROSDASH.Vumeter.prototype.init = function (widget)
+ROSDASH.Vumeter.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; margin: 0 auto;"></div>';
 	return widget;
 }
-ROSDASH.Vumeter.prototype.runOnce = function ()
+ROSDASH.Vumeter.prototype.init = function ()
 {
 	$('#' + this.canvas_id).highcharts({
 	    chart: {

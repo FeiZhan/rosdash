@@ -2,6 +2,9 @@
 "widgets": [
 	{
 		"type": "constant",
+		"category": [
+			"basics"
+		],
 		"class_name": "ROSDASH.test",
 		"input": [],
 		"output": [
@@ -12,6 +15,9 @@
 		]
 	}, {
 		"type": "multiArray",
+		"category": [
+			"basics"
+		],
 		"class_name": "ROSDASH.multiArray",
 		"input": [
 			{
@@ -36,6 +42,9 @@
 		]
 	}, {
 		"type": "memarray",
+		"category": [
+			"basics"
+		],
 		"class_name": "ROSDASH.memArray",
 		"input": [
 			{
@@ -51,6 +60,9 @@
 		]
 	}, {
 		"type": "addition",
+		"category": [
+			"maths"
+		],
 		"class_name": "ROSDASH.Addition",
 		"input": [
 			{
@@ -72,6 +84,9 @@
 		]
 	}, {
 		"type": "switch",
+		"category": [
+			"basics"
+		],
 		"class_name": "ROSDASH.Switch",
 		"input": [
 			{
@@ -90,6 +105,9 @@
 		]
 	}, {
 		"type": "topic",
+		"category": [
+			"ROS"
+		],
 		"class_name": "ROSDASH.Topic",
 		"input": [],
 		"output": [
@@ -100,11 +118,18 @@
 		]
 	}, {
 		"type": "toggle button",
+		"category": [
+			"input"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.ToggleButton",
 		"input": [],
 		"output": []
 	}, {
 		"type": "arrayToStr",
+		"category": [
+			"basics"
+		],
 		"class_name": "ROSDASH.arrayToStr",
 		"input": [
 			{
@@ -120,21 +145,37 @@
 		]
 	}, {
 		"type": "turtlesim",
+		"category": [
+			"ROS"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Turtlesim",
 		"input": [],
 		"output": []
 	}, {
 		"type": "ros2d",
+		"category": [
+			"ROS"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Ros2d",
 		"input": [],
 		"output": []
 	}, {
 		"type": "ros3d",
+		"category": [
+			"ROS"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Ros3d",
 		"input": [],
 		"output": []
 	}, {
 		"type": "text",
+		"category": [
+			"output"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Text",
 		"input": [
 			{
@@ -148,6 +189,10 @@
 		"output": []
 	}, {
 		"type": "speech",
+		"category": [
+			"output"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Speech",
 		"input": [
 			{
@@ -158,6 +203,10 @@
 		"output": []
 	}, {
 		"type": "table",
+		"category": [
+			"output"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Table",
 		"input": [
 			{
@@ -177,6 +226,10 @@
 		"output": []
 	}, {
 		"type": "chart",
+		"category": [
+			"output"
+		],
+		"has_panel": "true",
 		"input": [
 			{
 				"datatype": "String",
@@ -192,6 +245,10 @@
 		"output": []
 	}, {
 		"type": "pie chart",
+		"category": [
+			"output"
+		],
+		"has_panel": "true",
 		"input": [
 			{
 				"datatype": "String",
@@ -207,6 +264,10 @@
 		"output": []
 	}, {
 		"type": "gmap",
+		"category": [
+			"map"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Gmap",
 		"input": [
 			{
@@ -223,6 +284,9 @@
 		"output": []
 	}, {
 		"type": "gmap traj",
+		"category": [
+			"map"
+		],
 		"class_name": "ROSDASH.GmapTraj",
 		"input": [
 			{
@@ -241,6 +305,10 @@
 		]
 	}, {
 		"type": "network",
+		"category": [
+			"diagram"
+		],
+		"has_panel": "true",
 		"input": [
 			{
 				"datatype": "String",
@@ -256,6 +324,9 @@
 		"output": []
 	}, {
 		"type": "saferange",
+		"category": [
+			"plot"
+		],
 		"class_name": "ROSDASH.SafeRange",
 		"input": [
 			{
@@ -277,6 +348,10 @@
 		]
 	}, {
 		"type": "flot",
+		"category": [
+			"plot"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Flot",
 		"input": [
 			{
@@ -296,15 +371,26 @@
 		"output": []
 	}, {
 		"type": "youtube",
+		"category": [
+			"other"
+		],
+		"has_panel": "true",
 		"input": [],
 		"output": []
 	}, {
 		"type": "vumeter",
+		"category": [
+			"output"
+		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.Vumeter",
 		"input": [],
 		"output": []
 	}, {
 		"type": "simrobot",
+		"category": [
+			"simulator"
+		],
 		"class_name": "ROSDASH.SimRobot",
 		"input": [],
 		"output": [

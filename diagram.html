@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<title>Dashboard Diagram</title>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
 		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
 		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-		<meta charset=utf-8 />
 		<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
 		<script src="lib/roslibjs/include/EventEmitter2/eventemitter2.js"></script>
 		<script src="lib/roslibjs/build/roslib.js"></script>
@@ -16,49 +16,58 @@
 		<script src="rosdash.js"></script>
 		<script src="rosdash-widgets.js"></script>
 		<style>
-body { 
-  font: 14px helvetica neue, helvetica, arial, sans-serif;
-}
 #cy {
   height: 100%;
   width: 100%;
   position: absolute;
-  left: 0;
-  top: 100;
+  left: 310px;
+  top: 50px;
 }
 		</style>
 	</head>
 	<body>
-		<input type="button" id="save" value="save" />
-		<input type="text" name="topic" id="topic" value="" />
-		<div class="btn-group">
-			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addtopic">
-				add topic
-				<span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu">
-				<li><a href="">a</a></li>
-				<li><a href="">b</a></li>
-			</ul>
+		<div id="toolbar" title="toolbar">
+			<form>
+			<fieldset>
+				<span id="tb-button"></span>
+				<span id="tb-content"></span>
+			</fieldset>
+			</form>
 		</div>
-		<div class="btn-group">
-			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addblock">
-				add block
-				<span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu" id="widget-list">
-			</ul>
+
+		<div style="position: relative; left: 310px;">
+			<input type="button" id="save" value="save" />
+			<input type="text" name="text" id="text" value="" />
+			<div class="btn-group">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addtopic">
+					add topic
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="">a</a></li>
+					<li><a href="">b</a></li>
+				</ul>
+			</div>
+			<div class="btn-group">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addblock">
+					add block
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu" id="widget-list">
+				</ul>
+			</div>
+			<div class="btn-group">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addconst">
+					add constant
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu" id="msg-list">
+				</ul>
+			</div>
+			<input type="button" id="removeblock" value="remove block" />
+			<input type="button" id="property" value="property" />
+			<input type="button" id="open-toolbar" value="toolbar" />
 		</div>
-		<div class="btn-group">
-			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="addconst">
-				add constant
-				<span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu" id="msg-list">
-			</ul>
-		</div>
-		<input type="button" id="removeblock" value="remove block" />
-		<input type="button" id="property" value="property" />
 
 		<div id="dialog-form" title="Property">
 			<form>
@@ -73,11 +82,11 @@ body {
 $(function() {
 	$("#addtopic").click(function ()
 	{
-		ROSDASH.addTopicByName($("#topic").val());
+		ROSDASH.addTopicByName($("#text").val());
 	});
 	$("#addblock").click(function ()
 	{
-		ROSDASH.addBlockByType($("#topic").val());
+		ROSDASH.addBlockByType($("#text").val());
 	});
 	$("#save").click(function ()
 	{
@@ -85,9 +94,10 @@ $(function() {
 	});
 	$("#removeblock").click(function ()
 	{
-		ROSDASH.removeBlock($("#topic").val());
+		ROSDASH.removeBlock($("#text").val());
 	});
 	$("#property").click(ROSDASH.showProperty);
+	$("#open-toolbar").click(ROSDASH.initToolbar);
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
 	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>");
 });
