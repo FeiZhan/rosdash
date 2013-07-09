@@ -123,8 +123,7 @@ ROSDASH.Topic = function (block)
 ROSDASH.Topic.prototype.init = function ()
 {
 	var rosname = this.block.rosname;
-	//@todo how can we choose the type?
-	var type = 'std_msgs/String';
+	var type = (undefined !== this.block.rostype) ? this.block.rostype : 'std_msgs/String';
 	ROSDASH.rosMsg[rosname] = {error: "cannot connect to this topic"};
 	var listener = new ROSLIB.Topic({
 		ros : ROSDASH.ros,
