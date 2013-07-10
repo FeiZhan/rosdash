@@ -1659,8 +1659,9 @@ ROSDASH.saveJson = function (data, filename)
 		url: "rosdash.php",
 		dataType: 'json',
 		data: {
-				file_name: filename,
-				data: data
+			func: "saveFile",
+			file_name: filename,
+			data: data
 		},
 		success: function( data, textStatus, jqXHR )
 		{

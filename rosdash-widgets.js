@@ -764,3 +764,27 @@ ROSDASH.SimRobot.prototype.run = function (input)
 	};
 	return output;
 }
+
+// user list
+ROSDASH.userList = function (block)
+{
+	this.block = block;
+}
+ROSDASH.userList.prototype.init = function ()
+{
+	$.ajax({
+		type: "POST",
+		url: "rosdash.php",
+		data: {
+			func: "getUserList"
+		},
+		success: function( data, textStatus, jqXHR )
+		{
+			console.log("userList success: ", data, textStatus, jqXHR);
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			console.log("userList error: ", jqXHR, textStatus, errorThrown);
+		}
+	});
+}
