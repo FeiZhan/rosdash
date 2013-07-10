@@ -93,7 +93,7 @@
 		<script type="text/javascript">
 $(function() {
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
-	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>");
+	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>", "<?php echo $_GET["panel"]; ?>");
 
 	/*var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
 	cities.insert({name:"Portland",state:"OR"});

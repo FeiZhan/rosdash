@@ -42,8 +42,12 @@
 
 .sDashboardWidgetHeader .ui-icon {
 	float: right;
-	margin-left: 3px;
+	margin-left: 5px;
 	cursor: default;
+	border: 1px solid #ccc;
+}
+.sDashboardWidgetHeader .ui-icon:hover {
+	background-color : #DDD;
 }
 
 /*dashboard widget content css*/

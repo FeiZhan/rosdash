@@ -34,26 +34,8 @@
 		<div id="cy"></div>
 		<script type="text/javascript">
 $(function() {
-	$("#addtopic").click(function ()
-	{
-		ROSDASH.addTopicByName($("#text").val());
-	});
-	$("#addblock").click(function ()
-	{
-		ROSDASH.addBlockByType($("#text").val());
-	});
-	$("#save").click(function ()
-	{
-		ROSDASH.saveDiagram();
-	});
-	$("#removeblock").click(function ()
-	{
-		ROSDASH.removeBlock($("#text").val());
-	});
-	$("#property").click(ROSDASH.showProperty);
-	$("#open-toolbar").click(ROSDASH.initToolbar2);
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
-	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>");
+	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>", "<?php echo $_GET["panel"]; ?>");
 });
 		</script>
 	</body>

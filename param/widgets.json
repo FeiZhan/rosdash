@@ -5,7 +5,7 @@
 		"category": [
 			"basics"
 		],
-		"class_name": "ROSDASH.test",
+		"class_name": "ROSDASH.Constant",
 		"input": [],
 		"output": [
 			{

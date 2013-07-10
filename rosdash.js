@@ -353,8 +353,8 @@ ROSDASH.default_element2 = {
 	]
 };
 
-//------------------- basics
-// dialog form
+//------------------- dialog
+//@deprecated dialog form
 ROSDASH.initDialog = function ()
 {
 	// for diagram
@@ -444,41 +444,93 @@ ROSDASH.saveProperty = function (dialog)
 		ROSDASH.blocks[ROSDASH.selected_block][$(ele).attr("name")] = $(ele).val();
 	});
 }
-// init toolbar
-ROSDASH.initToolbar2 = function ()
-{
-	$( "#toolbar" ).dialog({
-		autoOpen: true,
-		draggable: false,
-		resizable: false,
-		position: {my: "0 0", at: "0 800", of: null},
-		height: 600,
-		width: 300,
-		modal: true,
-		// disable close button
-		open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog || ui).hide(); },
-		close: function() {
-			//$( [] ).val( "" ).removeClass( "ui-state-error" );
-		}
-	});
-	var html = 
-		'<input type="button" id="toolbar-property" value="property" />'
-		+ '<input type="button" id="toolbar-block" value="blocks" />'
-		+ '<input type="button" id="toolbar-ros" value="ROS blocks" />'
-		+ '<input type="button" id="toolbar-back" value="" />'
-		+ '<input type="button" id="toolbar-forward" value="" class="ui-icon ui-icon-circle-arrow-n" style="" />';
-	$("#toolbar").find("#tb-button").html(html);
-	$( "#toolbar-back" ).button({
-      text: false,
-      icons: {
-        primary: "ui-icon-seek-prev"
-      }
-    });
-	$("#toolbar").find("#tb-content").html("");
-}
+
+//------------------- toolbar
 ROSDASH.toolbar = undefined;
+ROSDASH.list_depth;
+ROSDASH.listInToolbar = function ()
+{
+	ROSDASH.toolbar.forEachItem(function(itemId){
+		if (itemId != "logo")
+		{
+			ROSDASH.toolbar.removeItem(itemId);
+		}
+    });
+    ROSDASH.toolbar.addButton("main", 1, "", "redo.gif", "redo_dis.gif");
+    var count = 1;
+    for (var i in ROSDASH.list_depth)
+    {
+		if (typeof ROSDASH.list_depth[i] == "string")
+		{
+			ROSDASH.toolbar.addButton(ROSDASH.list_depth[i], ++ count, ROSDASH.list_depth[i], "settings.gif", "settings.gif");
+		} else if ("_" == i)
+		{
+			continue;
+		} else
+		{
+			ROSDASH.toolbar.addButton(i, ++ count, i, "other.gif", "other.gif");
+		}
+	}
+	if ("_" in ROSDASH.list_depth)
+	{
+		var list = ROSDASH.list_depth["_"];
+		for (var i in list)
+		{
+			if (typeof list[i] == "string")
+			{
+				ROSDASH.toolbar.addButton(list[i], ++ count, list[i], "settings.gif", "settings.gif");
+			} else if ("_" == i)
+			{
+				continue;
+			} else
+			{
+				ROSDASH.toolbar.addButton(i, ++ count, i, "settings.gif", "settings.gif");
+			}
+		}
+	}
+}
+ROSDASH.listProperty = function (type)
+{
+	ROSDASH.toolbar.forEachItem(function(itemId){
+		if (itemId != "logo" && itemId != "input")
+		{
+			ROSDASH.toolbar.removeItem(itemId);
+		}
+    });
+    ROSDASH.toolbar.addButton("setproperty", 2, "set property", "paste.gif", "paste_dis.gif");
+    ROSDASH.toolbar.addButton("main", 3, "back", "redo.gif", "redo_dis.gif");
+	var selected;
+	switch (type)
+	{
+	case "panel":
+		if (undefined === ROSDASH.selected_widget)
+		{
+			return;
+		}
+		selected = ROSDASH.widgets[ROSDASH.selected_widget];
+		break;
+	case "diagram":
+		if (undefined === ROSDASH.selected_block)
+		{
+			return;
+		}
+		selected = ROSDASH.blocks[ROSDASH.selected_block];
+		break;
+	}
+	var count = 3;
+	for (var i in selected)
+	{
+		ROSDASH.toolbar.addButton("property-" + i, ++ count, i, "settings.gif", "settings.gif");
+	}
+}
+ROSDASH.selected_property;
 ROSDASH.initPanelToolbar = function ()
 {
+	if ($("#toolbarObj").length <= 0)
+	{
+		console.error("toolbar not ready " + "#toolbarObj");
+		return;
+	}
 	if (undefined === ROSDASH.toolbar)
 	{
 		ROSDASH.toolbar = new dhtmlXToolbarObject("toolbarObj");
@@ -486,6 +538,18 @@ ROSDASH.initPanelToolbar = function ()
 		ROSDASH.toolbar.setIconsPath("lib/dhtmlxSuite/dhtmlxToolbar/samples/common/imgs/");
 		ROSDASH.toolbar.attachEvent("onClick", function(id)
 		{
+			if ("property-" == id.substring(0, 9))
+			{
+				if (undefined === ROSDASH.selected_widget)
+				{
+					return;
+				}
+				var selected = ROSDASH.widgets[ROSDASH.selected_widget];
+				var property = id.substring(9);
+				ROSDASH.toolbar.setValue("input", selected[property], true);
+				ROSDASH.selected_property = property;
+				return;
+			}
 			switch (id)
 			{
 			case "main":
@@ -511,7 +575,11 @@ ROSDASH.initPanelToolbar = function ()
 				console.log("redo");
 				break;
 			case "property":
-				ROSDASH.showProperty();
+				//ROSDASH.showProperty();
+				ROSDASH.listProperty("panel");
+				break;
+			case "setproperty":
+				ROSDASH.setWidgetProperty();
 				break;
 			default:
 				if (id in ROSDASH.list_depth)
@@ -555,50 +623,34 @@ ROSDASH.initPanelToolbar = function ()
     ROSDASH.toolbar.addButton("redo", 7, "redo", "redo.gif", "redo_dis.gif");
     ROSDASH.toolbar.addButton("property", 8, "property", "paste.gif", "paste_dis.gif");
 }
-ROSDASH.list_depth;
-ROSDASH.listInToolbar = function ()
+ROSDASH.setWidgetProperty = function ()
 {
-	ROSDASH.toolbar.forEachItem(function(itemId){
-		if (itemId != "logo")
-		{
-			ROSDASH.toolbar.removeItem(itemId);
-		}
-    });
-    ROSDASH.toolbar.addButton("main", 1, "", "redo.gif", "redo_dis.gif");
-    var count = 1;
-    for (var i in ROSDASH.list_depth)
-    {
-		if (typeof ROSDASH.list_depth[i] == "string")
-		{
-			ROSDASH.toolbar.addButton(ROSDASH.list_depth[i], ++ count, ROSDASH.list_depth[i], "settings.gif", "settings.gif");
-		} else if ("_" == i)
-		{
-			continue;
-		} else
-		{
-			ROSDASH.toolbar.addButton(i, ++ count, i, "other.gif", "other.gif");
-		}
-	}
-	if ("_" in ROSDASH.list_depth)
+	if (undefined === ROSDASH.selected_widget)
 	{
-		var list = ROSDASH.list_depth["_"];
-		for (var i in list)
-		{
-			if (typeof list[i] == "string")
-			{
-				ROSDASH.toolbar.addButton(list[i], ++ count, list[i], "settings.gif", "settings.gif");
-			} else if ("_" == i)
-			{
-				continue;
-			} else
-			{
-				ROSDASH.toolbar.addButton(i, ++ count, i, "settings.gif", "settings.gif");
-			}
-		}
+		return;
+	}
+	var selected = ROSDASH.widgets[ROSDASH.selected_widget];
+	var value = ROSDASH.toolbar.getValue("input");
+	switch (ROSDASH.selected_property)
+	{
+	case "id":
+		return;
+		break;
+	case "width":
+	case "height":
+	case "header_height":
+		selected[ROSDASH.selected_property] = value;
+		console.log("set property", selected.id, ROSDASH.selected_property, value);
+		break;
 	}
 }
 ROSDASH.initDiagramToolbar = function ()
 {
+	if ($("#toolbarObj").length <= 0)
+	{
+		console.error("toolbar not ready " + "#toolbarObj");
+		return;
+	}
 	if (undefined === ROSDASH.toolbar)
 	{
 		ROSDASH.toolbar = new dhtmlXToolbarObject("toolbarObj");
@@ -655,10 +707,10 @@ ROSDASH.initDiagramToolbar = function ()
 				break;
 			case "property":
 				//ROSDASH.showProperty();
-				ROSDASH.listProperty();
+				ROSDASH.listProperty("diagram");
 				break;
 			case "setproperty":
-				ROSDASH.setProperty();
+				ROSDASH.setBlockProperty();
 				break;
 			default:
 				if (typeof ROSDASH.list_depth != "object" && typeof ROSDASH.list_depth != "array")
@@ -709,29 +761,7 @@ ROSDASH.initDiagramToolbar = function ()
     ROSDASH.toolbar.addButton("redo", 11, "redo", "redo.gif", "redo_dis.gif");
     ROSDASH.toolbar.addButton("property", 12, "property", "paste.gif", "paste_dis.gif");
 }
-ROSDASH.listProperty = function ()
-{
-	ROSDASH.toolbar.forEachItem(function(itemId){
-		if (itemId != "logo" && itemId != "input")
-		{
-			ROSDASH.toolbar.removeItem(itemId);
-		}
-    });
-    ROSDASH.toolbar.addButton("setproperty", 2, "set property", "paste.gif", "paste_dis.gif");
-    ROSDASH.toolbar.addButton("main", 3, "", "redo.gif", "redo_dis.gif");
-    if (undefined === ROSDASH.selected_block)
-    {
-		return;
-	}
-	var selected = ROSDASH.blocks[ROSDASH.selected_block];
-	var count = 3;
-	for (var i in selected)
-	{
-		ROSDASH.toolbar.addButton("property-" + i, ++ count, i, "settings.gif", "settings.gif");
-	}
-}
-ROSDASH.selected_property;
-ROSDASH.setProperty = function ()
+ROSDASH.setBlockProperty = function ()
 {
 	if (undefined === ROSDASH.selected_block)
 	{
@@ -762,24 +792,32 @@ ROSDASH.checkUserConfValid = function ()
 		ROSDASH.user_conf.run_msec = 100;
 	}
 }
-ROSDASH.setUser = function (user)
+ROSDASH.setUser = function (user, panel_name)
 {
 	if (undefined === user || "" == user)
 	{
 		//console.error("invalid user: " + user);
-		// default value of ROSDASH.user_conf.name is "test"
+		// default value of ROSDASH.user_conf.name is "index"
 	} else
 	{
 		ROSDASH.user_conf.name = user;
 	}
+	if (undefined === panel_name || "" == panel_name)
+	{
+		//console.error("invalid panel name: " + panel_name);
+		// default value of ROSDASH.user_conf.panel_name is "index"
+	} else
+	{
+		ROSDASH.user_conf.panel_name = panel_name;
+	}
 	ROSDASH.checkUserConfValid();
-	console.log("user name: " + ROSDASH.user_conf.name);
+	console.log("user : ", ROSDASH.user_conf.name, ROSDASH.user_conf.panel_name);
 }
 ROSDASH.user_conf = {
 	// basic information
 	version: "1.0",
-	name: "tester",
-	panel_name: "test",
+	name: "index",
+	panel_name: "index",
 	view_type: "panel",
 	// files
 	panel_names: [],
@@ -1245,8 +1283,10 @@ ROSDASH.addBlock = function (def)
 		} else if (undefined === ROSDASH.widget_def[block_type].count)
 		{
 			ROSDASH.widget_def[block_type].count = 0;
+		} else
+		{
+			++ ROSDASH.widget_def[block_type].count;
 		}
-		++ ROSDASH.widget_def[block_type].count;
 		def.number = ROSDASH.widget_def[block_type].count;
 		def.id = block_type + "-" +  ROSDASH.widget_def[block_type].count;
 		def.name = block_type + " " +  ROSDASH.widget_def[block_type].count;
@@ -1433,13 +1473,16 @@ ROSDASH.removeBlock = function (name)
 	// priority on selected elements
 	if (ele.size() > 0 )
 	{
-		id = ele.id();
-		if (ele.id() in ROSDASH.blocks)
+		ele.each(function (i, ele)
 		{
-			type = ROSDASH.blocks[ele.id()].type;
-			delete ROSDASH.blocks[ele.id()];
-		}
-		ele.remove();
+			id = ele.id();
+			if (ele.id() in ROSDASH.blocks)
+			{
+				type = ROSDASH.blocks[ele.id()].type;
+				delete ROSDASH.blocks[ele.id()];
+			}
+			ele.remove();
+		});
 	}	// then the argument block
 	else if (undefined != name && "" != name)
 	{
@@ -1655,7 +1698,6 @@ ROSDASH.saveDiagram = function ()
 }
 ROSDASH.loadDiagram = function (json)
 {
-	ROSDASH.setUserConf(json);
 	// for blocks
 	for (var i in json.block)
 	{
@@ -1689,12 +1731,12 @@ ROSDASH.loadDiagram = function (json)
 	// fit page into best view
 	window.cy.fit();
 }
-ROSDASH.runDiagram = function (user)
+ROSDASH.runDiagram = function (user, panel_name)
 {
 	ROSDASH.initDialog();
-	//ROSDASH.initToolbar2();
 	ROSDASH.initDiagramToolbar();
-	ROSDASH.setUser(user);
+	ROSDASH.setUser(user, panel_name);
+	ROSDASH.user_conf.view_type = "diagram";
 	ROSDASH.initJson();
 	var style = ROSDASH.default_style;
 	var element = ROSDASH.default_element;
@@ -1928,7 +1970,11 @@ ROSDASH.addWidgetByType = function (name)
 		widgetType : name,
 		widgetContent : undefined,
 		// set the position of new widget as 0
-		pos : 0
+		pos : 0,
+		width: ROSDASH.user_conf.widget_width,
+		height: ROSDASH.user_conf.widget_height,
+		header_height: ROSDASH.user_conf.header_height,
+		content_height: ROSDASH.user_conf.content_height
 	};
 	// move other widgets backward by one
 	for (var i in ROSDASH.widgets)
@@ -2026,11 +2072,11 @@ ROSDASH.moveWidget = function (sorted)
 		}
 	}
 }
-ROSDASH.selectedWidget;
+ROSDASH.selected_widget;
 ROSDASH.selectWidgetCallback = function (e, data)
 {
-	ROSDASH.selectedWidget = data.selectedWidgetId;
-	var w = ROSDASH.widgets[ROSDASH.selectedWidget];
+	ROSDASH.selected_widget = data.selectedWidgetId;
+	var w = ROSDASH.widgets[ROSDASH.selected_widget];
 	// update the property dialog
 	var div = $("#dialog-form");
 	if (undefined === w)
@@ -2048,7 +2094,6 @@ ROSDASH.selectWidgetCallback = function (e, data)
 //------------------- panel
 ROSDASH.loadPanel = function (json)
 {
-	ROSDASH.setUserConf(json);
 	json = json.widgets;
 	var count = 0;
 	for (var i in json)
@@ -2090,11 +2135,12 @@ ROSDASH.savePanel = function ()
 	};
 	ROSDASH.saveJson(json, ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + "-panel");
 }
-ROSDASH.runPanel = function (user)
+ROSDASH.runPanel = function (user, panel_name)
 {
 	ROSDASH.initDialog();
 	ROSDASH.initPanelToolbar();
-	ROSDASH.setUser(user);
+	ROSDASH.setUser(user, panel_name);
+	ROSDASH.user_conf.view_type = "panel";
 	// generate empty dashboard
 	$("#myDashboard").sDashboard({
 		dashboardData : [],
@@ -2464,16 +2510,16 @@ ROSDASH.headerSetCallback = function (e, data)
 //@todo
 ROSDASH.addToDiagram = function ()
 {
-	if (undefined === ROSDASH.selectedWidget)
+	if (undefined === ROSDASH.selected_widget)
 	{
 		console.error("cannot add to diagram");
 		return;
 	}
-	var find = ROSDASH.selectedWidget.lastIndexOf("-");
-	var widget_type = ROSDASH.selectedWidget.substring(0, find);
-	var widget_num = parseFloat(ROSDASH.selectedWidget.substring(find));
-	ROSDASH.diagram.block[ROSDASH.selectedWidget] = {
-		id: ROSDASH.selectedWidget,
+	var find = ROSDASH.selected_widget.lastIndexOf("-");
+	var widget_type = ROSDASH.selected_widget.substring(0, find);
+	var widget_num = parseFloat(ROSDASH.selected_widget.substring(find));
+	ROSDASH.diagram.block[ROSDASH.selected_widget] = {
+		id: ROSDASH.selected_widget,
 		type: widget_type,
 		number: widget_num,
 		x: 400,
