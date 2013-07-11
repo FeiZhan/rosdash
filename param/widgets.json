@@ -83,6 +83,54 @@
 			}
 		]
 	}, {
+		"type": "insert",
+		"category": [
+			"array"
+		],
+		"class_name": "ROSDASH.Insert",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "array"
+			}, {
+				"datatype": "universal",
+				"name": "value"
+			}, {
+				"datatype": "universal",
+				"name": "position"
+			}
+		],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "output"
+			}
+		]
+	}, {
+		"type": "reshape",
+		"category": [
+			"array"
+		],
+		"class_name": "ROSDASH.Reshape",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "array"
+			}, {
+				"datatype": "universal",
+				"name": "height"
+			}, {
+				"datatype": "universal",
+				"name": "width"
+			}
+		],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "output"
+			}
+		]
+	}, {
 		"type": "switch",
 		"category": [
 			"basics"

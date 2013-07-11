@@ -6,11 +6,18 @@ function saveFile ()
 }
 function getUserList ()
 {
-	echo "1 2 3 4";
+	$dirs = glob('./file/*', GLOB_ONLYDIR);
+	foreach ($dirs as $i)
+	{
+		if (strlen($i) > 7)
+		{
+			echo substr($i, 7)." ";
+		}
+	}
 }
 
 // call corresponding method according to $method
-function callMethod($func)
+function callMethod ($func)
 {
 	if(is_null($func) || "" == $func || ! function_exists($func))
 	{

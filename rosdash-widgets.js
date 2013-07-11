@@ -7,7 +7,14 @@ ROSDASH.Constant = function (block)
 //@output	the value of the constant
 ROSDASH.Constant.prototype.run = function (input)
 {
-	return {o0: this.block.value};
+	//@todo
+	if ("Float32" == this.block.constname)
+	{
+		return {o0: parseFloat(this.block.value)};
+	} else
+	{
+		return {o0: this.block.value};
+	}
 }
 
 // multiArray
@@ -63,6 +70,91 @@ ROSDASH.Addition.prototype.run = function (input)
 		sum += input[i];
 	}
 	return {o0: sum};
+}
+
+// just for array
+ROSDASH.Insert = function (block)
+{
+	this.block = block;
+}
+ROSDASH.Insert.prototype.run = function (input)
+{
+	if (undefined === input[2] || (typeof input[0] != "array" && typeof input[0] != "object"))
+	{
+		return undefined;
+	}
+	var output = new Array();
+	for (var i in input[0])
+	{
+		var num = parseInt(i, 10);
+		if (!isNaN(i) && i >= 0)
+		{
+			output[i] = input[0][i];
+		}
+	}
+	output.splice(input[2], 0, input[1]);
+	return {o0: output};
+}
+
+ROSDASH.Reshape = function (block)
+{
+	this.block = block;
+}
+ROSDASH.Reshape.prototype.vectorize = function (data)
+{
+	if (typeof data == "object" || typeof data == "array")
+	{
+		var v = new Array();
+		for (var i in data)
+		{
+			v = v.concat(this.vectorize(data[i]));
+		}
+		return v;
+	} else
+	{
+		return [ data ];
+	}
+}
+ROSDASH.Reshape.prototype.run = function (input)
+{
+	if ( (typeof input[0] != "object" && typeof input[0] != "array") || ! (typeof input[1] === 'number' && parseFloat(input[1]) == parseInt(input[1], 10) && !isNaN(input[1]) && input[1] > 0) || ! (typeof input[2] === 'number' && parseFloat(input[2]) == parseInt(input[2], 10) && !isNaN(input[2]) && input[2] > 0) )
+	{
+		return undefined;
+	}
+	var vector = this.vectorize(input[0]);
+	var output = new Array();
+	for (var i = 0; i < input[1]; ++ i)
+	{
+		var o = new Array();
+		for (var j = 0; j < input[2]; ++ j)
+		{
+			if (i * input[2] + j < vector.length)
+			{
+				o.push(vector[i * input[2] + j]);
+			} else
+			{
+				switch (typeof vector[0])
+				{
+				case "number":
+					o.push(0);
+					break;
+				case "string":
+					o.push("");
+					break;
+				default:
+					o.push(undefined);
+				}
+			}
+		}
+		output.push(o);
+	}
+	if (1 == input[1])
+	{
+		return {o0: o};
+	} else
+	{
+		return {o0: output};
+	}
 }
 
 // switch case function
@@ -283,11 +375,21 @@ ROSDASH.Table.prototype.run = function (input)
 	// default value for header
 	input[0] = (undefined === input[0]) ? this.block.name : input[0];
 	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
+	if (typeof input[2] != "array" && typeof input[2] != "object")
+	{
+		return;
+	}
 	// for titles
 	var aoColumns = new Array();
 	for (var i in input[1])
 	{
-		aoColumns.push({sTitle: input[1][i]});
+		if (typeof (input[1][i]) == "number")
+		{
+			aoColumns.push({sTitle: "" + input[1][i]});
+		} else
+		{
+			aoColumns.push({sTitle: input[1][i]});
+		}
 	}
 	// for contents
 	var tableDef = {
@@ -296,7 +398,7 @@ ROSDASH.Table.prototype.run = function (input)
 	};
 	//@todo considering the layout
 	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
-	$("#myDashboard").sDashboard("setContentById", block.id, dataTable);
+	$("#myDashboard").sDashboard("setContentById", this.block.id, dataTable);
 }
 
 // Turtlesim from ROS desktop widget
@@ -769,9 +871,11 @@ ROSDASH.SimRobot.prototype.run = function (input)
 ROSDASH.userList = function (block)
 {
 	this.block = block;
+	this.list = new Array();
 }
 ROSDASH.userList.prototype.init = function ()
 {
+	var self = this;
 	$.ajax({
 		type: "POST",
 		url: "rosdash.php",
@@ -781,10 +885,22 @@ ROSDASH.userList.prototype.init = function ()
 		success: function( data, textStatus, jqXHR )
 		{
 			console.log("userList success: ", data, textStatus, jqXHR);
+			var d = data.split(" ");
+			for (var i in d)
+			{
+				if ("" != d[i] && " " != d[i])
+				{
+					self.list.push('<a href="panel.html?user=' + d[i] + '" target="_blank">' + d[i] + '</a>');
+				}
+			}
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
 			console.log("userList error: ", jqXHR, textStatus, errorThrown);
 		}
 	});
+}
+ROSDASH.userList.prototype.run = function (input)
+{
+	return {o0: this.list};
 }

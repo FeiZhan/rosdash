@@ -802,14 +802,7 @@ ROSDASH.setUser = function (user, panel_name)
 	{
 		ROSDASH.user_conf.name = user;
 	}
-	if (undefined === panel_name || "" == panel_name)
-	{
-		//console.error("invalid panel name: " + panel_name);
-		// default value of ROSDASH.user_conf.panel_name is "index"
-	} else
-	{
-		ROSDASH.user_conf.panel_name = panel_name;
-	}
+	ROSDASH.user_conf.panel_name = panel_name;
 	ROSDASH.checkUserConfValid();
 	console.log("user : ", ROSDASH.user_conf.name, ROSDASH.user_conf.panel_name);
 }
@@ -1100,6 +1093,9 @@ ROSDASH.initJson = function ()
 			-- ROSDASH.init_count;
 		});
 	}
+}
+ROSDASH.loadConfJson = function ()
+{
 	// load user config json
 	++ ROSDASH.init_count;
 	$.getJSON("file/" + ROSDASH.user_conf.name + "/conf.json", function(data, status, xhr)
@@ -1587,15 +1583,21 @@ ROSDASH.connectBlocks = function (source, target)
 		console.error("cannot connect: " + target);
 		return;
 	}
+	var flag = false;
 	// if target has duplicate connection
 	window.cy.edges().each(function (i, ele)
 	{
 		if (ele.source().id() == target || ele.target().id() == target)
 		{
 			console.error("duplicate connect: " + target);
+			flag = true;
 			return;
 		}
 	});
+	if (flag)
+	{
+		return;
+	}
 	window.cy.add({
 		group: "edges",
 		"data": {
@@ -1739,6 +1741,7 @@ ROSDASH.runDiagram = function (user, panel_name)
 	ROSDASH.setUser(user, panel_name);
 	ROSDASH.user_conf.view_type = "diagram";
 	ROSDASH.initJson();
+	ROSDASH.loadConfJson();
 	var style = ROSDASH.default_style;
 	var element = ROSDASH.default_element;
 	var empty_ele = {nodes: new Array(), edges: new Array()};
@@ -2095,6 +2098,10 @@ ROSDASH.selectWidgetCallback = function (e, data)
 //------------------- panel
 ROSDASH.loadPanel = function (json)
 {
+	if (null === json)
+	{
+		return;
+	}
 	json = json.widgets;
 	var count = 0;
 	for (var i in json)
@@ -2136,6 +2143,28 @@ ROSDASH.savePanel = function ()
 	};
 	ROSDASH.saveJson(json, ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + "-panel");
 }
+ROSDASH.newPanel = function ()
+{
+	// load new panel from json
+	$.getJSON('file/index/new-panel.json', function(data)
+	{
+		function start()
+		{
+			// wait until all initializations finish
+			if (0 <= ROSDASH.init_count)
+			{
+				ROSDASH.loadPanel(data);
+				console.log("load panel: " + 'file/index/new-panel.json');
+			} else
+			{
+				setTimeout(start, 200);
+			}
+		}
+		start();
+	}).error(function(d) {
+		console.error("load panel error: " + 'file/index/new-panel.json');
+	});
+}
 ROSDASH.runPanel = function (user, panel_name)
 {
 	ROSDASH.initDialog();
@@ -2164,30 +2193,37 @@ ROSDASH.runPanel = function (user, panel_name)
 	$("#myDashboard").bind("sdashboardheaderset", ROSDASH.headerSetCallback);
 	
 	ROSDASH.initJson();
-	ROSDASH.readDiagram();
-	// load panel from json
-	$.getJSON('file/' + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json', function(data)
+	if (undefined === ROSDASH.user_conf.panel_name || "" == ROSDASH.user_conf.panel_name)
 	{
-		function start()
+		ROSDASH.newPanel();
+	} else
+	{
+		ROSDASH.loadConfJson();
+		ROSDASH.readDiagram();
+		// load panel from json
+		$.getJSON('file/' + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json', function(data)
 		{
-			// wait until all initializations finish
-			if (0 <= ROSDASH.init_count)
+			function start()
 			{
-				ROSDASH.loadPanel(data);
-				console.log("load panel: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
-				// start to run widgets
-				ROSDASH.initWidgets();
-				ROSDASH.runWidgets();
-			} else
-			{
-				console.log("loading");
-				setTimeout(start, 200);
+				// wait until all initializations finish
+				if (0 <= ROSDASH.init_count)
+				{
+					ROSDASH.loadPanel(data);
+					console.log("load panel: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
+					// start to run widgets
+					ROSDASH.initWidgets();
+					ROSDASH.runWidgets();
+				} else
+				{
+					//console.log("loading");
+					setTimeout(start, 200);
+				}
 			}
-		}
-		start();
-	}).error(function(d) {
-		console.error("load panel error: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
-	});
+			start();
+		}).error(function(d) {
+			console.error("load panel error: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
+		});
+	}
 }
 
 //------------------- diagram analysis
