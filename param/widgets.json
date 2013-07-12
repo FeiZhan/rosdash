@@ -472,5 +472,31 @@
 				"name": "list"
 			}
 		]
+	}, {
+		"type": "userWelcome",
+		"category": [
+			"user"
+		],
+		"class_name": "ROSDASH.userWelcome",
+		"input": [],
+		"output": [
+			{
+				"datatype": "String",
+				"name": "name"
+			}
+		]
+	}, {
+		"type": "panelList",
+		"category": [
+			"user"
+		],
+		"class_name": "ROSDASH.panelList",
+		"input": [],
+		"output": [
+			{
+				"datatype": "String []",
+				"name": "list"
+			}
+		]
 	}
 ]}

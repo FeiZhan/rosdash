@@ -640,7 +640,7 @@ ROSDASH.setWidgetProperty = function ()
 	case "height":
 	case "header_height":
 		selected[ROSDASH.selected_property] = value;
-		console.log("set property", selected.id, ROSDASH.selected_property, value);
+		console.log("set property", selected.widgetId, ROSDASH.selected_property, value);
 		break;
 	}
 }
@@ -802,7 +802,14 @@ ROSDASH.setUser = function (user, panel_name)
 	{
 		ROSDASH.user_conf.name = user;
 	}
-	ROSDASH.user_conf.panel_name = panel_name;
+	if (undefined === panel_name || "" == panel_name)
+	{
+		//console.error("invalid panel_name: " + panel_name);
+		// default value of ROSDASH.user_conf.panel_name is "index"
+	} else
+	{
+		ROSDASH.user_conf.panel_name = panel_name;
+	}
 	ROSDASH.checkUserConfValid();
 	console.log("user : ", ROSDASH.user_conf.name, ROSDASH.user_conf.panel_name);
 }
@@ -810,6 +817,7 @@ ROSDASH.user_conf = {
 	// basic information
 	version: "1.0",
 	name: "index",
+	discrip: "",
 	panel_name: "index",
 	view_type: "panel",
 	// files
@@ -1774,7 +1782,7 @@ ROSDASH.runDiagram = function (user, panel_name)
 				}
 				start();
 			}).error(function(d) {
-				console.error("load diagram error: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-diagram.json');
+				console.error("load diagram error: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-diagram.json', d);
 			});
 			// set callback functions
 			ROSDASH.blockMoveCallback();
@@ -2143,28 +2151,6 @@ ROSDASH.savePanel = function ()
 	};
 	ROSDASH.saveJson(json, ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + "-panel");
 }
-ROSDASH.newPanel = function ()
-{
-	// load new panel from json
-	$.getJSON('file/index/new-panel.json', function(data)
-	{
-		function start()
-		{
-			// wait until all initializations finish
-			if (0 <= ROSDASH.init_count)
-			{
-				ROSDASH.loadPanel(data);
-				console.log("load panel: " + 'file/index/new-panel.json');
-			} else
-			{
-				setTimeout(start, 200);
-			}
-		}
-		start();
-	}).error(function(d) {
-		console.error("load panel error: " + 'file/index/new-panel.json');
-	});
-}
 ROSDASH.runPanel = function (user, panel_name)
 {
 	ROSDASH.initDialog();
@@ -2193,37 +2179,31 @@ ROSDASH.runPanel = function (user, panel_name)
 	$("#myDashboard").bind("sdashboardheaderset", ROSDASH.headerSetCallback);
 	
 	ROSDASH.initJson();
-	if (undefined === ROSDASH.user_conf.panel_name || "" == ROSDASH.user_conf.panel_name)
+	ROSDASH.loadConfJson();
+	ROSDASH.readDiagram();
+	// load panel from json
+	$.getJSON('file/' + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json', function(data)
 	{
-		ROSDASH.newPanel();
-	} else
-	{
-		ROSDASH.loadConfJson();
-		ROSDASH.readDiagram();
-		// load panel from json
-		$.getJSON('file/' + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json', function(data)
+		function start()
 		{
-			function start()
+			// wait until all initializations finish
+			if (0 <= ROSDASH.init_count)
 			{
-				// wait until all initializations finish
-				if (0 <= ROSDASH.init_count)
-				{
-					ROSDASH.loadPanel(data);
-					console.log("load panel: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
-					// start to run widgets
-					ROSDASH.initWidgets();
-					ROSDASH.runWidgets();
-				} else
-				{
-					//console.log("loading");
-					setTimeout(start, 200);
-				}
+				ROSDASH.loadPanel(data);
+				console.log("load panel: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
+				// start to run widgets
+				ROSDASH.initWidgets();
+				ROSDASH.runWidgets();
+			} else
+			{
+				//console.log("loading");
+				setTimeout(start, 200);
 			}
-			start();
-		}).error(function(d) {
-			console.error("load panel error: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
-		});
-	}
+		}
+		start();
+	}).error(function(d) {
+		console.error("load panel error: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-panel.json');
+	});
 }
 
 //------------------- diagram analysis

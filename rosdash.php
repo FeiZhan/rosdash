@@ -15,6 +15,29 @@ function getUserList ()
 		}
 	}
 }
+function getPanelList ()
+{
+	// Define the full path to your folder from root
+	$path = './file/'.$_POST["user"];
+	// Open the folder
+	$dir_handle = @opendir($path) or die("Unable to open $path");
+	// Loop through the files
+	while ($file = readdir($dir_handle))
+	{
+		if($file == "." || $file == "..")
+		{
+			continue;
+		}
+		echo $file." ";
+		/*$pos = strpos($file, "-");
+		if ($pos && substr($file, $pos) == "-panel.json")
+		{
+			echo substr($file, 0, $pos)." ";
+		}*/
+	}
+	// Close
+	closedir($dir_handle);
+}
 
 // call corresponding method according to $method
 function callMethod ($func)

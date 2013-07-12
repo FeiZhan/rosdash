@@ -72,6 +72,8 @@ ROSDASH.Addition.prototype.run = function (input)
 	return {o0: sum};
 }
 
+ROSDASH.
+
 // just for array
 ROSDASH.Insert = function (block)
 {
@@ -139,10 +141,11 @@ ROSDASH.Reshape.prototype.run = function (input)
 					o.push(0);
 					break;
 				case "string":
-					o.push("");
+					o.push(" ");
 					break;
 				default:
-					o.push(undefined);
+					o.push(" ");
+					//o.push(undefined);
 				}
 			}
 		}
@@ -901,6 +904,91 @@ ROSDASH.userList.prototype.init = function ()
 	});
 }
 ROSDASH.userList.prototype.run = function (input)
+{
+	return {o0: this.list};
+}
+
+// user welcome
+ROSDASH.userWelcome = function (block)
+{
+	this.block = block;
+}
+ROSDASH.userWelcome.prototype.run = function (input)
+{
+	var output = '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.user_conf.name + ' !</h1><p>';
+	if (undefined !== ROSDASH.user_conf.discrip && "" != ROSDASH.user_conf.discrip)
+	{
+		output += ROSDASH.user_conf.discrip + '</p><p>';
+	}
+	output += 'Please select your panel or diagram from the list on the right.</p>';
+	return {o0: output};
+}
+
+// user list
+ROSDASH.panelList = function (block)
+{
+	this.block = block;
+	this.list = new Array();
+}
+ROSDASH.panelList.prototype.init = function ()
+{
+	var self = this;
+	$.ajax({
+		type: "POST",
+		url: "rosdash.php",
+		data: {
+			func: "getPanelList",
+			user: ROSDASH.user_conf.name
+		},
+		success: function( data, textStatus, jqXHR )
+		{
+			console.log("panelList success: ", data, textStatus, jqXHR);
+			var d = data.split(" ");
+			for (var i in d)
+			{
+				if ("" != d[i] && " " != d[i])
+				{
+					var pos = d[i].indexOf("-");
+					var file_name = d[i].substring(0, pos);
+					if (pos < 0)
+					{
+						continue;
+					} else if (d[i].substring(pos) == "-panel.json")
+					{
+						self.list.push(file_name);
+						self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Panel</a>');
+						if (d.indexOf(file_name + "-diagram.json") != -1)
+						{
+							self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Diagram</a>');
+							d.splice(d.indexOf(file_name + "-diagram.json"), 1);
+						} else
+						{
+							console.debug(d, file_name + "-diagram.json", (file_name + "-diagram.json" in d))
+							self.list.push(" ");
+						}
+					} else if (d[i].substring(pos) == "-diagram.json")
+					{
+						self.list.push(file_name);
+						if (d.indexOf(file_name + "-panel.json") != -1)
+						{
+							self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Panel</a>');
+							d.splice(d.indexOf(file_name + "-panel.json"), 1);
+						} else
+						{
+							self.list.push(" ");
+						}
+						self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Diagram</a>');
+					}
+				}
+			}
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			console.log("userList error: ", jqXHR, textStatus, errorThrown);
+		}
+	});
+}
+ROSDASH.panelList.prototype.run = function (input)
 {
 	return {o0: this.list};
 }
