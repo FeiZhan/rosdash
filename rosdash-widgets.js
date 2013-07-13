@@ -72,7 +72,33 @@ ROSDASH.Addition.prototype.run = function (input)
 	return {o0: sum};
 }
 
-ROSDASH.
+ROSDASH.Division = function (block)
+{
+	this.block = block;
+}
+ROSDASH.Division.prototype.run = function (input)
+{
+	var output;
+	if (typeof input[0] == "object")
+	{
+		output = new Object();
+		for (var i in input[0])
+		{
+			output[i] = input[0][i] / input[1];
+		}
+	} else if (typeof input[0] == "array")
+	{
+		output = new Array();
+		for (var i in input[0])
+		{
+			output[i] = input[0][i] / input[1];
+		}
+	} else
+	{
+		output = input[0] / input[1];
+	}
+	return {o0: output};
+}
 
 // just for array
 ROSDASH.Insert = function (block)
