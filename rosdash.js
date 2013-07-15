@@ -2277,6 +2277,8 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[i].output = new Object();
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].done = false;
+
+console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def, ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 			// instantiate widget class
 			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
 		} else // if in the connection

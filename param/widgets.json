@@ -83,6 +83,27 @@
 			}
 		]
 	}, {
+		"type": "division",
+		"category": [
+			"maths"
+		],
+		"class_name": "ROSDASH.Division",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "dividend"
+			}, {
+				"datatype": "universal",
+				"name": "divisor"
+			}
+		],
+		"output": [
+			{
+				"datatype": "universal",
+				"name": "output"
+			}
+		]
+	}, {
 		"type": "insert",
 		"category": [
 			"array"

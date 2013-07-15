@@ -72,6 +72,7 @@ ROSDASH.Addition.prototype.run = function (input)
 	return {o0: sum};
 }
 
+// not tested
 ROSDASH.Division = function (block)
 {
 	this.block = block;
@@ -127,6 +128,7 @@ ROSDASH.Insert.prototype.run = function (input)
 ROSDASH.Reshape = function (block)
 {
 	this.block = block;
+	this.len = 0;
 }
 ROSDASH.Reshape.prototype.vectorize = function (data)
 {
@@ -140,25 +142,65 @@ ROSDASH.Reshape.prototype.vectorize = function (data)
 		return v;
 	} else
 	{
+		++ this.len;
 		return [ data ];
 	}
 }
 ROSDASH.Reshape.prototype.run = function (input)
 {
-	if ( (typeof input[0] != "object" && typeof input[0] != "array") || ! (typeof input[1] === 'number' && parseFloat(input[1]) == parseInt(input[1], 10) && !isNaN(input[1]) && input[1] > 0) || ! (typeof input[2] === 'number' && parseFloat(input[2]) == parseInt(input[2], 10) && !isNaN(input[2]) && input[2] > 0) )
+	// if not an array
+	if (typeof input[0] != "object" && typeof input[0] != "array")
 	{
-		return undefined;
+		return input[0];
 	}
+	this.len = 0;
+	// vectorize
 	var vector = this.vectorize(input[0]);
+	var is_int1 = false, is_int2 = false;
+	// if input[1] is int
+	if (typeof input[1] === 'number' && parseFloat(input[1]) == parseInt(input[1], 10) && !isNaN(input[1]) && input[1] > 0)
+	{
+		is_int1 = true;
+	}
+	// if input[2] is int
+	if (typeof input[2] === 'number' && parseFloat(input[2]) == parseInt(input[2], 10) && !isNaN(input[2]) && input[2] > 0)
+	{
+		is_int2 = true;
+	}
+	var row, column;
+	if (! is_int1 && ! is_int2)
+	{
+		return input[0];
+	} else if (! is_int2)
+	{
+		row = input[1];
+		column = Math.ceil(this.len / row);
+		if (column <= 0)
+		{
+			column = 1;
+		}
+	} else if (! is_int1)
+	{
+		column = input[2];
+		row = Math.ceil(this.len / column);
+		if (row <= 0)
+		{
+			row = 1;
+		}
+	} else
+	{
+		row = input[1];
+		column = input[2];
+	}
 	var output = new Array();
-	for (var i = 0; i < input[1]; ++ i)
+	for (var i = 0; i < column; ++ i)
 	{
 		var o = new Array();
-		for (var j = 0; j < input[2]; ++ j)
+		for (var j = 0; j < row; ++ j)
 		{
-			if (i * input[2] + j < vector.length)
+			if (i * row + j < vector.length)
 			{
-				o.push(vector[i * input[2] + j]);
+				o.push(vector[i * row + j]);
 			} else
 			{
 				switch (typeof vector[0])
@@ -947,6 +989,7 @@ ROSDASH.userWelcome.prototype.run = function (input)
 		output += ROSDASH.user_conf.discrip + '</p><p>';
 	}
 	output += 'Please select your panel or diagram from the list on the right.</p>';
+		//+ '<p>or add new panel or diagram.</p>';
 	return {o0: output};
 }
 
@@ -989,7 +1032,6 @@ ROSDASH.panelList.prototype.init = function ()
 							d.splice(d.indexOf(file_name + "-diagram.json"), 1);
 						} else
 						{
-							console.debug(d, file_name + "-diagram.json", (file_name + "-diagram.json" in d))
 							self.list.push(" ");
 						}
 					} else if (d[i].substring(pos) == "-diagram.json")
