@@ -186,7 +186,7 @@
 			}
 		]
 	}, {
-		"type": "toggle button",
+		"type": "toggleButton",
 		"category": [
 			"input"
 		],
@@ -287,9 +287,6 @@
 			}, {
 				"datatype": "String[]",
 				"name": "data"
-			}, {
-				"datatype": "DashTableLayout",
-				"name": "layout"
 			}
 		],
 		"output": []

@@ -7,7 +7,6 @@ ROSDASH.Constant = function (block)
 //@output	the value of the constant
 ROSDASH.Constant.prototype.run = function (input)
 {
-	//@todo
 	if ("Float32" == this.block.constname)
 	{
 		return {o0: parseFloat(this.block.value)};
@@ -285,6 +284,10 @@ ROSDASH.Topic = function (block)
 // subscribe a ROS topic for once
 ROSDASH.Topic.prototype.init = function ()
 {
+	if (! ROSDASH.ros_connected)
+	{
+		return;
+	}
 	var rosname = this.block.rosname;
 	var type = (undefined !== this.block.rostype) ? this.block.rostype : 'std_msgs/String';
 	ROSDASH.rosMsg[rosname] = {error: "cannot connect to this topic"};
@@ -306,6 +309,10 @@ ROSDASH.Topic.prototype.init = function ()
 //@output	ROS topic message
 ROSDASH.Topic.prototype.run = function (input)
 {
+	if (! ROSDASH.ros_connected)
+	{
+		return undefined;
+	}
 	var output = new Object();
 	if (undefined !== this.block.rosname)
 	{
@@ -329,20 +336,15 @@ ROSDASH.ToggleButton.prototype.addWidget = function (widget)
 }
 ROSDASH.ToggleButton.prototype.init = function ()
 {
-	if ($('#' + this.canvas_id).length > 0)
-	{
-		$('#' + this.canvas_id).wrap('<div id="' + this.button_id + '" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
-		$('#' + this.button_id).on('switch-change', function (e, data) {
-			var $el = $(data.el)
-			  , value = data.value;
-			console.log("toggled button");
-		});
-		//$('#toggle-state-switch').bootstrapSwitch('toggleState');
-		//$('#toggle-state-switch').bootstrapSwitch('setState', false); // true || false
-	} else
-	{
-		setTimeout(ROSDASH.ToggleButton.init, 500);
-	}
+	$('#' + this.canvas_id).wrap('<div id="' + this.button_id + '" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
+	$('#' + this.button_id).on('switch-change', function (e, data) {
+		var $el = $(data.el)
+		  , value = data.value;
+		console.log("toggled button");
+	});
+	//$('#toggle-state-switch').bootstrapSwitch('toggleState');
+	//$('#toggle-state-switch').bootstrapSwitch('setState', false); // true || false
+
 }
 
 // transform array (object, associative array, or topic message) into string
@@ -414,8 +416,7 @@ ROSDASH.Speech.prototype.speak = function ()
 // add callback function to speak button
 ROSDASH.Speech.prototype.init = function ()
 {
-	var s = $("#speak");
-	if (s.length > 0)
+	if ($("#speak").length > 0)
 	{
 		$("#speak").click(ROSDASH.Speech.speak);
 	}
@@ -439,7 +440,7 @@ ROSDASH.Table = function (block)
 {
 	this.block = block;
 }
-//@input	header, titles, contents, and layout for table
+//@input	header, titles, and contents for table
 //@output	none
 ROSDASH.Table.prototype.run = function (input)
 {
@@ -467,7 +468,6 @@ ROSDASH.Table.prototype.run = function (input)
 		"aaData" : input[2],
 		"aoColumns" : aoColumns
 	};
-	//@todo considering the layout
 	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
 	$("#myDashboard").sDashboard("setContentById", this.block.id, dataTable);
 }
@@ -532,10 +532,6 @@ ROSDASH.Ros2d.prototype.init = function ()
 		  viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
 		  viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
 		});
-	} else
-	{
-		// wait for ROS to start
-		setTimeout(ROSDASH.Ros2d.init, 500);
 	}
 }
 
@@ -567,10 +563,6 @@ ROSDASH.Ros3d.prototype.init = function ()
 		  ros : ROSDASH.ros,
 		  rootObject : viewer.scene
 		});
-	} else
-	{
-		// wait for ROS to start
-		setTimeout(ROSDASH.Ros3d.init, 500);
 	}
 }
 
@@ -599,9 +591,6 @@ ROSDASH.Gmap.prototype.init = function ()
 		};
 		this.gmap = new google.maps.Map(document.getElementById(this.canvas_id),
 			mapOptions);
-	} else
-	{
-		setTimeout(ROSDASH.Gmap.init, 500);
 	}
 }
 //@input	none
@@ -730,9 +719,6 @@ ROSDASH.Flot.prototype.init = function ()
 	{
 		// create the canvas with default data
 			this.plot = $.plot("#" + id, this.getDefaultData(), this.option);
-	} else
-	{
-		setTimeout(this.init, 500);
 	}
 }
 //@input	title, data, option, saferange

@@ -34,8 +34,8 @@
 		<div id="cy"></div>
 		<script type="text/javascript">
 $(function() {
-	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "9090");
-	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>", "<?php echo $_GET["panel"]; ?>");
+	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "<?php echo $_GET["port"]; ?>");
+	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>", "<?php echo $_GET["panel"]; ?>", "<?php echo $_GET["selected"]; ?>");
 });
 		</script>
 	</body>
