@@ -621,7 +621,16 @@ ROSDASH.initPanelToolbar = function ()
 	{
 		ROSDASH.toolbar.removeItem(itemId);
 	});
-    ROSDASH.toolbar.addText("logo", 0, '<span style="color:blue;"><a href="index.html">ROSDASH</a></span>');
+	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
+	if ("index" != ROSDASH.user_conf.name)
+	{
+		logo_text += " " + ROSDASH.user_conf.name;
+		if ("index" != ROSDASH.user_conf.panel_name)
+		{
+			logo_text += " " + ROSDASH.user_conf.panel_name;
+		}
+	}
+    ROSDASH.toolbar.addText("logo", 0, logo_text);
     ROSDASH.toolbar.addInput("input", 1, "", 60);
     ROSDASH.toolbar.addButton("addwidget", 2, "add widget", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("listwidget", 3, "list widget", "new.gif", "new_dis.gif");
@@ -768,8 +777,17 @@ ROSDASH.initDiagramToolbar = function ()
 	{
 		ROSDASH.toolbar.removeItem(itemId);
 	});
-    ROSDASH.toolbar.addText("logo", 0, '<a href="index.html">ROSDASH</a>');
-    ROSDASH.toolbar.addInput("input", 1, "", 160);
+	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
+	if ("index" != ROSDASH.user_conf.name)
+	{
+		logo_text += " " + ROSDASH.user_conf.name;
+		if ("index" != ROSDASH.user_conf.panel_name)
+		{
+			logo_text += " " + ROSDASH.user_conf.panel_name;
+		}
+	}
+    ROSDASH.toolbar.addText("logo", 0, logo_text);
+    ROSDASH.toolbar.addInput("input", 1, "", 130);
     ROSDASH.toolbar.addButton("addblock", 2, "add block", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("listblock", 3, "list block", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("listconst", 5, "list constant", "new.gif", "new_dis.gif");
@@ -823,6 +841,10 @@ ROSDASH.setUser = function (user, panel_name)
 	} else
 	{
 		ROSDASH.user_conf.name = user;
+		if ($("#toolbarObj").length > 0)
+		{
+			ROSDASH.toolbar.setItemText("logo", ROSDASH.toolbar.getItemText("logo") + " " + ROSDASH.user_conf.name);
+		}
 	}
 	if (undefined === panel_name || "" == panel_name)
 	{
@@ -831,6 +853,10 @@ ROSDASH.setUser = function (user, panel_name)
 	} else
 	{
 		ROSDASH.user_conf.panel_name = panel_name;
+		if ($("#toolbarObj").length > 0)
+		{
+			ROSDASH.toolbar.setItemText("logo", ROSDASH.toolbar.getItemText("logo") + " " + ROSDASH.user_conf.panel_name);
+		}
 	}
 	ROSDASH.checkUserConfValid();
 	console.log("user : ", ROSDASH.user_conf.name, ROSDASH.user_conf.panel_name);
