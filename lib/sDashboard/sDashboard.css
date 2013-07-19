@@ -109,16 +109,15 @@
 
 
 /*jquery sortable placeholder styles */
+#myDashboard {
+float: left;
+}
 .ui-sortable-placeholder {
 	border: 1px dotted black;
 	visibility: visible !important;
 	height: 50px !important;
+	background-color: #FCEFA1;
 }
 .ui-sortable-placeholder * {
 	visibility: hidden;
 }
-
-li.ui-sortable-placeholder {
-	background-color: #FCEFA1;
-}
-
