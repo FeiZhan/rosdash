@@ -919,7 +919,7 @@ ROSDASH.connectROS = function (host, port)
 	{
 		return;
 	}
-	port = (typeof port !== "undefined") ? port : "9090";
+	port = (typeof port !== "undefined" && "" != port && " " != port) ? port : "9090";
 	ROSDASH.ros = new ROSLIB.Ros();
 	ROSDASH.ros.on('error', function(error) {
 		console.error("ROS connection error: ", error);
@@ -952,7 +952,7 @@ ROSDASH.getROSNames = function (ros)
 		ROSDASH.topics = topics;
 		for (var i in topics)
 		{
-			ROSDASH.ros_msg.topic[""].push(topics[i]);
+			ROSDASH.ros_msg.topic["_"].push(topics[i]);
 		}
 		console.log('ros topics: ', topics);
 	});
@@ -961,7 +961,7 @@ ROSDASH.getROSNames = function (ros)
 		ROSDASH.services = services;
 		for (var i in services)
 		{
-			ROSDASH.ros_msg.service[""].push(services[i]);
+			ROSDASH.ros_msg.service["_"].push(services[i]);
 		}
 		console.log('ros services: ', services);
 	});
@@ -970,7 +970,7 @@ ROSDASH.getROSNames = function (ros)
 		ROSDASH.params = params;
 		for (var i in params)
 		{
-			ROSDASH.ros_msg.param[""].push(params[i]);
+			ROSDASH.ros_msg.param["_"].push(params[i]);
 		}
 		console.log('ros params: ', params);
 	});

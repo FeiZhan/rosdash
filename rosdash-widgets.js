@@ -480,7 +480,7 @@ ROSDASH.Turtlesim = function (block)
 }
 ROSDASH.Turtlesim.prototype.addWidget = function (widget)
 {
-	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="200%" height="200%" style="border: 1px solid black"></canvas>';
+	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="' + ROSDASH.user_conf.widget_width + 'px" height="' + ROSDASH.user_conf.content_height + 'px" style="border: 1px solid black"></canvas>';
 	return widget;
 }
 ROSDASH.Turtlesim.prototype.init = function ()
@@ -516,12 +516,11 @@ ROSDASH.Ros2d.prototype.init = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
-		//@note width and height
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
 		  divID : this.canvas_id,
-		  width : 308,
-		  height : 250
+		  width : ROSDASH.user_conf.widget_width,
+		  height : ROSDASH.user_conf.content_height
 		});
 		// Setup the map client.
 		var gridClient = new ROS2D.OccupancyGridClient({
@@ -551,12 +550,11 @@ ROSDASH.Ros3d.prototype.init = function ()
 {
 	if (ROSDASH.ros_connected)
 	{
-		//@note height and width
 		// Create the main viewer.
 		var viewer = new ROS3D.Viewer({
 		  divID : this.canvas_id,
-		  width : 80,
-		  height : 60,
+		  width : ROSDASH.user_conf.widget_width,
+		  height : ROSDASH.user_conf.content_height,
 		  antialias : true
 		});
 		// Setup the marker client.
