@@ -450,7 +450,7 @@ ROSDASH.toolbar = undefined;
 ROSDASH.list_depth;
 ROSDASH.listInToolbar = function ()
 {
-	ROSDASH.toolbar.forEachItem(function(itemId){
+	ROSDASH.toolbar.forEachItem(function(itemId) {
 		if (itemId != "logo")
 		{
 			ROSDASH.toolbar.removeItem(itemId);
@@ -462,13 +462,13 @@ ROSDASH.listInToolbar = function ()
     {
 		if (typeof ROSDASH.list_depth[i] == "string")
 		{
-			ROSDASH.toolbar.addButton(ROSDASH.list_depth[i], ++ count, ROSDASH.list_depth[i], "settings.gif", "settings.gif");
+			ROSDASH.toolbar.addButton("list-" + ROSDASH.list_depth[i], ++ count, ROSDASH.list_depth[i], "settings.gif", "settings.gif");
 		} else if ("_" == i)
 		{
 			continue;
 		} else
 		{
-			ROSDASH.toolbar.addButton(i, ++ count, i, "other.gif", "other.gif");
+			ROSDASH.toolbar.addButton("list-" + i, ++ count, i, "other.gif", "other.gif");
 		}
 	}
 	if ("_" in ROSDASH.list_depth)
@@ -478,13 +478,13 @@ ROSDASH.listInToolbar = function ()
 		{
 			if (typeof list[i] == "string")
 			{
-				ROSDASH.toolbar.addButton(list[i], ++ count, list[i], "settings.gif", "settings.gif");
+				ROSDASH.toolbar.addButton("list-" + list[i], ++ count, list[i], "settings.gif", "settings.gif");
 			} else if ("_" == i)
 			{
 				continue;
 			} else
 			{
-				ROSDASH.toolbar.addButton(i, ++ count, i, "settings.gif", "settings.gif");
+				ROSDASH.toolbar.addButton("list-" + i, ++ count, i, "settings.gif", "settings.gif");
 			}
 		}
 	}
@@ -590,23 +590,24 @@ ROSDASH.initPanelToolbar = function ()
 				window.open(url);
 				break;
 			default:
-				if (id in ROSDASH.list_depth)
+				var widget_id = id.substring(5);
+				if (widget_id in ROSDASH.list_depth)
 				{
-					if (typeof ROSDASH.list_depth[id] == "string")
+					if (typeof ROSDASH.list_depth[widget_id] == "string")
 					{
-						ROSDASH.addWidgetByType(id);
+						ROSDASH.addWidgetByType(widget_id);
 					} else
 					{
-						ROSDASH.list_depth = ROSDASH.list_depth[id];
+						ROSDASH.list_depth = ROSDASH.list_depth[widget_id];
 						ROSDASH.listInToolbar();
 					}
 				} else if (("_" in ROSDASH.list_depth))
 				{
 					for (var i in ROSDASH.list_depth["_"])
 					{
-						if (ROSDASH.list_depth["_"][i] == id)
+						if (ROSDASH.list_depth["_"][i] == widget_id)
 						{
-							ROSDASH.addWidgetByType(id);
+							ROSDASH.addWidgetByType(widget_id);
 						}
 					}
 				} else
@@ -624,10 +625,10 @@ ROSDASH.initPanelToolbar = function ()
 	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
 	if ("index" != ROSDASH.user_conf.name)
 	{
-		logo_text += " " + ROSDASH.user_conf.name;
+		logo_text += "-" + ROSDASH.user_conf.name;
 		if ("index" != ROSDASH.user_conf.panel_name)
 		{
-			logo_text += " " + ROSDASH.user_conf.panel_name;
+			logo_text += "-" + ROSDASH.user_conf.panel_name;
 		}
 	}
     ROSDASH.toolbar.addText("logo", 0, logo_text);
@@ -742,32 +743,32 @@ ROSDASH.initDiagramToolbar = function ()
 				window.cy.fit();
 				break;
 			default:
+				var block_id = id.substring(5);
 				if (typeof ROSDASH.list_depth != "object" && typeof ROSDASH.list_depth != "array")
 				{
-					console.error("unknown widget in toolbar: ", id);
-				}
-				else if (id in ROSDASH.list_depth)
+					console.error("unknown widget in toolbar: ", block_id);
+				} else if (block_id in ROSDASH.list_depth)
 				{
-					if (typeof ROSDASH.list_depth[id] == "string")
+					if (typeof ROSDASH.list_depth[block_id] == "string")
 					{
-						ROSDASH.addBlockByType(id);
+						ROSDASH.addBlockByType(block_id);
 					} else
 					{
-						ROSDASH.list_depth = ROSDASH.list_depth[id];
+						ROSDASH.list_depth = ROSDASH.list_depth[block_id];
 						ROSDASH.listInToolbar();
 					}
 				} else if (("_" in ROSDASH.list_depth))
 				{
 					for (var i in ROSDASH.list_depth["_"])
 					{
-						if (ROSDASH.list_depth["_"][i] == id)
+						if (ROSDASH.list_depth["_"][i] == block_id)
 						{
-							ROSDASH.addBlockByType(id);
+							ROSDASH.addBlockByType(block_id);
 						}
 					}
 				} else
 				{
-					console.error("unknown widget in toolbar: ", id);
+					console.error("unknown widget in toolbar: ", block_id);
 				}
 				break;
 			}
@@ -780,10 +781,10 @@ ROSDASH.initDiagramToolbar = function ()
 	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
 	if ("index" != ROSDASH.user_conf.name)
 	{
-		logo_text += " " + ROSDASH.user_conf.name;
+		logo_text += "-" + ROSDASH.user_conf.name;
 		if ("index" != ROSDASH.user_conf.panel_name)
 		{
-			logo_text += " " + ROSDASH.user_conf.panel_name;
+			logo_text += "-" + ROSDASH.user_conf.panel_name;
 		}
 	}
     ROSDASH.toolbar.addText("logo", 0, logo_text);
@@ -843,7 +844,7 @@ ROSDASH.setUser = function (user, panel_name)
 		ROSDASH.user_conf.name = user;
 		if ($("#toolbarObj").length > 0)
 		{
-			ROSDASH.toolbar.setItemText("logo", ROSDASH.toolbar.getItemText("logo") + " " + ROSDASH.user_conf.name);
+			ROSDASH.toolbar.setItemText("logo", ROSDASH.toolbar.getItemText("logo") + "-" + ROSDASH.user_conf.name);
 		}
 	}
 	if (undefined === panel_name || "" == panel_name)
@@ -855,7 +856,7 @@ ROSDASH.setUser = function (user, panel_name)
 		ROSDASH.user_conf.panel_name = panel_name;
 		if ($("#toolbarObj").length > 0)
 		{
-			ROSDASH.toolbar.setItemText("logo", ROSDASH.toolbar.getItemText("logo") + " " + ROSDASH.user_conf.panel_name);
+			ROSDASH.toolbar.setItemText("logo", ROSDASH.toolbar.getItemText("logo") + "-" + ROSDASH.user_conf.panel_name);
 		}
 	}
 	ROSDASH.checkUserConfValid();

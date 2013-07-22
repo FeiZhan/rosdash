@@ -480,17 +480,18 @@ ROSDASH.Turtlesim = function (block)
 }
 ROSDASH.Turtlesim.prototype.addWidget = function (widget)
 {
-	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="100%" height="100%" style="border: 2px solid black"></canvas>';
+	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="200%" height="200%" style="border: 1px solid black"></canvas>';
 	return widget;
 }
 ROSDASH.Turtlesim.prototype.init = function ()
 {
 	//@note a traditional ROS connection
-	var ros = new ROS('ws://192.168.1.123:9090');
+	var ros = new ROS('ws://192.168.1.125:9090');
+	var self = this;
 	ros.on('connection', function()
 	{
 		console.log("traditional ROS connected");
-		var context = document.getElementById(this.canvas_id).getContext('2d');
+		var context = document.getElementById(self.canvas_id).getContext('2d');
 		var turtleSim = new TurtleSim({
 			  ros     : ros
 			, context : context
