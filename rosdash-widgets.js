@@ -280,6 +280,7 @@ ROSDASH.Topic = function (block)
 {
 	this.block = block;
 	this.ros_msg = {error: "cannot connect to this topic"};
+	this.init_success = false;
 }
 // subscribe a ROS topic for once
 ROSDASH.Topic.prototype.init = function ()
@@ -290,7 +291,7 @@ ROSDASH.Topic.prototype.init = function ()
 	}
 	var rosname = this.block.rosname;
 	var type = (undefined !== this.block.rostype) ? this.block.rostype : 'std_msgs/String';
-	ROSDASH.rosMsg[rosname] = {error: "cannot connect to this topic"};
+	this.ros_msg = {error: "cannot connect to this topic"};
 	var listener = new ROSLIB.Topic({
 		ros : ROSDASH.ros,
 		name : rosname,
@@ -304,6 +305,7 @@ ROSDASH.Topic.prototype.init = function ()
 		ROSDASH.rosMsg[rosname] = message;
 		//listener.unsubscribe();
 	});
+	this.init_success = true;
 }
 //@input	none
 //@output	ROS topic message
@@ -313,13 +315,17 @@ ROSDASH.Topic.prototype.run = function (input)
 	{
 		return undefined;
 	}
-	var output = new Object();
+	if (ROSDASH.ros_connected && ! this.init_success)
+	{
+		this.init();
+	}
+	var output;
 	if (undefined !== this.block.rosname)
 	{
 		//ROSDASH.rosMsg[name] = "running";
-		output.o0 = ROSDASH.rosMsg[this.block.rosname];
+		output = this.ros_msg;
 	}
-	return output;
+	return {o0: output};
 }
 
 // toggle button (don't use the name of switch since it is used)
@@ -396,6 +402,7 @@ ROSDASH.Text.prototype.run = function (input)
 }
 
 // text widget with speaking widget
+ROSDASH.speak_content = "";
 ROSDASH.Speech = function (block)
 {
 	this.block = block;
@@ -403,7 +410,7 @@ ROSDASH.Speech = function (block)
 }
 ROSDASH.Speech.prototype.addWidget = function (widget)
 {
-	//@change id
+	//@todo change id
 	widget.widgetTitle = widget.widgetId + ' <input type="button" id="speak" value="speak" /><span id="audio"></span>';
 	widget.widgetContent = "";
 	return widget;
@@ -411,14 +418,14 @@ ROSDASH.Speech.prototype.addWidget = function (widget)
 // speak by speak.js
 ROSDASH.Speech.prototype.speak = function ()
 {
-	speak(this.content);
+	speak(ROSDASH.speak_content);
 }
 // add callback function to speak button
 ROSDASH.Speech.prototype.init = function ()
 {
 	if ($("#speak").length > 0)
 	{
-		$("#speak").click(ROSDASH.Speech.speak);
+		$("#speak").click(this.speak);
 	}
 }
 //@input	the content to speak
@@ -426,11 +433,12 @@ ROSDASH.Speech.prototype.init = function ()
 ROSDASH.Speech.prototype.run = function (input)
 {
 	input[0] = (undefined === input[0]) ? "(empty content)" : input[0];
-	// if new message comes, speak
-	if (ROSDASH.Speech.content != input[0])
+	if (this.content != input[0])
 	{
-		//ROSDASH.Speech.speak();
-		ROSDASH.Speech.content = input[0];
+		// if new message comes, speak
+		//this.speak();
+		this.content = input[0];
+		ROSDASH.speak_content = input[0];
 	}
 	$("#myDashboard").sDashboard("setContentById", this.block.id, input[0]);
 }
@@ -455,17 +463,39 @@ ROSDASH.Table.prototype.run = function (input)
 	var aoColumns = new Array();
 	for (var i in input[1])
 	{
-		if (typeof (input[1][i]) == "number")
+		if (typeof input[1][i] == "number")
 		{
 			aoColumns.push({sTitle: "" + input[1][i]});
+		} else if (undefined === input[1][i])
+		{
+			aoColumns.push({sTitle: " "});
 		} else
 		{
 			aoColumns.push({sTitle: input[1][i]});
 		}
 	}
+	var aaData = new Array();
+	for (var i in input[2])
+	{
+		var tmp = new Array();
+		for (var j in input[2][i])
+		{
+			if (typeof input[2][i][j] == "number")
+			{
+				tmp.push("" + input[2][i][j]);
+			} else if (undefined === input[2][i][j])
+			{
+				tmp.push(" ");
+			} else
+			{
+				tmp.push(input[2][i][j]);
+			}
+		}
+		aaData.push(tmp);
+	}
 	// for contents
 	var tableDef = {
-		"aaData" : input[2],
+		"aaData" : aaData,
 		"aoColumns" : aoColumns
 	};
 	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
@@ -506,6 +536,7 @@ ROSDASH.Ros2d = function (block)
 {
 	this.block = block;
 	this.canvas_id = "ros2d_" + this.block.id;
+	this.init_success = false;
 }
 ROSDASH.Ros2d.prototype.addWidget = function (widget)
 {
@@ -532,6 +563,14 @@ ROSDASH.Ros2d.prototype.init = function ()
 		  viewer.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
 		  viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
 		});
+		this.init_success = true;
+	}
+}
+ROSDASH.Ros2d.prototype.run = function ()
+{
+	if (! this.init_success)
+	{
+		this.init();
 	}
 }
 
@@ -540,6 +579,7 @@ ROSDASH.Ros3d = function (block)
 {
 	this.block = block;
 	this.canvas_id = "ros3d_" + this.block.id;
+	this.init_success = false;
 }
 ROSDASH.Ros3d.prototype.addWidget = function (widget)
 {
@@ -562,6 +602,14 @@ ROSDASH.Ros3d.prototype.init = function ()
 		  ros : ROSDASH.ros,
 		  rootObject : viewer.scene
 		});
+		this.init_success = true;
+	}
+}
+ROSDASH.Ros3d.prototype.run = function ()
+{
+	if (! this.init_success)
+	{
+		this.init();
 	}
 }
 
@@ -615,22 +663,22 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 {
 	if (input.length < 2 || undefined === input[0])
 	{
-		console.error("not enough arguments: " + this.block.id);
+		console.error("not enough arguments: ", this.block.id);
 		return;
-	}
-	// for a new robot
-	if (! (this.block.id in ROSDASH.GmapTraj.robot))
-	{
-		this.robot[block.id] = new Object();
 	}
 	for (var i in input[1])
 	{
-		// clear the old position
-		if (undefined !== this.robot[block.id].robot)
+		// for a new robot
+		if (! (i in this.robot))
 		{
-			this.robot[block.id].robot.setMap(null);
+			this.robot[i] = new Object();
 		}
-		this.robot[block.id].robot = new google.maps.Marker({
+		// clear the old position
+		if (undefined !== this.robot[i].robot)
+		{
+			this.robot[i].robot.setMap(null);
+		}
+		this.robot[i].robot = new google.maps.Marker({
 			position: new google.maps.LatLng(input[1][i].x, input[1][i].y),
 			map: input[0],	// google maps object
 			title: "robot " + i,
@@ -638,6 +686,7 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 			//shadow: {url: 'resource/cabs.shadow.png',}
 		});
 	}
+	return {o0: input[0]};
 }
 
 // safe range for text or plot widget
@@ -889,13 +938,31 @@ ROSDASH.Vumeter.prototype.init = function ()
 	});
 }
 
+ROSDASH.Pos2d = function (block)
+{
+	this.block = block;
+}
+ROSDASH.Pos2d.prototype.run = function (input)
+{
+	input[0] = (undefined !== input[0]) ? input[0] : 0;
+	input[1] = (undefined !== input[1]) ? input[1] : 0;
+	input[2] = (undefined !== input[2]) ? input[2] : 0;
+	var output = {
+		x : input[0],
+		y : input[1],
+		yaw : input[2]
+	};
+	return {o0: output};
+}
+
 // a simulated mobile robot
 ROSDASH.SimRobot = function (block)
 {
+	var LAB = [49.276802, -122.914913];
 	this.block = block;
 	this.boundary = [-100, 100];
-	this.last_loc = [0, 0];
-	this.loc_step = 5;
+	this.last_loc = LAB; //[0, 0];
+	this.loc_step = 0.001; //5;
 }
 //@input	none
 //@output	location x, location y, speed, voltage, current
@@ -904,14 +971,14 @@ ROSDASH.SimRobot.prototype.run = function (input)
 	var loc = new Array();
 	for (var i = 0; i < 2; ++ i)
 	{
-		loc[i] = this.last_loc[0] + (Math.random() - 0.5) * this.loc_step;
-		if (loc[i] < this.boundary[0])
+		loc[i] = this.last_loc[i] + (Math.random() - 0.5) * this.loc_step;
+		/*if (loc[i] < this.boundary[0])
 		{
 			loc[i] = this.boundary[0];
 		} else if (loc[i] > this.boundary[1])
 		{
 			loc[i] = this.boundary[1];
-		}
+		}*/
 	}
 	var output = {
 		o0: loc[0], // location x
@@ -1010,10 +1077,10 @@ ROSDASH.panelList.prototype.init = function ()
 					} else if (d[i].substring(pos) == "-panel.json")
 					{
 						self.list.push(file_name);
-						self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Panel</a>');
+						self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
 						if (d.indexOf(file_name + "-diagram.json") != -1)
 						{
-							self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Diagram</a>');
+							self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
 							d.splice(d.indexOf(file_name + "-diagram.json"), 1);
 						} else
 						{
@@ -1024,13 +1091,13 @@ ROSDASH.panelList.prototype.init = function ()
 						self.list.push(file_name);
 						if (d.indexOf(file_name + "-panel.json") != -1)
 						{
-							self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Panel</a>');
+							self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
 							d.splice(d.indexOf(file_name + "-panel.json"), 1);
 						} else
 						{
 							self.list.push(" ");
 						}
-						self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '" target="_blank">Diagram</a>');
+						self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
 					}
 				}
 			}

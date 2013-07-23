@@ -342,12 +342,14 @@
 			}, {
 				"datatype": "GmapOption",
 				"name": "option"
-			}, {
-				"datatype": "GmapOverlay[]",
-				"name": "overlay"
 			}
 		],
-		"output": []
+		"output": [
+			{
+				"datatype": "GmapObject",
+				"name": "gmap"
+			}
+		]
 	}, {
 		"type": "gmap traj",
 		"category": [
@@ -356,7 +358,7 @@
 		"class_name": "ROSDASH.GmapTraj",
 		"input": [
 			{
-				"datatype": "Gmap",
+				"datatype": "GmapObject",
 				"name": "gmap"
 			}, {
 				"datatype": "robot",
@@ -365,8 +367,32 @@
 		],
 		"output": [
 			{
-				"datatype": "Gmap",
+				"datatype": "GmapObject",
 				"name": "gmap"
+			}
+		]
+	}, {
+		"type": "pos2d",
+		"category": [
+			"robot"
+		],
+		"class_name": "ROSDASH.Pos2d",
+		"input": [
+			{
+				"datatype": "x",
+				"name": "Float32"
+			}, {
+				"datatype": "y",
+				"name": "Float32"
+			}, {
+				"datatype": "yaw",
+				"name": "Float32"
+			}
+		],
+		"output": [
+			{
+				"datatype": "pos",
+				"name": "Pos2d"
 			}
 		]
 	}, {
