@@ -273,6 +273,53 @@ ROSDASH.Switch.prototype.run = function (input)
 	return output;
 }
 
+ROSDASH.RosList = function (block)
+{
+	this.block = block;
+}
+ROSDASH.RosList.prototype.run = function (input)
+{
+	var output = new Array();
+	var tmp = new Array();
+	var max = Math.max( Math.max(ROSDASH.ros_msg.topic["_"].length, ROSDASH.ros_msg.service["_"].length), ROSDASH.ros_msg.param["_"].length);
+	for (var i = 0; i < max; ++ i)
+	{
+		tmp = new Array();
+		if (ROSDASH.ros_msg.topic["_"].length > i)
+		{
+			tmp[0] = ROSDASH.ros_msg.topic["_"][i];
+		} else
+		{
+			tmp[0] = " ";
+		}
+		if (ROSDASH.ros_msg.service["_"].length > i)
+		{
+			tmp[1] = ROSDASH.ros_msg.service["_"][i];
+		} else
+		{
+			tmp[1] = " ";
+		}
+		if (ROSDASH.ros_msg.param["_"].length > i)
+		{
+			tmp[2] = ROSDASH.ros_msg.param["_"][i];
+		} else
+		{
+			tmp[2] = " ";
+		}
+		output.push(tmp);
+	}
+	return {o0: output};
+}
+
+ROSDASH.TopicList = function (block)
+{
+	this.block = block;
+}
+ROSDASH.TopicList.prototype.run = function (input)
+{
+	return {o0: ROSDASH.ros_msg.topic["_"]};
+}
+
 //@deprecated
 ROSDASH.rosMsg = new Object();
 // ROS topic
@@ -447,6 +494,7 @@ ROSDASH.Speech.prototype.run = function (input)
 ROSDASH.Table = function (block)
 {
 	this.block = block;
+	this.count = 0;
 }
 //@input	header, titles, and contents for table
 //@output	none
@@ -493,12 +541,45 @@ ROSDASH.Table.prototype.run = function (input)
 		}
 		aaData.push(tmp);
 	}
+	if (aaData.length == 0)
+	{
+		var tmp = new Array();
+		for (var j = 0; j < input[1].length; ++ j)
+		{
+			tmp.push(" ");
+		}
+		aaData.push(tmp);
+	}
+	if (aaData[0].length == 0)
+	{
+		for (var j = 0; j < input[1].length; ++ j)
+		{
+			aaData[0].push(" ");
+		}
+	}
+	if (input[1].length < aaData[0].length)
+	{
+		for (var i = input[1].length; i < aaData[0].length; ++ i)
+		{
+			aoColumns.push({sTitle: " "});
+		}
+	}
 	// for contents
 	var tableDef = {
 		"aaData" : aaData,
-		"aoColumns" : aoColumns
+		"aoColumns" : aoColumns,
+        "bPaginate": false,
+        "bLengthChange": false,
+        "bFilter": true,
+        "bSort": false,
+        "bInfo": false,
+        "bAutoWidth": false
 	};
 	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
+	if (this.count < 30)
+	{
+		//console.debug(dataTable.html())
+	}
 	$("#myDashboard").sDashboard("setContentById", this.block.id, dataTable);
 }
 
@@ -575,6 +656,9 @@ ROSDASH.Ros2d.prototype.run = function ()
 }
 
 // ros3djs
+// enable 3d for Chrome: (Unfortunately it is not compatible with Diagram)
+// type "about:flags" on address bar of google chrome 
+// then under "Override software rendering list" click "enable" 
 ROSDASH.Ros3d = function (block)
 {
 	this.block = block;
@@ -606,6 +690,62 @@ ROSDASH.Ros3d.prototype.init = function ()
 	}
 }
 ROSDASH.Ros3d.prototype.run = function ()
+{
+	if (! this.init_success)
+	{
+		this.init();
+	}
+}
+
+ROSDASH.PR2URDF = function (block)
+{
+	this.block = block;
+	this.canvas_id = "pr2urdf_" + this.block.id;
+	this.init_success = false;
+}
+ROSDASH.PR2URDF.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
+	return widget;
+}
+ROSDASH.PR2URDF.prototype.init = function ()
+{
+	if (ROSDASH.ros_connected)
+	{
+		var viewer = new ROS3D.Viewer({
+			divID : this.canvas_id,
+			width : ROSDASH.user_conf.widget_width,
+			height : ROSDASH.user_conf.content_height,
+			antialias : true
+		});
+		viewer.addObject(new ROS3D.Grid());
+		new ROS3D.UrdfClient({
+			ros : ROSDASH.ros,
+			tfClient : new ROSLIB.TFClient({
+				ros : ROSDASH.ros,
+				angularThres : 0.01,
+				transThres : 0.01,
+				rate : 10.0
+			}),
+			path : 'http://resources.robotwebtools.org/',
+			rootObject : viewer.scene
+		});
+		var markerClient = new ROS3D.MarkerClient({
+			ros : ROSDASH.ros,
+			tfClient : new ROSLIB.TFClient({
+			ros : ROSDASH.ros,
+				angularThres : 0.01,
+				transThres : 0.01,
+				rate : 10.0,
+				fixedFrame : '/my_frame'
+			}),
+			topic : '/visualization_marker',
+			rootObject : viewer.scene
+		});
+		this.init_success = true;
+	}
+}
+ROSDASH.PR2URDF.prototype.run = function ()
 {
 	if (! this.init_success)
 	{

@@ -582,7 +582,7 @@ ROSDASH.initPanelToolbar = function ()
 				ROSDASH.setWidgetProperty();
 				break;
 			case "diagram":
-				var url = 'diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + ROSDASH.user_conf.panel_name;
+				var url = 'diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + ROSDASH.user_conf.panel_name + '&host=' + ROSDASH.user_conf.ros_host + '&port=' + ROSDASH.user_conf.ros_port;
 				if (undefined !== ROSDASH.selected_widget)
 				{
 					url += '&selected=' + ROSDASH.selected_widget;
@@ -732,7 +732,7 @@ ROSDASH.initDiagramToolbar = function ()
 				ROSDASH.setBlockProperty();
 				break;
 			case "panel":
-				var url = 'panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + ROSDASH.user_conf.panel_name;
+				var url = 'panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + ROSDASH.user_conf.panel_name + '&host=' + ROSDASH.user_conf.ros_host + '&port=' + ROSDASH.user_conf.ros_port;;
 				if (undefined !== ROSDASH.selected_block)
 				{
 					url += '&selected=' + ROSDASH.selected_block;
@@ -869,6 +869,9 @@ ROSDASH.user_conf = {
 	discrip: "",
 	panel_name: "index",
 	view_type: "panel",
+	// ros
+	ros_host: "",
+	ros_port: "",
 	// files
 	panel_names: [],
 	js: [],
@@ -931,6 +934,8 @@ ROSDASH.connectROS = function (host, port)
 		ROSDASH.getROSNames(ROSDASH.ros);
 	});
 	ROSDASH.ros.connect('ws://' + host + ':' + port);
+	ROSDASH.user_conf.ros_host = host;
+	ROSDASH.user_conf.ros_port = port;
 }
 //@deprecated
 ROSDASH.topics;

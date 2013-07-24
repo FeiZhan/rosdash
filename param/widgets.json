@@ -139,10 +139,10 @@
 				"name": "array"
 			}, {
 				"datatype": "universal",
-				"name": "height"
+				"name": "row"
 			}, {
 				"datatype": "universal",
-				"name": "width"
+				"name": "column"
 			}
 		],
 		"output": [
@@ -173,6 +173,32 @@
 			}
 		]
 	}, {
+		"type": "ros list",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.RosList",
+		"input": [],
+		"output": [
+			{
+				"datatype": "String [][]",
+				"name": "list"
+			}
+		]
+	}, {
+		"type": "topic list",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.TopicList",
+		"input": [],
+		"output": [
+			{
+				"datatype": "String []",
+				"name": "list"
+			}
+		]
+	}, {
 		"type": "topic",
 		"category": [
 			"ROS"
@@ -195,7 +221,7 @@
 		"input": [],
 		"output": []
 	}, {
-		"type": "arrayToStr",
+		"type": "array to str",
 		"category": [
 			"basics"
 		],
@@ -237,6 +263,15 @@
 		],
 		"has_panel": "true",
 		"class_name": "ROSDASH.Ros3d",
+		"input": [],
+		"output": []
+	}, {
+		"type": "pr2urdf",
+		"category": [
+			"ROS"
+		],
+		"has_panel": "true",
+		"class_name": "ROSDASH.PR2URDF",
 		"input": [],
 		"output": []
 	}, {
