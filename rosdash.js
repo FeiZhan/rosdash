@@ -625,7 +625,7 @@ ROSDASH.initPanelToolbar = function ()
 	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
 	if ("index" != ROSDASH.user_conf.name)
 	{
-		logo_text += "-" + ROSDASH.user_conf.name;
+		logo_text += '-<a href="panel.html?user=' + ROSDASH.user_conf.name + '" target="_blank">' + ROSDASH.user_conf.name + '</a>';
 		if ("index" != ROSDASH.user_conf.panel_name)
 		{
 			logo_text += "-" + ROSDASH.user_conf.panel_name;
@@ -781,7 +781,7 @@ ROSDASH.initDiagramToolbar = function ()
 	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
 	if ("index" != ROSDASH.user_conf.name)
 	{
-		logo_text += "-" + ROSDASH.user_conf.name;
+		logo_text += '-<a href="panel.html?user=' + ROSDASH.user_conf.name + '" target="_blank">' + ROSDASH.user_conf.name + '</a>';
 		if ("index" != ROSDASH.user_conf.panel_name)
 		{
 			logo_text += "-" + ROSDASH.user_conf.panel_name;
@@ -844,7 +844,8 @@ ROSDASH.setUser = function (user, panel_name)
 		ROSDASH.user_conf.name = user;
 		if ($("#toolbarObj").length > 0)
 		{
-			ROSDASH.toolbar.setItemText("logo", ROSDASH.toolbar.getItemText("logo") + "-" + ROSDASH.user_conf.name);
+			var logo_text = ROSDASH.toolbar.getItemText("logo") + '-<a href="panel.html?user=' + ROSDASH.user_conf.name + '" target="_blank">' + ROSDASH.user_conf.name + '</a>';
+			ROSDASH.toolbar.setItemText("logo", logo_text);
 		}
 	}
 	if (undefined === panel_name || "" == panel_name)
@@ -2347,11 +2348,14 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].done = false;
 
-//console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def, ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 			// instantiate widget class
 			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
 		} else // if in the connection
 		{
+			if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
+			{
+console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def, ROSDASH.widget_def[ROSDASH.diagram.block[i].type]);
+			}
 			// validate the existence of the block
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);

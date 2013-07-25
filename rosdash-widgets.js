@@ -814,7 +814,7 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 			this.robot[i] = new Object();
 		}
 		// clear the old position
-		if (undefined !== this.robot[i].robot)
+		if (undefined !== this.robot[i].robot && (this.robot[i].robot.position.jb != input[1][i].x || this.robot[i].robot.position.kb != input[1][i].y))
 		{
 			this.robot[i].robot.setMap(null);
 		}
@@ -1130,6 +1130,28 @@ ROSDASH.SimRobot.prototype.run = function (input)
 	return output;
 }
 
+ROSDASH.GmapSimRobotByJoystick = function (block)
+{
+	var LAB = [49.276802, -122.914913];
+	this.block = block;
+	this.last_loc = LAB;
+	this.loc_step = 0.001;
+}
+ROSDASH.GmapSimRobotByJoystick.prototype.run = function (input)
+{
+	var loc = new Array();
+	loc[0] = this.last_loc[0] - input[0].dy / 200.0 * this.loc_step;
+	loc[1] = this.last_loc[1] + input[0].dx / 200.0 * this.loc_step;
+	var output = {
+		x: loc[0],
+		y: loc[1],
+		yaw: 0,
+	};
+	this.last_loc[0] = loc[0];
+	this.last_loc[1] = loc[1];
+	return {o0: output};
+}
+
 // user list
 ROSDASH.userList = function (block)
 {
@@ -1251,4 +1273,39 @@ ROSDASH.panelList.prototype.init = function ()
 ROSDASH.panelList.prototype.run = function (input)
 {
 	return {o0: this.list};
+}
+
+ROSDASH.VirtualJoystick = function (block)
+{
+	this.block = block;
+	this.canvas_id = "VirtualJoystick_" + this.block.id;
+	this.joystick;
+}
+ROSDASH.VirtualJoystick.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; -webkit-user-select: none; -moz-user-select: none;"></div>';
+	return widget;
+}
+ROSDASH.VirtualJoystick.prototype.init = function ()
+{
+	console.log("touchscreen for VirtualJoystick is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
+	this.joystick = new VirtualJoystick({
+		container	: document.getElementById(this.canvas_id),
+		mouseSupport	: true
+	});
+}
+ROSDASH.VirtualJoystick.prototype.run = function (input)
+{
+	if (undefined === this.joystick)
+	{
+		this.init();
+	}
+	return {o0: {
+		dx: this.joystick.deltaX(),
+		dy: this.joystick.deltaY(),
+		right: this.joystick.right(),
+		up: this.joystick.up(),
+		left: this.joystick.left(),
+		down: this.joystick.down()
+		}};
 }

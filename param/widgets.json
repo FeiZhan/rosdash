@@ -221,7 +221,7 @@
 		"input": [],
 		"output": []
 	}, {
-		"type": "array to str",
+		"type": "arrayToStr",
 		"category": [
 			"basics"
 		],
@@ -414,14 +414,32 @@
 		"class_name": "ROSDASH.Pos2d",
 		"input": [
 			{
-				"datatype": "x",
-				"name": "Float32"
+				"datatype": "Float32",
+				"name": "x"
 			}, {
-				"datatype": "y",
-				"name": "Float32"
+				"datatype": "Float32",
+				"name": "y"
 			}, {
-				"datatype": "yaw",
-				"name": "Float32"
+				"datatype": "Float32",
+				"name": "yaw"
+			}
+		],
+		"output": [
+			{
+				"datatype": "pos",
+				"name": "Pos2d"
+			}
+		]
+	}, {
+		"type": "GmapSimRobotByJoystick",
+		"category": [
+			"robot"
+		],
+		"class_name": "ROSDASH.GmapSimRobotByJoystick",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "joystick"
 			}
 		],
 		"output": [
@@ -575,6 +593,19 @@
 			{
 				"datatype": "String []",
 				"name": "list"
+			}
+		]
+	}, {
+		"type": "joystick",
+		"category": [
+			"user"
+		],
+		"class_name": "ROSDASH.VirtualJoystick",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "joystickOutput"
 			}
 		]
 	}
