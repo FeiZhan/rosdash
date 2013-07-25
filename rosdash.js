@@ -1264,6 +1264,19 @@ ROSDASH.addTopic = function (def)
 	window.cy.add({
 		group: "nodes",
 		data: {
+			id: id + "-i0",
+			height: ROSDASH.PIN_SIZE[0],
+			weight: ROSDASH.PIN_SIZE[1],
+			faveColor: ROSDASH.PIN_COLOR,
+			faveShape: ROSDASH.BLOCK_SHAPE
+		},
+		position: { x: x + ROSDASH.INPUT_POS[1][0][0], y: y + ROSDASH.INPUT_POS[1][0][1] },
+		classes: "input",
+		locked: true
+	});
+	window.cy.add({
+		group: "nodes",
+		data: {
 			id: id + "-o0",
 			height: ROSDASH.PIN_SIZE[0],
 			weight: ROSDASH.PIN_SIZE[1],
@@ -1330,6 +1343,11 @@ ROSDASH.addBlock = function (def)
 	{
 		// the widget type is invalid, and the error message is sent from ROSDASH.checkWidgetTypeValid
 		return;
+	}
+	if ("topic" == def.type || "service" == def.type || "param" == def.type)
+	{
+		block.rosname = "";
+		block.rostype = "";
 	}
 	// if no position specified, use the position for a new block
 	var next_pos = ROSDASH.getNextNewBlockPos();
@@ -2354,7 +2372,11 @@ ROSDASH.traverseDiagram = function ()
 		{
 			if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 			{
-console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def, ROSDASH.widget_def[ROSDASH.diagram.block[i].type]);
+console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def);
+for (var i in ROSDASH.widget_def)
+{
+	console.debug(i, ROSDASH.widget_def[i])
+}
 			}
 			// validate the existence of the block
 			ROSDASH.diagram_connection[i].exist = true;

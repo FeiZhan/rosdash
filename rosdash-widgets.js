@@ -355,13 +355,12 @@ ROSDASH.TopicList.prototype.run = function (input)
 	return {o0: ROSDASH.ros_msg.topic["_"]};
 }
 
-//@deprecated
-ROSDASH.rosMsg = new Object();
 // ROS topic
 ROSDASH.Topic = function (block)
 {
 	this.block = block;
 	this.ros_msg = {error: "cannot connect to this topic"};
+	this.topic;
 	this.init_success = false;
 }
 // subscribe a ROS topic for once
@@ -371,20 +370,18 @@ ROSDASH.Topic.prototype.init = function ()
 	{
 		return;
 	}
-	var rosname = this.block.rosname;
-	var type = (undefined !== this.block.rostype) ? this.block.rostype : 'std_msgs/String';
+	this.block.rostype = (undefined !== this.block.rostype) ? this.block.rostype : 'std_msgs/String';
 	this.ros_msg = {error: "cannot connect to this topic"};
-	var listener = new ROSLIB.Topic({
+	this.topic = new ROSLIB.Topic({
 		ros : ROSDASH.ros,
-		name : rosname,
-		messageType : type
+		name : this.block.rosname,
+		messageType : this.block.rostype
 	});
 	var self = this;
 	// subscribe a ROS topic
-	listener.subscribe(function(message)
+	this.topic.subscribe(function(message)
 	{
 		self.ros_msg = message;
-		ROSDASH.rosMsg[rosname] = message;
 		//listener.unsubscribe();
 	});
 	this.init_success = true;
@@ -404,10 +401,105 @@ ROSDASH.Topic.prototype.run = function (input)
 	var output;
 	if (undefined !== this.block.rosname)
 	{
-		//ROSDASH.rosMsg[name] = "running";
+		//this.ros_msg = "running";
 		output = this.ros_msg;
 	}
+	if (undefined !== input[0])
+	{
+		var msg;
+		if (typeof input[0] == "string" && this.block.rostype == 'std_msgs/String')
+		{
+			msg = new ROSLIB.Message({data: input[0]});
+		} else
+		{
+			msg = new ROSLIB.Message(input[0]);
+		}
+		this.topic.publish(msg);
+	}
 	return {o0: output};
+}
+
+ROSDASH.Service = function (block)
+{
+	this.block = block;
+	this.init_success = false;
+	this.service;
+}
+ROSDASH.Service.prototype.init = function ()
+{
+	if (! ROSDASH.ros_connected)
+	{
+		return;
+	}
+	// First, we create a Service client with details of the service's name and service type.
+	this.service = new ROSLIB.Service({
+		ros : ROSDASH.ros,
+		name : this.block.rosname,
+		messageType : this.block.rostype
+	});
+	this.init_success = true;
+}
+ROSDASH.Service.prototype.run = function (input)
+{
+	if (! ROSDASH.ros_connected/* || undefined === input[0]*/)
+	{
+		return undefined;
+	}
+	if (ROSDASH.ros_connected && ! this.init_success)
+	{
+		this.init();
+	}
+	var msg = (undefined !== input[0]) ? input[0] : {A : 1, B : 2};
+	var request = new ROSLIB.ServiceRequest(msg);
+	var output = new Object();
+	this.service.callService(request, function(result) {
+		for (var i in result)
+		{
+			output[i] = result[i];
+		}
+	});
+	return {o0: output};
+}
+
+ROSDASH.Param = function (block)
+{
+	this.block = block;
+	this.init_success = false;
+	this.param;
+	this.output;
+}
+ROSDASH.Param.prototype.init = function ()
+{
+	if (! ROSDASH.ros_connected)
+	{
+		return;
+	}
+	// First, we create a Service client with details of the service's name and service type.
+	this.param = new ROSLIB.Param({
+		ros : ROSDASH.ros,
+		name : this.block.rosname
+	});
+	this.init_success = true;
+}
+ROSDASH.Param.prototype.run = function (input)
+{
+	if (! ROSDASH.ros_connected)
+	{
+		return undefined;
+	}
+	if (ROSDASH.ros_connected && ! this.init_success)
+	{
+		this.init();
+	}
+	var that = this;
+	this.param.get(function(value) {
+		that.output = value;
+	});
+	if (undefined !== input[0])
+	{
+		this.param.set(input[0]);
+	}
+	return {o0: that.output + ""};
 }
 
 // toggle button (don't use the name of switch since it is used)
@@ -656,7 +748,7 @@ ROSDASH.Ros2d.prototype.addWidget = function (widget)
 }
 ROSDASH.Ros2d.prototype.init = function ()
 {
-	if (ROSDASH.ros_connected)
+	if (ROSDASH.ros_connected && $("#" + this.canvas_id).length > 0)
 	{
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
@@ -702,7 +794,7 @@ ROSDASH.Ros3d.prototype.addWidget = function (widget)
 }
 ROSDASH.Ros3d.prototype.init = function ()
 {
-	if (ROSDASH.ros_connected)
+	if (ROSDASH.ros_connected && $("#" + this.canvas_id).length > 0)
 	{
 		// Create the main viewer.
 		var viewer = new ROS3D.Viewer({
@@ -732,6 +824,7 @@ ROSDASH.PR2URDF = function (block)
 	this.block = block;
 	this.canvas_id = "pr2urdf_" + this.block.id;
 	this.init_success = false;
+	this.marker;
 }
 ROSDASH.PR2URDF.prototype.addWidget = function (widget)
 {
@@ -740,7 +833,7 @@ ROSDASH.PR2URDF.prototype.addWidget = function (widget)
 }
 ROSDASH.PR2URDF.prototype.init = function ()
 {
-	if (ROSDASH.ros_connected)
+	if (ROSDASH.ros_connected && $("#" + this.canvas_id).length > 0)
 	{
 		var viewer = new ROS3D.Viewer({
 			divID : this.canvas_id,
@@ -772,15 +865,40 @@ ROSDASH.PR2URDF.prototype.init = function ()
 			topic : '/visualization_marker',
 			rootObject : viewer.scene
 		});
+		this.marker = markerClient;
 		this.init_success = true;
 	}
 }
-ROSDASH.PR2URDF.prototype.run = function ()
+ROSDASH.PR2URDF.prototype.run = function (input)
 {
 	if (! this.init_success)
 	{
 		this.init();
+		return;
 	}
+	/*if (null != this.marker.currentMarker && undefined != this.marker.currentMarker.pose.position.x)
+	{
+		console.log(this.marker.currentMarker.pose.position.x);
+	}*/
+}
+
+ROSDASH.marker_3dpos = {
+	x: 0,
+	y: 0,
+	z: 0
+};
+ROSDASH.Marker3DPos = function (block)
+{
+	this.block = block;
+}
+ROSDASH.Marker3DPos.prototype.run = function (input)
+{
+	if (undefined == input[0] || undefined == input[0].dx || undefined == input[0].dy)
+	{
+		return;
+	}
+	ROSDASH.marker_3dpos.x -= input[0].dx / 100.0;
+	ROSDASH.marker_3dpos.y += input[0].dy / 100.0;
 }
 
 // google maps
@@ -1348,7 +1466,9 @@ ROSDASH.panelList.prototype.init = function ()
 		{
 			console.log("userList error: ", jqXHR, textStatus, errorThrown);
 		}
-	});
+	}).done(function() { console.log("success"); })
+    .fail(function() { console.log("error"); })
+    .always(function() { console.log("complete"); });;
 }
 ROSDASH.panelList.prototype.run = function (input)
 {

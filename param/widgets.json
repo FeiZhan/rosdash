@@ -249,10 +249,51 @@
 			"ROS"
 		],
 		"class_name": "ROSDASH.Topic",
-		"input": [],
+		"input": [
+			{
+				"datatype": "object",
+				"name": "input"
+			}
+		],
 		"output": [
 			{
 				"datatype": "String",
+				"name": "output"
+			}
+		]
+	}, {
+		"type": "service",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.Service",
+		"input": [
+			{
+				"datatype": "object",
+				"name": "input"
+			}
+		],
+		"output": [
+			{
+				"datatype": "object",
+				"name": "output"
+			}
+		]
+	}, {
+		"type": "param",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.Param",
+		"input": [
+			{
+				"datatype": "Float32",
+				"name": "input"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Float32",
 				"name": "output"
 			}
 		]
@@ -318,6 +359,19 @@
 		"has_panel": "true",
 		"class_name": "ROSDASH.PR2URDF",
 		"input": [],
+		"output": []
+	}, {
+		"type": "Marker3DPos",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.Marker3DPos",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "joystickOutput"
+			}
+		],
 		"output": []
 	}, {
 		"type": "text",
@@ -646,6 +700,7 @@
 			"user"
 		],
 		"class_name": "ROSDASH.VirtualJoystick",
+		"has_panel": "true",
 		"input": [],
 		"output": [
 			{
