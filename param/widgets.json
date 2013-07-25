@@ -152,6 +152,51 @@
 			}
 		]
 	}, {
+		"type": "AssocArray",
+		"category": [
+			"array"
+		],
+		"class_name": "ROSDASH.AssocArray",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "key"
+			}, {
+				"datatype": "universal",
+				"name": "value"
+			}
+		],
+		"output": [
+			{
+				"datatype": "object",
+				"name": "output"
+			}
+		]
+	}, {
+		"type": "addToAssocArray",
+		"category": [
+			"array"
+		],
+		"class_name": "ROSDASH.addToAssocArray",
+		"input": [
+			{
+				"datatype": "universal",
+				"name": "input"
+			}, {
+				"datatype": "universal",
+				"name": "key"
+			}, {
+				"datatype": "universal",
+				"name": "value"
+			}
+		],
+		"output": [
+			{
+				"datatype": "object",
+				"name": "output"
+			}
+		]
+	}, {
 		"type": "switch",
 		"category": [
 			"basics"

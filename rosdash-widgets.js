@@ -1,3 +1,5 @@
+//@bug input.length does not work
+
 // constant value
 ROSDASH.Constant = function (block)
 {
@@ -225,6 +227,39 @@ ROSDASH.Reshape.prototype.run = function (input)
 	{
 		return {o0: output};
 	}
+}
+
+ROSDASH.AssocArray = function (block)
+{
+	this.block = block;
+}
+ROSDASH.AssocArray.prototype.run = function (input)
+{
+	var assoc = new Object();
+	if (undefined !== input[0])
+	{
+		assoc[input[0]] = input[1];
+	}
+	return {o0: assoc};
+}
+
+ROSDASH.addToAssocArray = function (block)
+{
+	this.block = block;
+}
+ROSDASH.addToAssocArray.prototype.run = function (input)
+{
+	var assoc;
+	if (typeof input[0] != "object")
+	{
+		return {o0: new Object()};
+	} else if (undefined === input[1])
+	{
+		return {o0: input[0]};
+	}
+	assoc = input[0];
+	assoc[input[1]] = input[2];
+	return {o0: assoc};
 }
 
 // switch case function
@@ -494,7 +529,6 @@ ROSDASH.Speech.prototype.run = function (input)
 ROSDASH.Table = function (block)
 {
 	this.block = block;
-	this.count = 0;
 }
 //@input	header, titles, and contents for table
 //@output	none
@@ -576,10 +610,6 @@ ROSDASH.Table.prototype.run = function (input)
         "bAutoWidth": false
 	};
 	var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display sDashboardTableView table table-bordered"></table>').dataTable(tableDef);
-	if (this.count < 30)
-	{
-		//console.debug(dataTable.html())
-	}
 	$("#myDashboard").sDashboard("setContentById", this.block.id, dataTable);
 }
 
@@ -778,6 +808,11 @@ ROSDASH.Gmap.prototype.init = function ()
 		};
 		this.gmap = new google.maps.Map(document.getElementById(this.canvas_id),
 			mapOptions);
+		var marker = new google.maps.Marker({
+			position: new google.maps.LatLng(LAB[0], LAB[1]),
+			map: this.gmap,
+			title: 'Autonomy Lab at Simon Fraser University'
+		});
 	}
 }
 //@input	none
@@ -803,7 +838,6 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 {
 	if (input.length < 2 || undefined === input[0])
 	{
-		console.error("not enough arguments: ", this.block.id);
 		return;
 	}
 	for (var i in input[1])
@@ -812,9 +846,14 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 		if (! (i in this.robot))
 		{
 			this.robot[i] = new Object();
+			this.robot[i].path = new Array();
+			this.robot[i].last_loc = new Array();
+		} else if (this.robot[i].robot.position.jb == input[1][i].x && this.robot[i].robot.position.kb == input[1][i].y)
+		{
+			continue;
 		}
 		// clear the old position
-		if (undefined !== this.robot[i].robot && (this.robot[i].robot.position.jb != input[1][i].x || this.robot[i].robot.position.kb != input[1][i].y))
+		if (undefined !== this.robot[i].robot)
 		{
 			this.robot[i].robot.setMap(null);
 		}
@@ -825,6 +864,30 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 			icon: "resource/cabs.png",
 			//shadow: {url: 'resource/cabs.shadow.png',}
 		});
+		// keep the length of path no longer than a threshold
+		while (this.robot[i].path.length >= 20)
+		{
+			this.robot[i].path[0].setMap(null);
+			this.robot[i].path.splice(0, 1);
+		}
+		var color = "black";
+		var weight = 1;
+		var icon = new Array();
+		if (undefined === this.robot[i].last_loc[0])
+		{
+			this.robot[i].last_loc[0] = input[1][i].x;
+			this.robot[i].last_loc[1] = input[1][i].y;
+		}
+		this.robot[i].path.push(new google.maps.Polyline({
+			map: input[0],
+			path: [new google.maps.LatLng(this.robot[i].last_loc[0], this.robot[i].last_loc[1]), new google.maps.LatLng(input[1][i].x, input[1][i].y)],
+			strokeColor: color,
+			strokeOpacity: 1,
+			strokeWeight: weight,
+			icons: icon
+		}));
+		this.robot[i].last_loc[0] = input[1][i].x;
+		this.robot[i].last_loc[1] = input[1][i].y;
 	}
 	return {o0: input[0]};
 }
@@ -918,6 +981,7 @@ ROSDASH.Flot.prototype.run = function (input)
 	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
 	if (undefined === this.plot)
 	{
+		this.init();
 		return;
 	}
 	//i1 data
@@ -927,21 +991,37 @@ ROSDASH.Flot.prototype.run = function (input)
 		var data = new Array();
 		for (var i in input[1])
 		{
-			var d = new Array();
-			for (var j in input[1][i])
+			var original;
+			if (typeof input[1][i] == "object" && undefined !== input[1][i].data)
 			{
-				if (typeof input[1][i][j] != "array")
+				original = input[1][i].data;
+			} else
+			{
+				original = input[1][i];
+			}
+			var d = new Array();
+			for (var j in original)
+			{
+				if (typeof original[j] != "array")
 				{
-					d.push([j, input[1][i][j]]);
-				} else if (input[1][i][j].length < 2)
+					d.push([j, original[j]]);
+				} else if (original[j].length < 2)
 				{
-					d.push([j, input[1][i][j][0]]);
+					d.push([j, original[j][0]]);
 				} else
 				{
-					d.push([input[1][i][j][0], input[1][i][j][1]]);
+					d.push([original[j][0], original[j][1]]);
 				}
 			}
-			data.push(d);
+			if (typeof input[1][i] == "object" && undefined !== input[1][i].data)
+			{
+				original = input[1][i];
+				original.data = d;
+			} else
+			{
+				original = d;
+			}
+			data.push(original);
 		}
 		this.plot.setData( data );
 		this.plot.draw();
@@ -1207,7 +1287,7 @@ ROSDASH.userWelcome.prototype.run = function (input)
 	return {o0: output};
 }
 
-// user list
+// panel list
 ROSDASH.panelList = function (block)
 {
 	this.block = block;
