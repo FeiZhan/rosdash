@@ -418,6 +418,7 @@ ROSDASH.Topic.prototype.run = function (input)
 	}
 	return {o0: output};
 }
+var topic_count = 0;
 
 ROSDASH.Service = function (block)
 {
@@ -824,7 +825,6 @@ ROSDASH.PR2URDF = function (block)
 	this.block = block;
 	this.canvas_id = "pr2urdf_" + this.block.id;
 	this.init_success = false;
-	this.marker;
 }
 ROSDASH.PR2URDF.prototype.addWidget = function (widget)
 {
@@ -856,7 +856,7 @@ ROSDASH.PR2URDF.prototype.init = function ()
 		var markerClient = new ROS3D.MarkerClient({
 			ros : ROSDASH.ros,
 			tfClient : new ROSLIB.TFClient({
-			ros : ROSDASH.ros,
+				ros : ROSDASH.ros,
 				angularThres : 0.01,
 				transThres : 0.01,
 				rate : 10.0,
@@ -865,7 +865,19 @@ ROSDASH.PR2URDF.prototype.init = function ()
 			topic : '/visualization_marker',
 			rootObject : viewer.scene
 		});
-		this.marker = markerClient;
+		new ROS3D.InteractiveMarkerClient({
+			ros : ROSDASH.ros,
+			tfClient : new ROSLIB.TFClient({
+				ros : ROSDASH.ros,
+				angularThres : 0.01,
+				transThres : 0.01,
+				rate : 10.0,
+				fixedFrame : '/base_link'
+			}),
+			topic : '/basic_controls',
+			camera : viewer.camera,
+			rootObject : viewer.selectableObjects
+		});
 		this.init_success = true;
 	}
 }
@@ -882,24 +894,87 @@ ROSDASH.PR2URDF.prototype.run = function (input)
 	}*/
 }
 
-ROSDASH.marker_3dpos = {
-	x: 0,
-	y: 0,
-	z: 0
-};
-ROSDASH.Marker3DPos = function (block)
+ROSDASH.RosMarker = function (block)
 {
 	this.block = block;
+	this.default_marker = {
+		mesh_use_embedded_materials:false,
+		scale:{y:1, x:1, z:1}, 
+		frame_locked:false, 
+		color:{a:1, r:0, b:0, g:1}, 
+		text:"", 
+		pose:{
+			position:{y:0, x:0, z:0}, 
+			orientation:{y:0, x:0, z:0, w:1}}, 
+		mesh_resource:"", 
+		header:{stamp:{secs:1374700821, nsecs:725229501}, frame_id:"/my_frame", seq:545585}, 
+		colors:[], 
+		points:[], 
+		action:0, 
+		lifetime:{secs:0, nsecs:0}, 
+		ns:"basic_shapes", 
+		type:2, 
+		id:0
+	};
+	this.default_joystick = {
+		dx: 0,
+		dy: 0,
+		right: 0,
+		up: 0,
+		left: 0,
+		down: 0
+	};
 }
-ROSDASH.Marker3DPos.prototype.run = function (input)
+ROSDASH.RosMarker.prototype.run = function (input)
 {
-	if (undefined == input[0] || undefined == input[0].dx || undefined == input[0].dy)
-	{
-		return;
-	}
-	ROSDASH.marker_3dpos.x -= input[0].dx / 100.0;
-	ROSDASH.marker_3dpos.y += input[0].dy / 100.0;
+	var marker = (undefined !== input[0] && undefined !== input[0].pose) ? input[0] : this.default_marker;
+	var joystick = (undefined !== input[1]) ? input[1] : this.default_joystick;
+	marker.pose.position.x -= input[1].dx / 100.0;
+	marker.pose.position.y += input[1].dy / 100.0;
+	return {o0: marker};
 }
+
+//@bug
+ROSDASH.RosInteractiveMarker = function (block)
+{
+	this.block = block;
+	this.default_marker = {
+		/*mesh_use_embedded_materials:false,
+		scale:{y:1, x:1, z:1}, 
+		frame_locked:false, 
+		color:{a:1, r:0, b:0, g:1}, 
+		text:"", 
+		pose:{
+			position:{y:0, x:0, z:0}, 
+			orientation:{y:0, x:0, z:0, w:1}}, 
+		mesh_resource:"", 
+		header:{stamp:{secs:1374700821, nsecs:725229501}, frame_id:"/my_frame", seq:545585}, 
+		colors:[], 
+		points:[], 
+		action:0, 
+		lifetime:{secs:0, nsecs:0}, 
+		ns:"basic_shapes", 
+		type:2, 
+		id:0*/
+	};
+	this.default_joystick = {
+		dx: 0,
+		dy: 0,
+		right: 0,
+		up: 0,
+		left: 0,
+		down: 0
+	};
+}
+ROSDASH.RosInteractiveMarker.prototype.run = function (input)
+{
+	var marker = (undefined !== input[0] && undefined !== input[0].pose) ? input[0] : this.default_marker;
+	var joystick = (undefined !== input[1]) ? input[1] : this.default_joystick;
+	marker.pose.position.x -= input[1].dx / 100.0;
+	marker.pose.position.y += input[1].dy / 100.0;
+	return {o0: marker};
+}
+
 
 // google maps
 ROSDASH.Gmap = function (block)
@@ -1355,9 +1430,14 @@ ROSDASH.userList = function (block)
 {
 	this.block = block;
 	this.list = new Array();
+	this.ajax_return = false;
 }
 ROSDASH.userList.prototype.init = function ()
 {
+	if (this.ajax_return)
+	{
+		return;
+	}
 	var self = this;
 	$.ajax({
 		type: "POST",
@@ -1367,7 +1447,8 @@ ROSDASH.userList.prototype.init = function ()
 		},
 		success: function( data, textStatus, jqXHR )
 		{
-			console.log("userList success: ", data, textStatus, jqXHR);
+			console.log("userList success: ", data);
+			self.list = new Array();
 			var d = data.split(" ");
 			for (var i in d)
 			{
@@ -1381,10 +1462,16 @@ ROSDASH.userList.prototype.init = function ()
 		{
 			console.log("userList error: ", jqXHR, textStatus, errorThrown);
 		}
+	}).always(function() {
+		self.ajax_return = true;
 	});
 }
 ROSDASH.userList.prototype.run = function (input)
 {
+	if (! this.ajax_return)
+	{
+		this.init();
+	}
 	return {o0: this.list};
 }
 
@@ -1410,9 +1497,14 @@ ROSDASH.panelList = function (block)
 {
 	this.block = block;
 	this.list = new Array();
+	this.ajax_return = false;
 }
 ROSDASH.panelList.prototype.init = function ()
 {
+	if (this.ajax_return)
+	{
+		return;
+	}
 	var self = this;
 	$.ajax({
 		type: "POST",
@@ -1423,7 +1515,8 @@ ROSDASH.panelList.prototype.init = function ()
 		},
 		success: function( data, textStatus, jqXHR )
 		{
-			console.log("panelList success: ", data, textStatus, jqXHR);
+			console.log("panelList success: ", data);
+			self.list = new Array();
 			var d = data.split(" ");
 			for (var i in d)
 			{
@@ -1466,12 +1559,16 @@ ROSDASH.panelList.prototype.init = function ()
 		{
 			console.log("userList error: ", jqXHR, textStatus, errorThrown);
 		}
-	}).done(function() { console.log("success"); })
-    .fail(function() { console.log("error"); })
-    .always(function() { console.log("complete"); });;
+	}).always(function() {
+		self.ajax_return = true;
+	});
 }
 ROSDASH.panelList.prototype.run = function (input)
 {
+	if (! this.ajax_return)
+	{
+		this.init();
+	}
 	return {o0: this.list};
 }
 

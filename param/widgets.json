@@ -374,6 +374,48 @@
 		],
 		"output": []
 	}, {
+		"type": "RosMarker",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.RosMarker",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "marker"
+			}, {
+				"datatype": "Object",
+				"name": "joystickOutput"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "marker"
+			}
+		]
+	}, {
+		"type": "RosInteractiveMarker",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.RosInteractiveMarker",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "marker"
+			}, {
+				"datatype": "Object",
+				"name": "joystickOutput"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "marker"
+			}
+		]
+	}, {
 		"type": "text",
 		"category": [
 			"output"
