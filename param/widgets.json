@@ -15,6 +15,7 @@
 		]
 	}, {
 		"type": "multiArray",
+		"descrip": "an array consists of several data with the same type",
 		"category": [
 			"basics"
 		],
@@ -350,7 +351,72 @@
 		"has_panel": "true",
 		"class_name": "ROSDASH.Ros3d",
 		"input": [],
-		"output": []
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}
+		]
+	}, {
+		"type": "Ros3dUrdf",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.Ros3dUrdf",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}
+		]
+	}, {
+		"type": "Ros3dMarker",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.Ros3dMarker",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}, {
+				"datatype": "String",
+				"name": "topic"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}
+		]
+	}, {
+		"type": "Ros3dInteractiveMarker",
+		"category": [
+			"ROS"
+		],
+		"class_name": "ROSDASH.Ros3dInteractiveMarker",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}, {
+				"datatype": "String",
+				"name": "topic"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}
+		]
 	}, {
 		"type": "pr2urdf",
 		"category": [
@@ -374,18 +440,18 @@
 		],
 		"output": []
 	}, {
-		"type": "RosMarker",
+		"type": "JoystickToRos3dMarker",
 		"category": [
 			"ROS"
 		],
-		"class_name": "ROSDASH.RosMarker",
+		"class_name": "ROSDASH.JoystickToRos3dMarker",
 		"input": [
 			{
 				"datatype": "Object",
 				"name": "marker"
 			}, {
 				"datatype": "Object",
-				"name": "joystickOutput"
+				"name": "joystick"
 			}
 		],
 		"output": [
@@ -750,5 +816,28 @@
 				"name": "joystickOutput"
 			}
 		]
+	}, {
+		"type": "cyNetwork",
+		"category": [
+			"network"
+		],
+		"class_name": "ROSDASH.cyNetwork",
+		"has_panel": "true",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "cy"
+			}
+		]
+	}, {
+		"type": "cyDiagram",
+		"category": [
+			"network"
+		],
+		"class_name": "ROSDASH.cyDiagram",
+		"has_panel": "true",
+		"input": [],
+		"output": []
 	}
 ]}

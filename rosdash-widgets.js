@@ -1,5 +1,7 @@
 //@bug input.length does not work
 
+//////////////////////////////////// datatype
+
 // constant value
 ROSDASH.Constant = function (block)
 {
@@ -18,7 +20,7 @@ ROSDASH.Constant.prototype.run = function (input)
 	}
 }
 
-// multiArray
+// multi array
 ROSDASH.multiArray = function (block)
 {
 	this.block = block;
@@ -262,6 +264,40 @@ ROSDASH.addToAssocArray.prototype.run = function (input)
 	return {o0: assoc};
 }
 
+// transform array (object, associative array, or topic message) into string
+ROSDASH.arrayToStr = function (block)
+{
+	this.block = block;
+}
+//@input	the array (object, associative array, or topic message)
+//@output	the corresponding string
+ROSDASH.arrayToStr.prototype.run = function (input)
+{
+	// if empty
+	if (undefined === input || undefined === input[0])
+	{
+		return {o0: ""};
+	}
+	var msg = input[0];
+	var str = "";
+	if (typeof msg == "object" || typeof msg == "array")
+	{
+		for (var i in msg)
+		{
+			str += " ( " + i + ": ";
+			// recursive call for sub-array
+			str += this.run({0: msg[i]}).o0;
+			str += " ) ";
+		}
+	} else
+	{
+		str += msg;
+	}
+	return {o0: str};
+}
+
+//////////////////////////////////// functional flow
+
 // switch case function
 ROSDASH.Switch = function (block)
 {
@@ -307,6 +343,8 @@ ROSDASH.Switch.prototype.run = function (input)
 	}
 	return output;
 }
+
+//////////////////////////////////// ROS
 
 ROSDASH.RosList = function (block)
 {
@@ -418,7 +456,6 @@ ROSDASH.Topic.prototype.run = function (input)
 	}
 	return {o0: output};
 }
-var topic_count = 0;
 
 ROSDASH.Service = function (block)
 {
@@ -503,6 +540,8 @@ ROSDASH.Param.prototype.run = function (input)
 	return {o0: that.output + ""};
 }
 
+//////////////////////////////////// input
+
 // toggle button (don't use the name of switch since it is used)
 ROSDASH.ToggleButton = function (block)
 {
@@ -528,37 +567,42 @@ ROSDASH.ToggleButton.prototype.init = function ()
 
 }
 
-// transform array (object, associative array, or topic message) into string
-ROSDASH.arrayToStr = function (block)
+ROSDASH.VirtualJoystick = function (block)
 {
 	this.block = block;
+	this.canvas_id = "VirtualJoystick_" + this.block.id;
+	this.joystick;
 }
-//@input	the array (object, associative array, or topic message)
-//@output	the corresponding string
-ROSDASH.arrayToStr.prototype.run = function (input)
+ROSDASH.VirtualJoystick.prototype.addWidget = function (widget)
 {
-	// if empty
-	if (undefined === input || undefined === input[0])
-	{
-		return {o0: ""};
-	}
-	var msg = input[0];
-	var str = "";
-	if (typeof msg == "object" || typeof msg == "array")
-	{
-		for (var i in msg)
-		{
-			str += " ( " + i + ": ";
-			// recursive call for sub-array
-			str += this.run({0: msg[i]}).o0;
-			str += " ) ";
-		}
-	} else
-	{
-		str += msg;
-	}
-	return {o0: str};
+	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; -webkit-user-select: none; -moz-user-select: none;"></div>';
+	return widget;
 }
+ROSDASH.VirtualJoystick.prototype.init = function ()
+{
+	//console.log("touchscreen for VirtualJoystick is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
+	this.joystick = new VirtualJoystick({
+		container	: document.getElementById(this.canvas_id),
+		mouseSupport	: true
+	});
+}
+ROSDASH.VirtualJoystick.prototype.run = function (input)
+{
+	if (undefined === this.joystick)
+	{
+		this.init();
+	}
+	return {o0: {
+		dx: this.joystick.deltaX(),
+		dy: this.joystick.deltaY(),
+		right: this.joystick.right(),
+		up: this.joystick.up(),
+		left: this.joystick.left(),
+		down: this.joystick.down()
+		}};
+}
+
+//////////////////////////////////// basic output
 
 // text widget
 ROSDASH.Text = function (block)
@@ -582,11 +626,12 @@ ROSDASH.Speech = function (block)
 {
 	this.block = block;
 	this.content = "";
+	this.canvas_id = "Speech" + this.block.id;
 }
 ROSDASH.Speech.prototype.addWidget = function (widget)
 {
 	//@todo change id
-	widget.widgetTitle = widget.widgetId + ' <input type="button" id="speak" value="speak" /><span id="audio"></span>';
+	widget.widgetTitle = this.canvas_id + ' <input type="button" id="speak" value="speak" /><span id="audio"></span>';
 	widget.widgetContent = "";
 	return widget;
 }
@@ -706,6 +751,135 @@ ROSDASH.Table.prototype.run = function (input)
 	$("#myDashboard").sDashboard("setContentById", this.block.id, dataTable);
 }
 
+//////////////////////////////////// network
+
+ROSDASH.cyNetwork = function (block)
+{
+	this.block = block;
+	this.canvas = "cyNetwork_" + this.block.id;
+	this.cy;
+	this.init_success = false;
+}
+ROSDASH.cyNetwork.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas + '" style="width:100%; height:100%;"></div>';
+	return widget;
+}
+ROSDASH.cyNetwork.prototype.init = function ()
+{
+	if ($("#" + this.canvas).length <= 0 || this.init_success)
+	{
+		return;
+	}
+	var that = this;
+  var options = {
+    showOverlay: false,
+    minZoom: 0.5,
+    maxZoom: 2,
+    style: cytoscape.stylesheet()
+      .selector('node')
+        .css({
+          'content': 'data(name)',
+          'font-family': 'helvetica',
+          'font-size': 14,
+          'text-outline-width': 3,
+          'text-outline-color': '#888',
+          'text-valign': 'center',
+          'color': '#fff',
+          'width': 'mapData(weight, 30, 80, 20, 50)',
+          'height': 'mapData(height, 0, 200, 10, 45)',
+          'border-color': '#fff'
+        })
+      .selector(':selected')
+        .css({
+          'background-color': '#000',
+          'line-color': '#000',
+          'target-arrow-color': '#000',
+          'text-outline-color': '#000'
+        })
+      .selector('edge')
+        .css({
+          'width': 2,
+          'target-arrow-shape': 'triangle'
+        })
+    ,
+    elements: {
+      nodes: [
+        {
+          data: { id: 'j', name: 'Jerry', weight: 65, height: 174 }
+        },
+        {
+          data: { id: 'e', name: 'Elaine', weight: 48, height: 160 }
+        },
+        {
+          data: { id: 'k', name: 'Kramer', weight: 75, height: 185 }
+        },
+        {
+          data: { id: 'g', name: 'George', weight: 70, height: 150 }
+        }
+      ],
+      edges: [
+        { data: { source: 'j', target: 'e' } },
+        { data: { source: 'j', target: 'k' } },
+        { data: { source: 'j', target: 'g' } },
+
+        { data: { source: 'e', target: 'j' } },
+        { data: { source: 'e', target: 'k' } },
+
+        { data: { source: 'k', target: 'j' } },
+        { data: { source: 'k', target: 'e' } },
+        { data: { source: 'k', target: 'g' } },
+
+        { data: { source: 'g', target: 'j' } }
+      ],
+    },
+    ready: function(){
+      that.cy = this;
+    }
+  };
+  $('#' + this.canvas).cytoscape(options);
+	this.init_success = true;
+}
+ROSDASH.cyNetwork.prototype.run = function (input)
+{
+	if (! this.init_success && $("#" + this.canvas).length > 0)
+	{
+		this.init();
+	}
+	return {o0: this.cy};
+}
+
+ROSDASH.cyDiagram = function (block)
+{
+	this.block = block;
+	this.canvas = "cy";
+	this.duplicate = false;
+	this.cy;
+	this.init_success = false;
+}
+ROSDASH.cyDiagram.prototype.addWidget = function (widget)
+{
+	if ($("#" + this.canvas).length <= 0)
+	{
+		widget.widgetContent = '<div id="' + this.canvas + '" style="width:100%; height:100%;"></div>';
+	} else
+	{
+		this.duplicate = true;
+	}
+	return widget;
+}
+ROSDASH.cyDiagram.prototype.init = function ()
+{
+	if (this.duplicate || $("#" + this.canvas).length <= 0 || this.init_success)
+	{
+		return;
+	}
+	ROSDASH.runDiagram(ROSDASH.user_conf.name, ROSDASH.user_conf.panel_name, undefined);
+	this.init_success = true;
+}
+
+//////////////////////////////////// ROSJS
+
 // Turtlesim from ROS desktop widget
 ROSDASH.Turtlesim = function (block)
 {
@@ -786,6 +960,7 @@ ROSDASH.Ros3d = function (block)
 {
 	this.block = block;
 	this.canvas_id = "ros3d_" + this.block.id;
+	this.viewer;
 	this.init_success = false;
 }
 ROSDASH.Ros3d.prototype.addWidget = function (widget)
@@ -798,50 +973,39 @@ ROSDASH.Ros3d.prototype.init = function ()
 	if (ROSDASH.ros_connected && $("#" + this.canvas_id).length > 0)
 	{
 		// Create the main viewer.
-		var viewer = new ROS3D.Viewer({
+		this.viewer = new ROS3D.Viewer({
 		  divID : this.canvas_id,
 		  width : ROSDASH.user_conf.widget_width,
 		  height : ROSDASH.user_conf.content_height,
 		  antialias : true
 		});
-		// Setup the marker client.
-		var gridClient = new ROS3D.OccupancyGridClient({
+		this.viewer.addObject(new ROS3D.Grid());
+		// load the map
+		/*var gridClient = new ROS3D.OccupancyGridClient({
 		  ros : ROSDASH.ros,
 		  rootObject : viewer.scene
-		});
+		});*/
 		this.init_success = true;
 	}
 }
-ROSDASH.Ros3d.prototype.run = function ()
+ROSDASH.Ros3d.prototype.run = function (input)
 {
 	if (! this.init_success)
 	{
 		this.init();
 	}
+	return {o0: this.viewer};
 }
 
-ROSDASH.PR2URDF = function (block)
+ROSDASH.Ros3dUrdf = function (block)
 {
 	this.block = block;
-	this.canvas_id = "pr2urdf_" + this.block.id;
-	this.init_success = false;
+	this.success = false;
 }
-ROSDASH.PR2URDF.prototype.addWidget = function (widget)
+ROSDASH.Ros3dUrdf.prototype.run = function (input)
 {
-	widget.widgetContent = '<div id="' + this.canvas_id + '"></div>';
-	return widget;
-}
-ROSDASH.PR2URDF.prototype.init = function ()
-{
-	if (ROSDASH.ros_connected && $("#" + this.canvas_id).length > 0)
+	if (! this.success && undefined != input[0])
 	{
-		var viewer = new ROS3D.Viewer({
-			divID : this.canvas_id,
-			width : ROSDASH.user_conf.widget_width,
-			height : ROSDASH.user_conf.content_height,
-			antialias : true
-		});
-		viewer.addObject(new ROS3D.Grid());
 		new ROS3D.UrdfClient({
 			ros : ROSDASH.ros,
 			tfClient : new ROSLIB.TFClient({
@@ -851,8 +1015,22 @@ ROSDASH.PR2URDF.prototype.init = function ()
 				rate : 10.0
 			}),
 			path : 'http://resources.robotwebtools.org/',
-			rootObject : viewer.scene
+			rootObject : input[0].scene
 		});
+		this.success = true;
+	}
+	return {o0: input[0]};
+}
+
+ROSDASH.Ros3dMarker = function (block)
+{
+	this.block = block;
+	this.success = false;
+}
+ROSDASH.Ros3dMarker.prototype.run = function (input)
+{
+	if (! this.success && undefined != input[0] && typeof input[1] == "string")
+	{
 		var markerClient = new ROS3D.MarkerClient({
 			ros : ROSDASH.ros,
 			tfClient : new ROSLIB.TFClient({
@@ -862,10 +1040,25 @@ ROSDASH.PR2URDF.prototype.init = function ()
 				rate : 10.0,
 				fixedFrame : '/my_frame'
 			}),
-			topic : '/visualization_marker',
-			rootObject : viewer.scene
+			topic : input[1],
+			rootObject : input[0].scene
 		});
-		new ROS3D.InteractiveMarkerClient({
+		this.success = true;
+	}
+	//console.log(this.marker.currentMarker.pose.position.x);
+	return {o0: input[0]};
+}
+
+ROSDASH.Ros3dInteractiveMarker = function (block)
+{
+	this.block = block;
+	this.success = false;
+}
+ROSDASH.Ros3dInteractiveMarker.prototype.run = function (input)
+{
+	if (! this.success && undefined != input[0] && typeof input[1] == "string")
+	{
+		var markerClient = new ROS3D.InteractiveMarkerClient({
 			ros : ROSDASH.ros,
 			tfClient : new ROSLIB.TFClient({
 				ros : ROSDASH.ros,
@@ -874,27 +1067,16 @@ ROSDASH.PR2URDF.prototype.init = function ()
 				rate : 10.0,
 				fixedFrame : '/base_link'
 			}),
-			topic : '/basic_controls',
-			camera : viewer.camera,
-			rootObject : viewer.selectableObjects
+			topic : input[1],
+			camera : input[0].camera,
+			rootObject : input[0].selectableObjects
 		});
-		this.init_success = true;
+		this.success = true;
 	}
-}
-ROSDASH.PR2URDF.prototype.run = function (input)
-{
-	if (! this.init_success)
-	{
-		this.init();
-		return;
-	}
-	/*if (null != this.marker.currentMarker && undefined != this.marker.currentMarker.pose.position.x)
-	{
-		console.log(this.marker.currentMarker.pose.position.x);
-	}*/
+	return {o0: input[0]};
 }
 
-ROSDASH.RosMarker = function (block)
+ROSDASH.JoystickToRos3dMarker = function (block)
 {
 	this.block = block;
 	this.default_marker = {
@@ -925,7 +1107,7 @@ ROSDASH.RosMarker = function (block)
 		down: 0
 	};
 }
-ROSDASH.RosMarker.prototype.run = function (input)
+ROSDASH.JoystickToRos3dMarker.prototype.run = function (input)
 {
 	var marker = (undefined !== input[0] && undefined !== input[0].pose) ? input[0] : this.default_marker;
 	var joystick = (undefined !== input[1]) ? input[1] : this.default_joystick;
@@ -970,11 +1152,12 @@ ROSDASH.RosInteractiveMarker.prototype.run = function (input)
 {
 	var marker = (undefined !== input[0] && undefined !== input[0].pose) ? input[0] : this.default_marker;
 	var joystick = (undefined !== input[1]) ? input[1] : this.default_joystick;
-	marker.pose.position.x -= input[1].dx / 100.0;
-	marker.pose.position.y += input[1].dy / 100.0;
+	/*marker.pose.position.x -= input[1].dx / 100.0;
+	marker.pose.position.y += input[1].dy / 100.0;*/
 	return {o0: marker};
 }
 
+//////////////////////////////////// map
 
 // google maps
 ROSDASH.Gmap = function (block)
@@ -1084,6 +1267,8 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 	}
 	return {o0: input[0]};
 }
+
+//////////////////////////////////// plot
 
 // safe range for text or plot widget
 ROSDASH.SafeRange = function (block)
@@ -1221,6 +1406,8 @@ ROSDASH.Flot.prototype.run = function (input)
 	}
 }
 
+//////////////////////////////////// other outputs
+
 // V U meter
 ROSDASH.Vumeter = function (block)
 {
@@ -1351,6 +1538,8 @@ ROSDASH.Vumeter.prototype.init = function ()
 	});
 }
 
+//////////////////////////////////// robot simulation
+
 ROSDASH.Pos2d = function (block)
 {
 	this.block = block;
@@ -1424,6 +1613,8 @@ ROSDASH.GmapSimRobotByJoystick.prototype.run = function (input)
 	this.last_loc[1] = loc[1];
 	return {o0: output};
 }
+
+//////////////////////////////////// user interfaces
 
 // user list
 ROSDASH.userList = function (block)
@@ -1570,39 +1761,4 @@ ROSDASH.panelList.prototype.run = function (input)
 		this.init();
 	}
 	return {o0: this.list};
-}
-
-ROSDASH.VirtualJoystick = function (block)
-{
-	this.block = block;
-	this.canvas_id = "VirtualJoystick_" + this.block.id;
-	this.joystick;
-}
-ROSDASH.VirtualJoystick.prototype.addWidget = function (widget)
-{
-	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; -webkit-user-select: none; -moz-user-select: none;"></div>';
-	return widget;
-}
-ROSDASH.VirtualJoystick.prototype.init = function ()
-{
-	console.log("touchscreen for VirtualJoystick is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
-	this.joystick = new VirtualJoystick({
-		container	: document.getElementById(this.canvas_id),
-		mouseSupport	: true
-	});
-}
-ROSDASH.VirtualJoystick.prototype.run = function (input)
-{
-	if (undefined === this.joystick)
-	{
-		this.init();
-	}
-	return {o0: {
-		dx: this.joystick.deltaX(),
-		dy: this.joystick.deltaY(),
-		right: this.joystick.right(),
-		up: this.joystick.up(),
-		left: this.joystick.left(),
-		down: this.joystick.down()
-		}};
 }
