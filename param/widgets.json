@@ -868,7 +868,7 @@
 	}, {
 		"type": "draculaNetwork",
 		"category": [
-			"fun"
+			"network"
 		],
 		"class_name": "ROSDASH.draculaNetwork",
 		"has_panel": "true",
@@ -880,6 +880,15 @@
 			"fun"
 		],
 		"class_name": "ROSDASH.DoodleGod",
+		"has_panel": "true",
+		"input": [],
+		"output": []
+	}, {
+		"type": "youtube",
+		"category": [
+			"fun"
+		],
+		"class_name": "ROSDASH.youtube",
 		"has_panel": "true",
 		"input": [],
 		"output": []
