@@ -2,52 +2,6 @@ var ROSDASH = new Object();
 
 ///////////////////////////////////// constant parameters
 
-ROSDASH.default_style = cytoscape.stylesheet()
-	.selector('node')
-	.css({
-		'shape': 'data(faveShape)',
-		'width': 'mapData(weight, 10, 30, 20, 60)',
-		'height': 'mapData(height, 0, 100, 10, 45)',
-		'content': 'data(name)',
-		'font-size': 25,
-		'text-valign': 'center',
-		'text-outline-width': 2,
-		'text-outline-color': 'data(faveColor)',
-		'background-color': 'data(faveColor)',
-		'color': '#fff'
-	})
-	.selector(':selected')
-	.css({
-		'border-width': 3,
-		'border-color': '#333'
-	})
-	.selector('edge')
-	.css({
-		'width': 'mapData(strength, 70, 100, 2, 6)',
-		'line-color': 'data(faveColor)',
-		'source-arrow-color': 'data(faveColor)',
-		'target-arrow-color': 'data(faveColor)'
-	});
-ROSDASH.default_element = {
-	nodes: [
-		{ data: { id: 'j', name: 'Jerry', weight: 65, faveColor: '#6FB1FC', faveShape: 'triangle' } },
-		{ data: { id: 'e', name: 'Elaine', weight: 45, faveColor: '#EDA1ED', faveShape: 'ellipse' } },
-		{ data: { id: 'k', name: 'Kramer', weight: 75, faveColor: '#86B342', faveShape: 'octagon' } },
-		{ data: { id: 'g', name: 'George', weight: 70, faveColor: '#F5A45D', faveShape: 'rectangle' } }
-	],
-	edges: [
-		{ data: { source: 'j', target: 'e', faveColor: '#6FB1FC', strength: 90 } },
-		{ data: { source: 'j', target: 'k', faveColor: '#6FB1FC', strength: 70 } },
-		{ data: { source: 'j', target: 'g', faveColor: '#6FB1FC', strength: 80 } },
-		{ data: { source: 'e', target: 'j', faveColor: '#EDA1ED', strength: 95 } },
-		{ data: { source: 'e', target: 'k', faveColor: '#EDA1ED', strength: 60 }, classes: 'questionable' },
-		{ data: { source: 'k', target: 'j', faveColor: '#86B342', strength: 100 } },
-		{ data: { source: 'k', target: 'e', faveColor: '#86B342', strength: 100 } },
-		{ data: { source: 'k', target: 'g', faveColor: '#86B342', strength: 100 } },
-		{ data: { source: 'g', target: 'j', faveColor: '#F5A45D', strength: 90 } }
-	]
-};
-
 ///////////////////////////////////// dialog
 
 //@deprecated dialog form
@@ -393,7 +347,7 @@ ROSDASH.initDiagramToolbar = function ()
 				ROSDASH.initDiagramToolbar();
 				break;
 			case "addblock":
-				ROSDASH.addBlockByType(ROSDASH.toolbar.getValue("input"));
+				window.cy.center(ROSDASH.addBlockByType(ROSDASH.toolbar.getValue("input")));
 				break;
 			case "listblock":
 				ROSDASH.list_depth = ROSDASH.block_list;
@@ -404,7 +358,7 @@ ROSDASH.initDiagramToolbar = function ()
 				ROSDASH.listInToolbar();
 				break;
 			case "addros":
-				ROSDASH.addTopicByName(ROSDASH.toolbar.getValue("input"));
+				window.cy.center(ROSDASH.addTopicByName(ROSDASH.toolbar.getValue("input")));
 				break;
 			case "listros":
 				ROSDASH.list_depth = ROSDASH.ros_msg;
@@ -430,7 +384,7 @@ ROSDASH.initDiagramToolbar = function ()
 				ROSDASH.setBlockProperty();
 				break;
 			case "panel":
-				var url = 'panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + ROSDASH.user_conf.panel_name + '&host=' + ROSDASH.user_conf.ros_host + '&port=' + ROSDASH.user_conf.ros_port;;
+				var url = 'panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + ROSDASH.user_conf.panel_name + '&host=' + ROSDASH.user_conf.ros_host + '&port=' + ROSDASH.user_conf.ros_port;
 				if (undefined !== ROSDASH.selected_block)
 				{
 					url += '&selected=' + ROSDASH.selected_block;
@@ -439,6 +393,16 @@ ROSDASH.initDiagramToolbar = function ()
 				break;
 			case "fit":
 				window.cy.fit();
+				break;
+			case "find":
+				ROSDASH.findBlock(ROSDASH.toolbar.getValue("input"));
+				break;
+			case "addcomment":
+				var c = ROSDASH.addBlockComment(ROSDASH.toolbar.getValue("input"));
+				if (undefined !== c)
+				{
+					window.cy.center(c);
+				}
 				break;
 			default:
 				var block_id = id.substring(5);
@@ -449,7 +413,7 @@ ROSDASH.initDiagramToolbar = function ()
 				{
 					if (typeof ROSDASH.list_depth[block_id] == "string")
 					{
-						ROSDASH.addBlockByType(block_id);
+						window.cy.center(ROSDASH.addBlockByType(block_id));
 					} else
 					{
 						ROSDASH.list_depth = ROSDASH.list_depth[block_id];
@@ -461,7 +425,7 @@ ROSDASH.initDiagramToolbar = function ()
 					{
 						if (ROSDASH.list_depth["_"][i] == block_id)
 						{
-							ROSDASH.addBlockByType(block_id);
+							window.cy.center(ROSDASH.addBlockByType(block_id));
 						}
 					}
 				} else
@@ -495,11 +459,13 @@ ROSDASH.initDiagramToolbar = function ()
 	//ROSDASH.toolbar.addButton("listros", 7, "list ROS", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("remove", 8, "remove", "remove-icon.gif", "remove-icon.gif");
     ROSDASH.toolbar.addButton("save", 9, "save", "save.gif", "save_dis.gif");
-    ROSDASH.toolbar.addButton("undo", 10, "undo", "undo.gif", "undo_dis.gif");
-    ROSDASH.toolbar.addButton("redo", 11, "redo", "redo.gif", "redo_dis.gif");
+    //ROSDASH.toolbar.addButton("undo", 10, "undo", "undo.gif", "undo_dis.gif");
+    //ROSDASH.toolbar.addButton("redo", 11, "redo", "redo.gif", "redo_dis.gif");
     ROSDASH.toolbar.addButton("property", 12, "property", "paste.gif", "paste_dis.gif");
     ROSDASH.toolbar.addButton("fit", 13, "fit", "stylesheet.gif", "stylesheet.gif");
     ROSDASH.toolbar.addButton("panel", 14, "panel", "database.gif", "database.gif");
+    ROSDASH.toolbar.addButton("find", 15, "find", "cut.gif", "cut_dis.gif");
+    ROSDASH.toolbar.addButton("addcomment", 16, "add comment", "new.gif", "new_dis.gif");
 }
 ROSDASH.setBlockProperty = function ()
 {
@@ -921,14 +887,9 @@ ROSDASH.checkWidgetTypeValid = function (name)
 }
 
 ///////////////////////////////////// blocks
+
 // default settings for blocks
-//@todo change to ROSDASH.block_param
-ROSDASH.BLOCK_SIZE = [200, 70];
-ROSDASH.PIN_SIZE = [5, 5];
-ROSDASH.BLOCK_SHAPE = "rectangle";
-ROSDASH.BLOCK_COLOR = "blue";
-ROSDASH.PIN_COLOR = "grey";
-ROSDASH.NEW_POS = [400, 0];
+ROSDASH.NEW_POS = [0, 0];
 ROSDASH.INPUT_POS = {
 	"1": [[-70, 0]],
 	"2": [[-70, -20], [-70, 20]],
@@ -954,7 +915,7 @@ ROSDASH.getNextNewBlockPos = function ()
 //@deprecated
 ROSDASH.addTopicByName = function (name)
 {
-	ROSDASH.addTopic({rosname: name});
+	return ROSDASH.addTopic({rosname: name});
 }
 ROSDASH.addTopic = function (def)
 {
@@ -968,15 +929,12 @@ ROSDASH.addTopic = function (def)
 	var y = (typeof def.y !== "undefined") ? parseFloat(def.y) : next_pos[1];
 	var count = ROSDASH.ros_blocks.topic.length;
 	var id = "topic-" + count;
-	window.cy.add({
+	var body = window.cy.add({
 		group: "nodes",
 		data: {
 			id: id,
 			name: def.rosname,
-			height: ROSDASH.BLOCK_SIZE[0],
-			weight: ROSDASH.BLOCK_SIZE[1],
-			faveColor: "green",
-			faveShape: ROSDASH.BLOCK_SHAPE
+			faveColor: 'Gold'
 		},
 		position: { x: x, y: y },
 		classes: "body"
@@ -984,11 +942,7 @@ ROSDASH.addTopic = function (def)
 	window.cy.add({
 		group: "nodes",
 		data: {
-			id: id + "-i0",
-			height: ROSDASH.PIN_SIZE[0],
-			weight: ROSDASH.PIN_SIZE[1],
-			faveColor: ROSDASH.PIN_COLOR,
-			faveShape: ROSDASH.BLOCK_SHAPE
+			id: id + "-i0"
 		},
 		position: { x: x + ROSDASH.INPUT_POS[1][0][0], y: y + ROSDASH.INPUT_POS[1][0][1] },
 		classes: "input",
@@ -997,11 +951,7 @@ ROSDASH.addTopic = function (def)
 	window.cy.add({
 		group: "nodes",
 		data: {
-			id: id + "-o0",
-			height: ROSDASH.PIN_SIZE[0],
-			weight: ROSDASH.PIN_SIZE[1],
-			faveColor: ROSDASH.PIN_COLOR,
-			faveShape: ROSDASH.BLOCK_SHAPE
+			id: id + "-o0"
 		},
 		position: { x: x + ROSDASH.OUTPUT_POS[1][0][0], y: y + ROSDASH.OUTPUT_POS[1][0][1] },
 		classes: "output",
@@ -1018,76 +968,60 @@ ROSDASH.addTopic = function (def)
 	};
 	ROSDASH.blocks[id] = block;
 	ROSDASH.ros_blocks.topic.push(name);
+	return body;
 }
 // a list of configuration for each block
 ROSDASH.blocks = new Object();
 ROSDASH.addBlockByType = function (type)
 {
-	var block = new Object();
-	// if constant, change the type
-	if (ROSDASH.checkMsgTypeValid(type))
-	{
-		block = {
-			type: "constant",
-			constant: true,
-			constname: type,
-			value: ""
-		};
-	} else
-	{
-		block = {
-			type: type,
-		};
-	}
-	ROSDASH.addBlock(block);
+	var block = {
+		type: type,
+	};
+	return ROSDASH.addBlock(block);
+}
+ROSDASH.addConstant = function (const_type)
+{
+	var block = {
+		type: "constant",
+		constant: true,
+		constname: const_type,
+		value: ""
+	};
+	return ROSDASH.addBlock(block);
 }
 ROSDASH.addBlock = function (def)
 {
-	var block = new Object();
-	var block_type;
-	if ("constant" == def.type || ROSDASH.checkMsgTypeValid(def.type))
+	var block = ROSDASH.initBlockConf(def);
+	// if fail to init a block by definition
+	if (undefined === block)
 	{
-		block = def;
-		block.type = "constant";
-		block.constant = true;
-		block.input_num = 0;
-		block.output_num = 1;
-		// constant should change the block_type into constname for ROSDASH.widget_def
-		block_type = block.constname;
-	} else if (ROSDASH.checkWidgetTypeValid(def.type))
-	{
-		block = def;
-		block.input_num = ROSDASH.widget_def[def.type].input.length;
-		block.input = ROSDASH.widget_def[def.type].input;
-		block.output_num = ROSDASH.widget_def[def.type].output.length;
-		block.output = ROSDASH.widget_def[def.type].output;
-		block_type = def.type;
-	} else
-	{
-		// the widget type is invalid, and the error message is sent from ROSDASH.checkWidgetTypeValid
 		return;
-	}
-	if ("topic" == def.type || "service" == def.type || "param" == def.type)
-	{
-		block.rosname = "";
-		block.rostype = "";
 	}
 	// if no position specified, use the position for a new block
 	var next_pos = ROSDASH.getNextNewBlockPos();
 	block.x = (typeof def.x != "undefined") ? parseFloat(def.x) : next_pos[0];
 	block.y = (typeof def.y != "undefined") ? parseFloat(def.y) : next_pos[1];
 	// determine the block number
-	def = ROSDASH.getBlockNum(def, block_type);
+	def = ROSDASH.getBlockNum(def, block.list_name);
+	var color = "Aquamarine";
+	switch (def.type)
+	{
+	case "constant":
+		color = "Chartreuse";
+		break;
+	case "topic":
+	case "service":
+	case "param":
+		color = "Gold";
+		break;
+	}
 	// add the body of the block
-	window.cy.add({
+	var body = window.cy.add({
 		group: "nodes",
 		data: {
 			id: block.id,
 			name: block.name,
-			height: ROSDASH.BLOCK_SIZE[0],
-			weight: ROSDASH.BLOCK_SIZE[1],
-			faveColor: ROSDASH.BLOCK_COLOR,
-			faveShape: ROSDASH.BLOCK_SHAPE
+			faveColor: color,
 		},
 		position: { x: block.x, y: block.y },
 		classes: "body"
@@ -1098,11 +1032,7 @@ ROSDASH.addBlock = function (def)
 		window.cy.add({
 			group: "nodes",
 			data: {
-				id: block.id + "-i" + i,
-				height: ROSDASH.PIN_SIZE[0],
-				weight: ROSDASH.PIN_SIZE[1],
-				faveColor: ROSDASH.PIN_COLOR,
-				faveShape: ROSDASH.BLOCK_SHAPE
+				id: block.id + "-i" + i
 			},
 			position: { x: block.x + ROSDASH.INPUT_POS[block.input_num][i][0], y: block.y + ROSDASH.INPUT_POS[block.input_num][i][1] },
 			classes: "input",
@@ -1115,11 +1045,7 @@ ROSDASH.addBlock = function (def)
 		window.cy.add({
 			group: "nodes",
 			data: {
-				id: block.id + "-o" + i,
-				height: ROSDASH.PIN_SIZE[0],
-				weight: ROSDASH.PIN_SIZE[1],
-				faveColor: ROSDASH.PIN_COLOR,
-				faveShape: ROSDASH.BLOCK_SHAPE
+				id: block.id + "-o" + i
 			},
 			position: { x: block.x + ROSDASH.OUTPUT_POS[block.output_num][i][0], y: block.y + ROSDASH.OUTPUT_POS[block.output_num][i][1] },
 			classes: "output",
@@ -1128,6 +1054,38 @@ ROSDASH.addBlock = function (def)
 	}
 	// save the information of the block into ROSDASH.blocks based on id
 	ROSDASH.blocks[block.id] = block;
+	return body;
+}
+// init the configuration of a new block
+ROSDASH.initBlockConf = function (def)
+{
+	if (ROSDASH.checkWidgetTypeValid(def.type))
+	{
+		block = def;
+		block.list_name = ("constant" != def.type) ? def.type : def.constname;
+		if ("topic" == def.type || "service" == def.type || "param" == def.type)
+		{
+			block.rosname = "";
+			block.rostype = "";
+		}
+	} else if (ROSDASH.checkMsgTypeValid(def.type))
+	{
+		block = def;
+		block.type = "constant";
+		block.list_name = def.type;
+		block.constant = true;
+		block.constname = def.type;
+		block.value = "";
+	} else
+	{
+		// the widget type is invalid, and the error message is sent from ROSDASH.checkWidgetTypeValid
+		return undefined;
+	}
+	block.input_num = ROSDASH.widget_def[def.type].input.length;
+	block.input = ROSDASH.widget_def[def.type].input;
+	block.output_num = ROSDASH.widget_def[def.type].output.length;
+	block.output = ROSDASH.widget_def[def.type].output;
+	return block;
 }
 // determine the block number
 ROSDASH.getBlockNum = function (def, block_type)
@@ -1178,6 +1136,9 @@ ROSDASH.getBlockNum = function (def, block_type)
 	}
 	return def;
 }
+
+///////////////////////////////////// pins
+
 //@todo
 ROSDASH.addPin = function (block, type, num)
 {
@@ -1206,9 +1167,67 @@ ROSDASH.addPin = function (block, type, num)
 	});
 	block[type][num].exist = true;
 }
+ROSDASH.getBlockParent = function (block)
+{
+	var index = block.lastIndexOf("-");
+	return block.substring(0, index);
+}
+ROSDASH.getPinNum = function (pin)
+{
+	var index = pin.lastIndexOf("-");
+	return parseFloat(pin.substring(index + 2));
+}
+// change the pins of a block
+//@todo
+ROSDASH.changePin = function (block, pin_type, pin_num, action)
+{
+	var tmp = block;
+	ROSDASH.removeBlock(block.id);
+	switch (action)
+	{
+	case "add":
+		tmp[pin_type][pin_num].exist = true;
+		break;
+	case "remove":
+		tmp[pin_type][pin_num].exist = false;
+		break;
+	}
+	ROSDASH.addBlock(tmp);
+}
 
 ///////////////////////////////////// block actions
 
+// find block by ID or name
+ROSDASH.findBlock = function (id)
+{
+	if (undefined === id || "" == id || " " == id)
+	{
+		return undefined;
+	}
+	var block;
+	window.cy.nodes("#" + id).each(function (i, ele) {
+		block = ele;
+	});
+	if (undefined !== block)
+	{
+		block.select();
+		window.cy.center(block);
+	} else
+	{
+		window.cy.nodes('[name="' + id + '"]').each(function (i, ele) {
+			block = ele;
+		});
+		if (undefined !== block)
+		{
+			block.select();
+			window.cy.center(block);
+		} else
+		{
+			console.debug("cannot find", id);
+		}
+	}
+	return block;
+}
 ROSDASH.selected_block;
 // update the property dialog box when selected
 //@deprecated
@@ -1220,7 +1239,7 @@ ROSDASH.selectBlockCallback = function (evt)
 	{
 		var id = evt.cyTarget.id();
 		// select pin
-		if (undefined === evt.cyTarget.hasClass("body") || false == evt.cyTarget.hasClass("body"))
+		if (evt.cyTarget.hasClass("pin") || evt.cyTarget.hasClass("input") || evt.cyTarget.hasClass("output"))
 		{
 			var hyphen = id.lastIndexOf("-");
 			var id2 = id.substring(0, hyphen);
@@ -1243,11 +1262,13 @@ ROSDASH.selectBlockCallback = function (evt)
 			{
 				html += "<p>output: " + widget.output[pin_num].name + " (" + widget.output[pin_num].datatype + ")</p>";
 			}
-		} else // select body
+		// select body
+		} else if (evt.cyTarget.hasClass("body"))
 		{
 			var block = ROSDASH.blocks[id];
 			var widget = ROSDASH.widget_def[block.type];
-			ROSDASH.addBlockPopup(block, ROSDASH.block_popup_pos);
+			// add a popup to selected block to show description
+			ROSDASH.addBlockPopup(block);
 			if (undefined !== block.type)
 			{
 				html += "<p>type: " + block.type + "</p>";
@@ -1291,10 +1312,15 @@ ROSDASH.selectBlockCallback = function (evt)
 			{
 				html += 'value: <input type="text" name="value" value="' + block.value + '" class="text ui-widget-content ui-corner-all" />';
 			}
+		} else
+		{
+			return;
 		}
 	} else		// select edge
 	{
 		ROSDASH.selected_block = undefined;
+		// add a popup to selected edge to show description
+		ROSDASH.addEdgePopup(evt.cyTarget);
 		html = '<p>type: edge</p>'
 				+ '<p>source: ' + evt.cyTarget.source().id() + '</p>'
 				+ '<p>target: ' + evt.cyTarget.target().id() + '</p>';
@@ -1324,11 +1350,11 @@ ROSDASH.removeBlock = function (name)
 	{
 		id = name;
 		// first check id
-		ele = cy.nodes('[id = "' + name + '"]');
+		ele = window.cy.nodes('[id = "' + name + '"]');
 		if (0 == ele.size())
 		{
 			// then check name
-			ele = cy.nodes('[name = "' + name + '"]');
+			ele = window.cy.nodes('[name = "' + name + '"]');
 			id = ele.id();
 		}
 		if (0 < ele.size())
@@ -1439,6 +1465,7 @@ ROSDASH.connectBlocks = function (source, target)
 	{
 		return;
 	}
+	// add edge
 	window.cy.add({
 		group: "edges",
 		"data": {
@@ -1492,74 +1519,179 @@ ROSDASH.connectBlocksCallback = function ()
 		ROSDASH.connect_former.unselect = new Date().getTime();
 	});
 }
-// change the pins of a block
-//@todo
-ROSDASH.changePin = function (block, pin_type, pin_num, action)
-{
-	var tmp = block;
-	ROSDASH.removeBlock(block.id);
-	switch (action)
-	{
-	case "add":
-		tmp[pin_type][pin_num].exist = true;
-		break;
-	case "remove":
-		tmp[pin_type][pin_num].exist = false;
-		break;
-	}
-	ROSDASH.addBlock(tmp);
-}
 
-///////////////////////////////////// diagram comments
+///////////////////////////////////// block popups and comments
 
-ROSDASH.popup_conf = {
-	size: [70, 300],
-	shape: "circle",
-	color: "black"
-}
-ROSDASH.block_popup_pos = [0, -100];
-ROSDASH.addBlockPopup = function (target, pos)
+// remove all popups when unselected
+ROSDASH.removePopup = function ()
 {
+	// remove previous popups
 	cy.$('.popup').each(function(i, ele) {
 		ele.remove();
 	});
-	var text = target.id;
-	if (undefined !== ROSDASH.widget_def[target.type] && undefined !== ROSDASH.widget_def[target.type].descrip)
+}
+ROSDASH.addPinPopup = function (block, pin_type, num)
+{
+	if (undefined === block[pin_type][num] || undefined === block[pin_type][num].name)
 	{
-		text += " : " + ROSDASH.widget_def[target.type].descrip
+		return;
 	}
+	var pin_t = pin_type.substring(0, 1);
+	var pin_pos = window.cy.nodes('#' + block.id + "-" + pin_t + num).position();
+	var text = block[pin_type][num].name;
 	window.cy.add({
 		group: "nodes",
 		data: {
-			id: target.id + "-p",
+			id: block.id + "-p" + pin_t + num,
 			name: text,
-			height: ROSDASH.popup_conf.size[0],
-			weight: ROSDASH.popup_conf.size[1],
-			faveColor: ROSDASH.popup_conf.color,
-			faveShape: ROSDASH.popup_conf.shape
+			weight: 40,
+			height: 80,
+			faveShape: "ellipse",
+			"faveColor": "Cornsilk",
 		},
-		position: { x: target.x + pos[0], y: target.y + pos[1] },
+		position: { x: pin_pos.x + (("input" == pin_type) ? -70 : 70), y: pin_pos.y },
 		classes: "popup"
 	});
 	window.cy.add({
 		group: "edges",
 		"data": {
-		"source": target.id + "-p",
-		"target": target.id,
-		"faveColor": "grey",
-		"strength": 10,
+		"source": block.id + "-p" + pin_t + num,
+		"target": block.id + "-" + pin_t + num,
+		"strength": 100,
 		'target-arrow-shape': 'triangle'
 		}
 	});
-	/*for (var i = 0; i < target.input_num; ++ i)
+}
+// when a block is clicked, popup descriptions for the block and its inputs and outputs
+ROSDASH.addBlockPopup = function (target)
+{
+	ROSDASH.removePopup();
+	// if has description, popup
+	if (undefined !== ROSDASH.widget_def[target.type] && undefined !== ROSDASH.widget_def[target.type].descrip)
 	{
-		var tmp = {id: target.id + "-i" + i, x: window.cy.$("id=" + target.id)}
-		ROSDASH.addBlockPopup()
-	}*/
+		var text = target.id + " : " + ROSDASH.widget_def[target.type].descrip;
+		var width = 400;
+		window.cy.add({
+			group: "nodes",
+			data: {
+				id: target.id + "-p",
+				name: text,
+				weight: width,
+				height: 80,
+				faveShape: "roundrectangle",
+				"faveColor": "Cornsilk",
+			},
+			position: { x: target.x, y: target.y - 100 },
+			classes: "popup"
+		});
+		window.cy.add({
+			group: "edges",
+			"data": {
+			"source": target.id + "-p",
+			"target": target.id,
+			"strength": 100,
+			'target-arrow-shape': 'triangle'
+			}
+		});
+	}
+	// popup names for inputs
+	for (var i = 0; i < target.input_num; ++ i)
+	{
+		ROSDASH.addPinPopup(target, "input", i);
+	}
+	// popup names for outputs
+	for (var i = 0; i < target.output_num; ++ i)
+	{
+		ROSDASH.addPinPopup(target, "output", i);
+	}
+}
+ROSDASH.addEdgePopup = function (edge)
+{
+	ROSDASH.removePopup();
+	var source_id = ROSDASH.getBlockParent(edge.source().id());
+	var target_id = ROSDASH.getBlockParent(edge.target().id());
+	var source_num = ROSDASH.getPinNum(edge.source().id());
+	var target_num = ROSDASH.getPinNum(edge.target().id());
+	if (undefined === ROSDASH.blocks[source_id].output[source_num] || undefined === ROSDASH.blocks[target_id].input[target_num])
+	{
+		return;
+	}
+	ROSDASH.addPinPopup(ROSDASH.blocks[source_id], "output", source_num);
+	ROSDASH.addPinPopup(ROSDASH.blocks[target_id], "input", target_num);
+}
+ROSDASH.comment_count = 0;
+ROSDASH.addBlockComment = function (content)
+{
+	if (undefined === content || "" == content || " " == content)
+	{
+		return undefined;
+	}
+	var block = window.cy.add({
+		group: "nodes",
+		data: {
+			id: "c-" + ROSDASH.comment_count,
+			name: content,
+			weight: 100,
+			height: 80,
+			faveShape: "roundrectangle",
+			faveColor: "Cornsilk",
+		},
+		position: { x: 0, y: 0 },
+		classes: "comment"
+	});
+	++ ROSDASH.comment_count;
+	return block;
 }
 
 ///////////////////////////////////// diagram
 
+ROSDASH.default_style = cytoscape.stylesheet()
+	.selector('node').css({
+		'shape': 'data(faveShape)',
+		'background-color': 'data(faveColor)',
+		'border-width': 1,
+		'border-color': 'black',
+		'width': 'mapData(weight, 10, 30, 20, 60)',
+		'height': 'mapData(height, 0, 100, 10, 45)',
+		'content': 'data(name)',
+		'font-size': 25,
+		'text-valign': 'center',
+		'text-outline-width': 2,
+		'text-outline-color': 'data(faveColor)',
+		'color': 'black'
+	})
+	.selector(':selected').css({
+		'border-width': 3,
+		'border-color': 'black'
+	})
+	.selector('edge').css({
+		'width': 'mapData(strength, 70, 100, 2, 6)',
+		'line-color': 'data(faveColor)',
+		'target-arrow-shape': 'triangle',
+		'source-arrow-color': 'data(faveColor)',
+		'target-arrow-color': 'data(faveColor)'
+	})
+	.selector('.body').css({
+		'shape': 'roundrectangle',
+		'width': '130',
+		'height': '70'
+	})
+	.selector('.input').css({
+		'shape': 'rectangle',
+		'width': '10',
+		'height': '10',
+		'text-outline-color': 'grey',
+		'background-color': 'grey',
+		'border-width': 0,
+	})
+	.selector('.output').css({
+		'shape': 'rectangle',
+		'width': '10',
+		'height': '10',
+		'text-outline-color': 'grey',
+		'background-color': 'grey',
+		'border-width': 0,
+	});
 // save data to json in server
 ROSDASH.saveJson = function (data, filename)
 {
@@ -1653,10 +1785,10 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 	ROSDASH.initJson();
 	ROSDASH.loadConfJson();
 	var style = ROSDASH.default_style;
-	var element = ROSDASH.default_element;
 	var empty_ele = {nodes: new Array(), edges: new Array()};
 	// generate an empty cytoscape diagram
 	$('#cy').cytoscape({
+		showOverlay: false,
 		layout: {
 			name: 'circle'
 		},
@@ -1676,17 +1808,9 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 						window.cy.elements().unlock();
 						window.cy.elements().unselect();
 						window.cy.on('select', ROSDASH.selectBlockCallback);
+						window.cy.on('unselect', ROSDASH.removePopup);
 						console.log("load diagram: " + ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-diagram.json');
-						if (selected in ROSDASH.blocks)
-						{
-							//console.log(selected);
-							var evt = new Object();
-							window.cy.elements("node#" + selected).each(function(i, ele){
-								evt.cyTarget = ele;
-							});
-							evt.cyTarget.select();
-							window.cy.center(evt.cyTarget);
-						}
+						ROSDASH.findBlock(selected);
 					} else
 					{
 						console.log("loading");
@@ -1783,19 +1907,6 @@ ROSDASH.parseWidgetContent = function (widget)
 		widget.widgetContent.data = myExampleData.lineChartData;
 		widget.widgetContent.options = myExampleData.lineChartOptions;
 		break;
-	//@note should be changed into wdef.init
-	case "arbor":
-		widget.widgetContent = '<canvas id="viewport" class="sDashboardWidgetContent"></canvas>';
-		break;
-	case "network":
-		widget.widgetContent = '<div id="dracula_canvas" style="height:100%; width:100%;" />';
-		break;
-	case "doodle god":
-		widget.widgetContent = '<object width="180" height="135"><param name="movie" value="http://www.fupa.com/swf/doodle-god/doodlegod.swf"></param><embed src="http://www.fupa.com/swf/doodle-god/doodlegod.swf" type="application/x-shockwave-flash" width="180" height="135"></embed></object>';
-		break;
-	case "youtube":
-		widget.widgetContent = '<iframe width="640" height="360" src="//www.youtube.com/embed/SxeVZdJFB4s" frameborder="0" allowfullscreen></iframe>';
-		break;
 	default:
 		widget.widgetContent = '';
 		break;
@@ -1870,6 +1981,54 @@ ROSDASH.parseExampleData = function (widget)
 	return widget;
 }
 ROSDASH.widgets = new Object();
+// set the widget number
+ROSDASH.getWidgetNum = function (def)
+{
+	// if the ROSDASH.widget_def of def.widgetType does not exist - for constant
+	if (undefined === ROSDASH.widget_def[def.widgetType])
+	{
+		ROSDASH.widget_def[def.widgetType] = new Object();
+		if (undefined === def.number)
+		{
+			ROSDASH.widget_def[def.widgetType].count = 0;
+			def.number = ROSDASH.widget_def[def.widgetType].count;
+		} else
+		{
+			ROSDASH.widget_def[def.widgetType].count = def.number;
+		}
+	} else if (undefined === ROSDASH.widget_def[def.widgetType].count)
+	{
+		if (undefined === def.number)
+		{
+			ROSDASH.widget_def[def.widgetType].count = 0;
+			def.number = ROSDASH.widget_def[def.widgetType].count;
+		} else
+		{
+			ROSDASH.widget_def[def.widgetType].count = def.number;
+		}
+	} else if (undefined === def.number)
+	{
+		++ ROSDASH.widget_def[def.widgetType].count;
+		def.number = ROSDASH.widget_def[def.widgetType].count;
+	} else if (def.number > ROSDASH.widget_def[def.widgetType].count)
+	{
+			ROSDASH.widget_def[def.widgetType].count = def.number;
+	} else
+	{
+		// if widget number conflicts
+		for (var i in ROSDASH.widgets)
+		{
+			if (ROSDASH.widgets[i].widgetType == def.widgetType && ROSDASH.widgets[i].number == def.number)
+			{
+				console.error("widget number conflicted: " + def.widgetId);
+				// set a new widget number
+				++ ROSDASH.widget_def[def.widgetType].count;
+				def.number = ROSDASH.widget_def[def.widgetType].count;
+			}
+		}
+	}
+	return def;
+}
 ROSDASH.addWidgetByType = function (name)
 {
 	if (! ROSDASH.checkWidgetTypeValid(name))
@@ -1922,50 +2081,7 @@ ROSDASH.addWidget = function (def)
 	{
 		return;
 	}
-	// set the widget number
-	// if the ROSDASH.widget_def of def.widgetType does not exist - for constant
-	if (undefined === ROSDASH.widget_def[def.widgetType])
-	{
-		ROSDASH.widget_def[def.widgetType] = new Object();
-		if (undefined === def.number)
-		{
-			ROSDASH.widget_def[def.widgetType].count = 0;
-			def.number = ROSDASH.widget_def[def.widgetType].count;
-		} else
-		{
-			ROSDASH.widget_def[def.widgetType].count = def.number;
-		}
-	} else if (undefined === ROSDASH.widget_def[def.widgetType].count)
-	{
-		if (undefined === def.number)
-		{
-			ROSDASH.widget_def[def.widgetType].count = 0;
-			def.number = ROSDASH.widget_def[def.widgetType].count;
-		} else
-		{
-			ROSDASH.widget_def[def.widgetType].count = def.number;
-		}
-	} else if (undefined === def.number)
-	{
-		++ ROSDASH.widget_def[def.widgetType].count;
-		def.number = ROSDASH.widget_def[def.widgetType].count;
-	} else if (def.number > ROSDASH.widget_def[def.widgetType].count)
-	{
-			ROSDASH.widget_def[def.widgetType].count = def.number;
-	} else
-	{
-		// if widget number conflicts
-		for (var i in ROSDASH.widgets)
-		{
-			if (ROSDASH.widgets[i].widgetType == def.widgetType && ROSDASH.widgets[i].number == def.number)
-			{
-				console.error("widget number conflicted: " + def.widgetId);
-				// set a new widget number
-				++ ROSDASH.widget_def[def.widgetType].count;
-				def.number = ROSDASH.widget_def[def.widgetType].count;
-			}
-		}
-	}
+	def = ROSDASH.getWidgetNum(def);
 	// save the definition of this widget
 	ROSDASH.widgets[def.widgetId] = def;
 	var widget = ROSDASH.parseExampleData(def);
@@ -2127,6 +2243,7 @@ ROSDASH.runPanel = function (user, panel_name, selected)
 }
 
 ///////////////////////////////////// diagram analysis
+
 ROSDASH.diagram;
 // read diagram json for panel execution
 ROSDASH.readDiagram = function ()
@@ -2333,7 +2450,7 @@ ROSDASH.initWidgets = function ()
 		// validate the existence of each block just once
 		if (! ROSDASH.diagram_connection[i].exist)
 		{
-			console.error("widget does not exist: "+ i);
+			console.error("widget does not exist: ", i);
 			continue;
 		}
 		// for class
@@ -2413,51 +2530,14 @@ ROSDASH.runWidgets = function ()
 ///////////////////////////////////// panel callback
 
 ROSDASH.widgetMaxCallback = function (e, data)
-{
-	switch (data.widgetDefinition.widgetType)
-	{
-	case "gmap":
-		ROSDASH.Gmap.resizeGmap();
-		break;
-	case "arbor":
-		//arborInit();
-		break;
-	case "network":
-		draculaInit("dracula_canvas");
-		break;
-	}
-}
+{}
 // init the HTML for each widget when it is added
 ROSDASH.widgetAddCallback = function (e, data)
-{
-	//@deprecated
-	switch (data.widgetDefinition.widgetType)
-	{
-	case "gmap":
-		//ROSDASH.Gmap.runOnce();
-		break;
-	case "arbor":
-		arborInit();
-		break;
-	case "network":
-		draculaInit("dracula_canvas");
-		break;
-	}
-}
+{}
 ROSDASH.widgetSetCallback = function (e, data)
-{
-	for (var i in data)
-	{
-		//console.log(data[i]);
-	}
-}
+{}
 ROSDASH.headerSetCallback = function (e, data)
-{
-	for (var i in data)
-	{
-		//console.log(data[i]);
-	}
-}
+{}
 
 //@todo
 ROSDASH.addToDiagram = function ()

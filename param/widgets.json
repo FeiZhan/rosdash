@@ -15,7 +15,7 @@
 		]
 	}, {
 		"type": "multiArray",
-		"descrip": "an array consists of several data with the same type",
+		"descrip": "an array consisting of several data with the same type",
 		"category": [
 			"basics"
 		],
@@ -699,6 +699,23 @@
 			}
 		]
 	}, {
+		"type": "FlotSafeRange",
+		"category": [
+			"plot"
+		],
+		"class_name": "ROSDASH.FlotSafeRange",
+		"input": [
+		],
+		"output": [
+			{
+				"datatype": "String",
+				"name": "name"
+			}, {
+				"datatype": "object",
+				"name": "saferange"
+			}
+		]
+	}, {
 		"type": "flot",
 		"category": [
 			"plot"
@@ -836,6 +853,33 @@
 			"network"
 		],
 		"class_name": "ROSDASH.cyDiagram",
+		"has_panel": "true",
+		"input": [],
+		"output": []
+	}, {
+		"type": "arborNetwork",
+		"category": [
+			"network"
+		],
+		"class_name": "ROSDASH.arborNetwork",
+		"has_panel": "true",
+		"input": [],
+		"output": []
+	}, {
+		"type": "draculaNetwork",
+		"category": [
+			"fun"
+		],
+		"class_name": "ROSDASH.draculaNetwork",
+		"has_panel": "true",
+		"input": [],
+		"output": []
+	}, {
+		"type": "DoodleGod",
+		"category": [
+			"fun"
+		],
+		"class_name": "ROSDASH.DoodleGod",
 		"has_panel": "true",
 		"input": [],
 		"output": []

@@ -878,6 +878,62 @@ ROSDASH.cyDiagram.prototype.init = function ()
 	this.init_success = true;
 }
 
+ROSDASH.arborNetwork = function (block)
+{
+	this.block = block;
+	this.canvas = "arborNetwork_" + this.block.id;
+	this.init_success = false;
+}
+ROSDASH.arborNetwork.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<canvas id="' + this.canvas + '" style="width:100%; height:100%;"></canvas>';
+	return widget;
+}
+ROSDASH.arborNetwork.prototype.init = function ()
+{
+	if ($("#" + this.canvas).length <= 0 || this.init_success)
+	{
+		return;
+	}
+	arborInit(this.canvas);
+	this.init_success = true;
+}
+ROSDASH.arborNetwork.prototype.run = function (input)
+{
+	if (! this.init_success && $("#" + this.canvas).length > 0)
+	{
+		this.init();
+	}
+}
+
+ROSDASH.draculaNetwork = function (block)
+{
+	this.block = block;
+	this.canvas = "draculaNetwork_" + this.block.id;
+	this.init_success = false;
+}
+ROSDASH.draculaNetwork.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas + '" style="width:100%; height:100%;"></div>';
+	return widget;
+}
+ROSDASH.draculaNetwork.prototype.init = function ()
+{
+	if ($("#" + this.canvas).length <= 0 || this.init_success)
+	{
+		return;
+	}
+	draculaInit(this.canvas);
+	this.init_success = true;
+}
+ROSDASH.draculaNetwork.prototype.run = function (input)
+{
+	if (! this.init_success && $("#" + this.canvas).length > 0)
+	{
+		this.init();
+	}
+}
+
 //////////////////////////////////// ROSJS
 
 // Turtlesim from ROS desktop widget
@@ -1271,23 +1327,20 @@ ROSDASH.GmapTraj.prototype.run = function (input)
 //////////////////////////////////// plot
 
 // safe range for text or plot widget
-ROSDASH.SafeRange = function (block)
+ROSDASH.FlotSafeRange = function (block)
 {
 	this.block = block;
-	this.min = 0;
-	this.max = 100;
+	this.min = 3;
+	this.max = 8;
 }
 //@input	the value to be tested
 //@output	if it is in safe range
-ROSDASH.SafeRange.prototype.run = function (input)
+ROSDASH.FlotSafeRange.prototype.run = function (input)
 {
-	if (input[0] < this.min || input[0] > this.max)
-	{
-		return {o0: false};
-	} else
-	{
-		return {o0: true};
-	}
+	return {
+		o0: "threshold",
+		o1: {above : this.max, below : this.min}
+	};
 }
 
 // a plot widget
@@ -1762,3 +1815,30 @@ ROSDASH.panelList.prototype.run = function (input)
 	}
 	return {o0: this.list};
 }
+
+//////////////////////////////////// for fun
+
+ROSDASH.youtube = function (block)
+{
+	this.block = block;
+}
+ROSDASH.youtube.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<iframe width="640" height="360" src="//www.youtube.com/embed/SxeVZdJFB4s" frameborder="0" allowfullscreen></iframe>';
+	return widget;
+}
+ROSDASH.youtube.prototype.init = function ()
+{}
+ROSDASH.youtube.prototype.run = function (input)
+{}
+
+ROSDASH.DoodleGod = function (block)
+{
+	this.block = block;
+}
+ROSDASH.DoodleGod.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<object width="180" height="135"><param name="movie" value="http://www.fupa.com/swf/doodle-god/doodlegod.swf"></param><embed src="http://www.fupa.com/swf/doodle-god/doodlegod.swf" type="application/x-shockwave-flash" width="300px" height="200px"></embed></object>';
+	return widget;
+}
+
