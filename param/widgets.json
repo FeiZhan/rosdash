@@ -306,7 +306,12 @@
 		"has_panel": "true",
 		"class_name": "ROSDASH.ToggleButton",
 		"input": [],
-		"output": []
+		"output": [
+			{
+				"datatype": "Bool",
+				"name": "output"
+			}
+		]
 	}, {
 		"type": "arrayToStr",
 		"category": [

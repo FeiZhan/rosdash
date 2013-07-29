@@ -548,6 +548,7 @@ ROSDASH.ToggleButton = function (block)
 	this.block = block;
 	this.canvas_id = "togglebutton_" + this.block.id;
 	this.button_id = "togglebutton2_" + this.block.id;
+	this.value = true;
 }
 ROSDASH.ToggleButton.prototype.addWidget = function (widget)
 {
@@ -557,14 +558,17 @@ ROSDASH.ToggleButton.prototype.addWidget = function (widget)
 ROSDASH.ToggleButton.prototype.init = function ()
 {
 	$('#' + this.canvas_id).wrap('<div id="' + this.button_id + '" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
+	var that = this;
 	$('#' + this.button_id).on('switch-change', function (e, data) {
-		var $el = $(data.el)
-		  , value = data.value;
-		console.log("toggled button");
+		that.value = data.value;
 	});
 	//$('#toggle-state-switch').bootstrapSwitch('toggleState');
 	//$('#toggle-state-switch').bootstrapSwitch('setState', false); // true || false
 
+}
+ROSDASH.ToggleButton.prototype.run = function (input)
+{
+	return {o0: this.value};
 }
 
 ROSDASH.VirtualJoystick = function (block)
@@ -599,7 +603,7 @@ ROSDASH.VirtualJoystick.prototype.run = function (input)
 		up: this.joystick.up(),
 		left: this.joystick.left(),
 		down: this.joystick.down()
-		}};
+	}};
 }
 
 //////////////////////////////////// basic output
