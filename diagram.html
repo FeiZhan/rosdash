@@ -12,6 +12,11 @@
 		<script type="text/javascript" src="lib/dhtmlxSuite/dhtmlxToolbar/codebase/dhtmlxcommon.js"></script>
 		<script type="text/javascript" src="lib/dhtmlxSuite/dhtmlxToolbar/codebase/dhtmlxtoolbar.js"></script>
 		<link rel="stylesheet" type="text/css" href="lib/dhtmlxSuite/dhtmlxToolbar/codebase/skins/dhtmlxtoolbar_dhx_skyblue.css"></link>
+ 		<!-- dhtmlxForm -->
+		<link rel="stylesheet" type="text/css" href="lib/dhtmlxSuite/dhtmlxForm/codebase/skins/dhtmlxform_dhx_skyblue.css"></link>
+		<script src="lib/dhtmlxSuite/dhtmlxForm/codebase/dhtmlxcommon.js"></script>
+		<script src="lib/dhtmlxSuite/dhtmlxForm/codebase/dhtmlxform.js"></script>
+		<!-- roslibjs -->
 		<script src="lib/roslibjs/include/EventEmitter2/eventemitter2.js"></script>
 		<script src="lib/roslibjs/build/roslib.js"></script>
 		<!-- bootstrap -->
@@ -19,25 +24,117 @@
 		<script src="lib/bootstrap/js/bootstrap.js"></script>
 		<script src="rosdash.js"></script>
 		<script src="rosdash-widgets.js"></script>
-		<style>
-#cy {
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  left: 0px;
-  top: 50px;
-}
-		</style>
 	</head>
-	<body>
+	<body style="background-color:AliceBlue;">
 		<div id="toolbarObj"></div>
-		<div id="cy"></div>
+		<div id="myForm" style="position: absolute; left: 0px; top: 50px; width: 200px; height: 90%;"></div>
+		<div id="cy" style="height: 90%; width: 80%; position: absolute; left: 200px; top: 50px;"></div>
 		<script type="text/javascript">
 $(function() {
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "<?php echo $_GET["port"]; ?>");
 	ROSDASH.runDiagram("<?php echo $_GET["user"]; ?>", "<?php echo $_GET["panel"]; ?>", "<?php echo $_GET["selected"]; ?>");
+	doOnLoad()
 });
-//<input type="text" value="a" style="position: absolute; left: 100px; top: 150px;" />
+//<input type="text" value="a" style="position: absolute; left: 100px; top: 150px; z-index: 10;" />
 		</script>
+    <script>
+var myForm,
+formData;
+function doOnLoad() {
+    formData = [{
+        type: "settings",
+        position: "label-left",
+        labelWidth: 130,
+        inputWidth: 120
+    }, {
+        type: "fieldset",
+        label: "Welcome",
+        inputWidth: "auto",
+        list: [{
+            type: "radio",
+            name: "type",
+            label: "Already have account",
+            labelWidth: "auto",
+            position: "label-right",
+            checked: true,
+            list: [{
+                type: "input",
+                label: "Login",
+                value: "p_rossi"
+            }, {
+                type: "password",
+                label: "Password",
+                value: "123"
+            }, {
+                type: "checkbox",
+                label: "Remember me",
+                checked: true
+            }]
+            }, {
+            type: "radio",
+            name: "type",
+            label: "Not registered yet",
+            labelWidth: "auto",
+            position: "label-right",
+            list: [{
+                type: "input",
+                label: "Full Name",
+                value: "Patricia D. Rossi"
+            }, {
+                type: "input",
+                label: "E-mail Address",
+                value: "p_rossi@example.com"
+            }, {
+                type: "input",
+                label: "Login",
+                value: "p_rossi"
+            }, {
+                type: "password",
+                label: "Password",
+                value: "123"
+            }, {
+                type: "password",
+                label: "Confirm Password",
+                value: "123"
+            }, {
+                type: "checkbox",
+                label: "Subscribe on news"
+            }]
+            }, {
+            type: "radio",
+            name: "type",
+            label: "Guest login",
+            labelWidth: "auto",
+            position: "label-right",
+            list: [{
+                type: "select",
+                label: "Account type",
+                options: [{
+                    text: "Admin",
+                    value: "admin"
+                }, {
+                    text: "Organiser",
+                    value: "org"
+                }, {
+                    text: "Power User",
+                    value: "poweruser"
+                }, {
+                    text: "User",
+                    value: "user"
+                }]
+                }, {
+                type: "checkbox",
+                label: "Show logs window"
+            }]
+            }, {
+            type: "button",
+            value: "Proceed"
+        }]
+        }];
+    myForm = new dhtmlXForm("myForm", formData);
+    // or
+    // myForm.loadStruct(formData, "json");
+    }
+</script>
 	</body>
 </html>

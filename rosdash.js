@@ -1789,9 +1789,6 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 	// generate an empty cytoscape diagram
 	$('#cy').cytoscape({
 		showOverlay: false,
-		layout: {
-			name: 'circle'
-		},
 		style: style,
 		elements: empty_ele,
 		ready: function()
