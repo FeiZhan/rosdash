@@ -744,14 +744,6 @@
 		],
 		"output": []
 	}, {
-		"type": "youtube",
-		"category": [
-			"other"
-		],
-		"has_panel": "true",
-		"input": [],
-		"output": []
-	}, {
 		"type": "vumeter",
 		"category": [
 			"output"
@@ -896,6 +888,20 @@
 		"class_name": "ROSDASH.youtube",
 		"has_panel": "true",
 		"input": [],
+		"output": []
+	}, {
+		"type": "jsonEditor",
+		"category": [
+			"user"
+		],
+		"class_name": "ROSDASH.jsonEditor",
+		"has_panel": "true",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "json"
+			}
+		],
 		"output": []
 	}, {
 		"type": "jsonVis",

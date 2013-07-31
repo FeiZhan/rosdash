@@ -1820,6 +1820,54 @@ ROSDASH.panelList.prototype.run = function (input)
 	return {o0: this.list};
 }
 
+ROSDASH.jsonEditor = function (block)
+{
+	this.block = block;
+	this.canvas = "jsonEditor_" + this.block.id;
+	this.json = {
+		"string": "example",
+		"number": 5,
+		"array": [1, 2, 3],
+		"object": {
+			"property": "value",
+			"subobj": {
+				"arr": ["foo", "ha"],
+				"numero": 1
+			}
+		}
+	};
+}
+ROSDASH.jsonEditor.prototype.isDiff = function (json)
+{
+	
+}
+ROSDASH.jsonEditor.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = 
+		'<div id="legend">' +
+			'<span id="expander" style="cursor: pointer; background-color: black; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">Expand all</span>' +
+			'<span class="array" style="background-color: #2D5B89; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">array</span>' +
+			'<span class="object" style="background-color: #E17000; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">object</span>' +
+			'<span class="string" style="background-color: #009408; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">string</span>' +
+			'<span class="number" style="background-color: #497B8D; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">number</span>' +
+			'<span class="boolean" style="background-color: #B1C639; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">boolean</span>' +
+			'<span class="null" style="background-color: #B1C639; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">null</span>' +
+		'</div>' +
+		'<div id="editor" class="json-editor"></div>';
+	return widget;
+}
+ROSDASH.jsonEditor.prototype.init = function ()
+{
+    $('#expander').click(function() {
+        var editor = $('#editor');
+        editor.toggleClass('expanded');
+        $(this).text(editor.hasClass('expanded') ? 'Collapse' : 'Expand all');
+    });
+    $('#editor').jsonEditor(ROSDASH.widget_list);
+}
+ROSDASH.jsonEditor.prototype.run = function (input)
+{}
+
 ROSDASH.jsonVis = function (block)
 {
 	this.block = block;

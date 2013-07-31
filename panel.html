@@ -93,6 +93,7 @@
 		<!-- cytoscape -->
 		<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
 		<!-- jsoneditor -->
+		<link rel="stylesheet" href="lib/FlexiJsonEditor/jsoneditor.css"/>
 		<link rel="stylesheet" href="http://jsonmate.com/stylesheets/style.css"/>
 		<script src="http://jsonmate.com/javascripts/json2.js"></script>
 		<script src="http://jsonmate.com/javascripts/underscore-min.js"></script>
@@ -111,6 +112,15 @@ $(function() {
 	/*var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
 	cities.insert({name:"Portland",state:"OR"});
 	console.debug("db: " + cities({name:"Boston"}).count());*/
+	
+	var myjson = { any: { json: { value: 1 } } };
+    var opt = { 
+        change: function(data) { /* called on every change */ },
+        propertyclick: function(path) { /* called when a property is clicked with the JS path to that property */ }
+    };
+    /* opt.propertyElement = '<textarea>'; */ // element of the property field, <input> is default
+    /* opt.valueElement = '<textarea>'; */  // element of the value field, <input> is default
+    $('#mydiv').jsonEditor(myjson, opt);
 });
 		</script>
 	</head>
