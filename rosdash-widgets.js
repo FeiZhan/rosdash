@@ -1820,6 +1820,86 @@ ROSDASH.panelList.prototype.run = function (input)
 	return {o0: this.list};
 }
 
+ROSDASH.jsonVis = function (block)
+{
+	this.block = block;
+	this.canvas = "jsonVis" + this.block.id;
+	this.json = {
+        "string": "foo",
+        "number": 5,
+        "array": [1, 2, 3],
+        "object": {
+            "property": "value",
+            "subobj": {
+                "arr": ["foo", "ha"],
+                "numero": 1
+            }
+        }
+    };
+}
+ROSDASH.jsonVis.prototype.vizcluster = function (json)
+{
+    var tree = {};
+    treeify(json, 'JSON', tree);
+    $('#' + this.canvas).empty();
+    var w = 900;
+    var h = 900;
+    var rx = w / 2;
+    var ry = h / 2;
+    var cluster = d3.layout.cluster()
+        .size([360, ry - 120])
+        .sort(null);
+    var diagonal = d3.svg.diagonal.radial()
+        .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+    var svg = d3.select('#' + this.canvas).append('div')
+        .style('width', w + 'px')
+        .style('height', w + 'px');
+    var vis = svg.append("svg:svg")
+        .attr("width", w)
+        .attr("height", w)
+        .append("svg:g")
+        .attr("transform", "translate(" + rx + "," + ry + ")");
+    vis.append("svg:path")
+        .attr("class", "arc")
+        .attr("d", d3.svg.arc().innerRadius(ry - 120).outerRadius(ry).startAngle(0).endAngle(2 * Math.PI));
+    var nodes = cluster.nodes(tree);
+    var link = vis.selectAll("path.link")
+        .data(cluster.links(nodes))
+        .enter().append("svg:path")
+        .attr("class", "link")
+        .attr("d", diagonal);
+    var node = vis.selectAll("g.node")
+        .data(nodes)
+        .enter().append("svg:g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+    node.append("svg:circle")
+        .attr("r", 3);
+    node.append("svg:text")
+        .attr("dx", function(d) { return d.x < 180 ? 8 : -8; })
+        .attr("dy", ".31em")
+        .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+        .attr("transform", function(d) { return d.x < 180 ? null : "rotate(180)"; })
+        .text(function(d) { return d.name; });
+}
+ROSDASH.jsonVis.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas + '"></div>';
+	return widget;
+}
+ROSDASH.jsonVis.prototype.init = function ()
+{
+	this.vizcluster(this.json);
+}
+ROSDASH.jsonVis.prototype.run = function (input)
+{
+	if (undefined === input || "" == input)
+	{
+		return;
+	}
+	this.vizcluster(input);
+}
+
 //////////////////////////////////// for fun
 
 ROSDASH.youtube = function (block)

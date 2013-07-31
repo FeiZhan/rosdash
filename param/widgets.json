@@ -897,5 +897,14 @@
 		"has_panel": "true",
 		"input": [],
 		"output": []
+	}, {
+		"type": "jsonVis",
+		"category": [
+			"user"
+		],
+		"class_name": "ROSDASH.jsonVis",
+		"has_panel": "true",
+		"input": [],
+		"output": []
 	}
 ]}
