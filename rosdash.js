@@ -95,6 +95,89 @@ ROSDASH.saveProperty = function (dialog)
 	});
 }
 
+ROSDASH.form_canvas = "rosform";
+ROSDASH.form_data = [{
+	type: "fieldset",
+	label: "ROSDASH",
+	name: "rosform",
+	inputWidth: "auto",
+	list: [{
+		type: "button",
+		value: "add ROS item",
+		name: "addROSitem"
+	}, {
+		type: "button",
+		value: "add block",
+		name: "addblock"
+	}, {
+		type: "button",
+		value: "add constant",
+		name: "addconstant"
+	}]
+}];
+ROSDASH.form;
+ROSDASH.initForm = function ()
+{
+	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
+}
+ROSDASH.blockForm = function (block)
+{
+	if (undefined === block || undefined === block.type)
+	{
+		return;
+	}
+	ROSDASH.form.unload();
+	ROSDASH.form_data = [{
+        type: "fieldset",
+        label: block.id,
+        name: "rosform",
+        inputWidth: "auto",
+        list: []
+	}];
+	var list;
+	switch (block.type)
+	{
+	case "constant":
+		list = {
+			type: "input",
+			label: "value",
+			rows: 5,
+			value: block.value
+		};
+		ROSDASH.form_data[0].list.push(list);
+		break;
+	case "topic":
+	case "service":
+		list = {
+			type: "input",
+			label: "rosname",
+			rows: 2,
+			value: block.rosname
+		};
+		ROSDASH.form_data[0].list.push(list);
+		list = {
+			type: "input",
+			label: "rostype",
+			rows: 2,
+			value: block.rostype
+		};
+		ROSDASH.form_data[0].list.push(list);
+		break;
+	case "param":
+		list = {
+			type: "input",
+			label: "rosname",
+			rows: 2,
+			value: block.rosname
+		};
+		ROSDASH.form_data[0].list.push(list);
+		break;
+	default:
+		break;
+	}
+	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
+}
+
 ///////////////////////////////////// toolbar
 
 ROSDASH.toolbar = undefined;
@@ -1269,6 +1352,7 @@ ROSDASH.selectBlockCallback = function (evt)
 			var widget = ROSDASH.widget_def[block.type];
 			// add a popup to selected block to show description
 			ROSDASH.addBlockPopup(block);
+			ROSDASH.blockForm(block);
 			if (undefined !== block.type)
 			{
 				html += "<p>type: " + block.type + "</p>";
@@ -1778,7 +1862,7 @@ ROSDASH.loadDiagram = function (json)
 }
 ROSDASH.runDiagram = function (user, panel_name, selected)
 {
-	ROSDASH.initDialog();
+	ROSDASH.initForm();
 	ROSDASH.initDiagramToolbar();
 	ROSDASH.setUser(user, panel_name);
 	ROSDASH.user_conf.view_type = "diagram";
