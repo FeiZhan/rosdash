@@ -118,7 +118,7 @@ ROSDASH.form_data = [{
 ROSDASH.form;
 ROSDASH.initForm = function ()
 {
-	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
+	//ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
 }
 ROSDASH.blockForm = function (block)
 {
@@ -126,7 +126,10 @@ ROSDASH.blockForm = function (block)
 	{
 		return;
 	}
-	ROSDASH.form.unload();
+	/*if (undefined !== ROSDASH.form)
+	{
+		ROSDASH.form.unload();
+	}
 	ROSDASH.form_data = [{
         type: "fieldset",
         label: block.id,
@@ -173,9 +176,24 @@ ROSDASH.blockForm = function (block)
 		ROSDASH.form_data[0].list.push(list);
 		break;
 	default:
+		ROSDASH.jsonForm(block);
 		break;
 	}
-	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
+	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);*/
+	//$('#' + ROSDASH.form_canvas).html('<span>' + block.id + '</span>');
+	ROSDASH.jsonForm(block);
+}
+ROSDASH.updateJsonForm = function (data)
+{
+	console.debug(data)
+}
+ROSDASH.jsonForm = function (json)
+{
+	if (undefined === json)
+	{
+		json = new Object();
+	}
+	$('#jsoneditor').jsonEditor(json, { change: ROSDASH.updateJsonForm, propertyclick: null });
 }
 
 ///////////////////////////////////// toolbar

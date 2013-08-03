@@ -1730,12 +1730,19 @@ ROSDASH.userWelcome = function (block)
 }
 ROSDASH.userWelcome.prototype.run = function (input)
 {
-	var output = '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.user_conf.name + ' !</h1><p>';
-	if (undefined !== ROSDASH.user_conf.discrip && "" != ROSDASH.user_conf.discrip)
+	var output = "";
+	if ("index" == ROSDASH.user_conf.name)
 	{
-		output += ROSDASH.user_conf.discrip + '</p><p>';
+		output += '<h1 style="color:blue;">Welcome to ROSDASH !</h1><p>';
+	} else
+	{
+		output += '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.user_conf.name + ' !</h1><p>';
+		if (undefined !== ROSDASH.user_conf.discrip && "" != ROSDASH.user_conf.discrip)
+		{
+			output += ROSDASH.user_conf.discrip + '</p>';
+		}
 	}
-	output += 'Please select your panel or diagram from the list on the right.</p>';
+	output += '<p>Please select your panel or diagram from the list on the right.</p>';
 		//+ '<p>or add new panel or diagram.</p>';
 	return {o0: output};
 }
@@ -1844,8 +1851,8 @@ ROSDASH.jsonEditor.prototype.isDiff = function (json)
 ROSDASH.jsonEditor.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = 
-		'<div id="legend">' +
-			'<span id="expander" style="cursor: pointer; background-color: black; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">Expand all</span>' +
+		'<div id="' + this.canvas + 'legend">' +
+			'<span id="' + this.canvas + 'expander" style="cursor: pointer; background-color: black; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">Expand all</span>' +
 			'<span class="array" style="background-color: #2D5B89; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">array</span>' +
 			'<span class="object" style="background-color: #E17000; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">object</span>' +
 			'<span class="string" style="background-color: #009408; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">string</span>' +
@@ -1853,17 +1860,18 @@ ROSDASH.jsonEditor.prototype.addWidget = function (widget)
 			'<span class="boolean" style="background-color: #B1C639; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">boolean</span>' +
 			'<span class="null" style="background-color: #B1C639; padding: 2px 4px; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; color: white; font-weight: bold; text-shadow: 1px 1px 1px black;">null</span>' +
 		'</div>' +
-		'<div id="editor" class="json-editor"></div>';
+		'<div id="' + this.canvas + '" class="json-editor"></div>';
 	return widget;
 }
 ROSDASH.jsonEditor.prototype.init = function ()
 {
-    $('#expander').click(function() {
-        var editor = $('#editor');
+	var that = this;
+    $('#' + this.canvas + 'expander').click(function() {
+        var editor = $('#' + that.canvas);
         editor.toggleClass('expanded');
         $(this).text(editor.hasClass('expanded') ? 'Collapse' : 'Expand all');
     });
-    $('#editor').jsonEditor(ROSDASH.widget_list);
+    $('#' + that.canvas).jsonEditor(ROSDASH.widget_list);
 }
 ROSDASH.jsonEditor.prototype.run = function (input)
 {}
@@ -1941,11 +1949,11 @@ ROSDASH.jsonVis.prototype.init = function ()
 }
 ROSDASH.jsonVis.prototype.run = function (input)
 {
-	if (undefined === input || "" == input)
+	if (undefined === input[0] || "" == input[0])
 	{
 		return;
 	}
-	this.vizcluster(input);
+	this.vizcluster(input[0]);
 }
 
 //////////////////////////////////// for fun
