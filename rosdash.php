@@ -38,7 +38,86 @@ function getPanelList ()
 	// Close
 	closedir($dir_handle);
 }
-
+function newUser ()
+{
+	$user = $_POST['username'];
+	if ("" == $user || " " == $user)
+	{
+		echo "user name error: ".$user;
+		return false;
+	}
+	// create user dir
+	$old_mask = umask(0); 
+	if (! mkdir("file/".$user, 0777))
+	{
+		echo "unable to make dir: ".$user;
+		return false;
+	}
+	umask($old_mask);
+	// create user conf
+	$conf = file_get_contents("file/index/conf.json");
+	if (! $conf)
+	{
+		echo "unable to get default conf";
+		return false;
+	}
+	$json = json_decode($conf, true);
+	$json["user"] = $user;
+	$json["discrip"] = "";
+	if (! file_put_contents('file/'.$user.'/conf.json', json_encode($json)))
+	{
+		echo "unable to create user conf file";
+		return false;
+	}
+	if (! chmod('file/'.$user.'/conf.json', 0777))
+	{
+		echo "unable to chmod user conf file";
+		return false;
+	}
+	// create index panel
+	$conf = file_get_contents("file/index/new-panel.json");
+	if (! $conf)
+	{
+		echo "unable to get default index panel page";
+		return false;
+	}
+	$json = json_decode($conf, true);
+	$json["user"] = $user;
+	$json["discrip"] = "";
+	$json["panel_name"] = "index";
+	if (! file_put_contents('file/'.$user.'/index-panel.json', json_encode($json)))
+	{
+		echo "unable to create index panel file";
+		return false;
+	}
+	if (! chmod('file/'.$user.'/index-panel.json', 0777))
+	{
+		echo "unable to chmod index panel file";
+		return false;
+	}
+	// create index diagram
+	$conf = file_get_contents("file/index/new-diagram.json");
+	if (! $conf)
+	{
+		echo "unable to get default index diagram page";
+		return false;
+	}
+	$json = json_decode($conf, true);
+	$json["user"] = $user;
+	$json["discrip"] = "";
+	$json["panel_name"] = "index";
+	if (! file_put_contents('file/'.$user.'/index-diagram.json', json_encode($json)))
+	{
+		echo "unable to create index diagram file";
+		return false;
+	}
+	if (! chmod('file/'.$user.'/index-diagram.json', 0777))
+	{
+		echo "unable to chmod index diagram file";
+		return false;
+	}
+	return true;
+}
 // call corresponding method according to $method
 function callMethod ($func)
 {

@@ -612,6 +612,8 @@ ROSDASH.VirtualJoystick.prototype.run = function (input)
 ROSDASH.Text = function (block)
 {
 	this.block = block;
+	this.title;
+	this.content;
 }
 //@input	header and content strings
 //@output	none
@@ -620,8 +622,16 @@ ROSDASH.Text.prototype.run = function (input)
 	// default value for inputs
 	input[0] = (undefined === input[0]) ? this.block.name : input[0];
 	input[1] = (undefined === input[1]) ? "(empty content)" : input[1];
-	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
-	$("#myDashboard").sDashboard("setContentById", this.block.id, input[1]);
+	if (this.title != input[0])
+	{
+		this.title = input[0];
+		$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
+	}
+	if (this.content != input[1])
+	{
+		this.content = input[1];
+		$("#myDashboard").sDashboard("setContentById", this.block.id, input[1]);
+	}
 }
 
 // text widget with speaking widget
@@ -1727,23 +1737,75 @@ ROSDASH.userList.prototype.run = function (input)
 ROSDASH.userWelcome = function (block)
 {
 	this.block = block;
+	this.success = false;
+}
+ROSDASH.userWelcome.prototype.signup = function (name)
+{
+	var self = this;
+	$.ajax({
+		type: "POST",
+		url: "rosdash.php",
+		data: {
+			func: "newUser",
+			username: name
+		},
+		success: function( data, textStatus, jqXHR )
+		{
+			console.log("newUser success: ", data);
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			console.log("newUser error: ", jqXHR, textStatus, errorThrown);
+		}
+	}).always(function( data, textStatus, jqXHR ) {
+	});
+}
+ROSDASH.userWelcome.prototype.newPanel = function (name)
+{
+	console.debug("new panel", name);
 }
 ROSDASH.userWelcome.prototype.run = function (input)
 {
 	var output = "";
+	var that = this;
 	if ("index" == ROSDASH.user_conf.name)
 	{
-		output += '<h1 style="color:blue;">Welcome to ROSDASH !</h1><p>';
+		output += '<h1 style="color:blue;">Welcome to ROSDASH !</h1>'
+			+ '<p style="color:Navy;">A web-based platform of dashboards for roboticists and ROS users.</p>'
+			+ '<p>Please select your user name from the list on the right, or</p>'
+			+ '<p>Sign up '
+				+ '<input type="text" name="name" id="newname_' + this.block.id + '">'
+				+ '<input type="button" value="Submit" id="submit_' + this.block.id + '">'
+			+ '</p>';
+		if (! this.success && $("#submit_" + that.block.id).length > 0)
+		{
+			$("#submit_" + that.block.id).click(function ()
+			{
+				that.signup($("#newname_" + that.block.id).val());
+			});
+			this.success = true;
+		}
 	} else
 	{
-		output += '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.user_conf.name + ' !</h1><p>';
+		output += '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.user_conf.name + ' !</h1>';
 		if (undefined !== ROSDASH.user_conf.discrip && "" != ROSDASH.user_conf.discrip)
 		{
-			output += ROSDASH.user_conf.discrip + '</p>';
+			output += '<p style="color:Navy;">' + ROSDASH.user_conf.discrip + '</p>';
+		}
+		output += '<p>Please select your panel or diagram from the list to the right, or</p>'
+			+ '<p>Add a new one '
+				+ '<input type="text" name="name" id="newname_' + this.block.id + '">'
+				+ '<input type="button" value="Submit" id="submit_' + this.block.id + '">'
+			+ '</p>';
+		if (! this.success && $("#submit_" + that.block.id).length > 0)
+		{
+			$("#submit_" + that.block.id).click(function ()
+			{
+				that.newPanel($("#newname_" + that.block.id).val());
+			});
+			this.success = true;
 		}
 	}
-	output += '<p>Please select your panel or diagram from the list on the right.</p>';
-		//+ '<p>or add new panel or diagram.</p>';
 	return {o0: output};
 }
 
