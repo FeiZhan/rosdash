@@ -708,6 +708,7 @@ ROSDASH.Table.prototype.run = function (input)
 			aoColumns.push({sTitle: input[1][i]});
 		}
 	}
+	// for content
 	var aaData = new Array();
 	for (var i in input[2])
 	{
@@ -861,6 +862,21 @@ ROSDASH.cyNetwork.prototype.run = function (input)
 		this.init();
 	}
 	return {o0: this.cy};
+}
+
+ROSDASH.cyNetworkLoadOnce = function (block)
+{
+	this.block = block;
+	this.success = false;
+}
+ROSDASH.cyNetworkLoadOnce.prototype.run = function (input)
+{
+	if (! this.success && undefined !== input[0] && undefined !== input[1])
+	{
+		input[0].load(input[1]);
+		this.success = true;
+	}
+	return {o0: input[0]};
 }
 
 ROSDASH.cyDiagram = function (block)
@@ -1683,6 +1699,15 @@ ROSDASH.GmapSimRobotByJoystick.prototype.run = function (input)
 
 //////////////////////////////////// user interfaces
 
+ROSDASH.userConf = function (block)
+{
+	this.block = block;
+}
+ROSDASH.userConf.prototype.run = function (input)
+{
+	return {o0: ROSDASH.user_conf};
+}
+
 // user list
 ROSDASH.userList = function (block)
 {
@@ -1712,7 +1737,7 @@ ROSDASH.userList.prototype.init = function ()
 			{
 				if ("" != d[i] && " " != d[i])
 				{
-					self.list.push('<a href="panel.html?user=' + d[i] + '" target="_blank">' + d[i] + '</a>');
+					self.list.push('<a href="panel.html?user=' + d[i] + '">' + d[i] + '</a>');
 				}
 			}
 		},
@@ -1751,11 +1776,12 @@ ROSDASH.userWelcome.prototype.signup = function (name)
 		},
 		success: function( data, textStatus, jqXHR )
 		{
-			console.log("newUser success: ", data);
+			console.log("newUser success", data);
+			location.replace("panel.html?user=" + name);
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
-			console.log("newUser error: ", jqXHR, textStatus, errorThrown);
+			console.log("newUser error", jqXHR, textStatus, errorThrown);
 		}
 	}).always(function( data, textStatus, jqXHR ) {
 	});
@@ -1763,6 +1789,26 @@ ROSDASH.userWelcome.prototype.signup = function (name)
 ROSDASH.userWelcome.prototype.newPanel = function (name)
 {
 	console.debug("new panel", name);
+	var self = this;
+	$.ajax({
+		type: "POST",
+		url: "rosdash.php",
+		data: {
+			func: "newPanel",
+			username: ROSDASH.user_conf.name,
+			panel: name,
+		},
+		success: function( data, textStatus, jqXHR )
+		{
+			console.log("newUser success: ", data);
+			location.replace("panel.html?user=" + ROSDASH.user_conf.name + "&panel=" + name);
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			console.log("newUser error: ", jqXHR, textStatus, errorThrown);
+		}
+	}).always(function( data, textStatus, jqXHR ) {
+	});
 }
 ROSDASH.userWelcome.prototype.run = function (input)
 {
@@ -1893,6 +1939,7 @@ ROSDASH.jsonEditor = function (block)
 {
 	this.block = block;
 	this.canvas = "jsonEditor_" + this.block.id;
+	this.success = false;
 	this.json = {
 		"string": "example",
 		"number": 5,
@@ -1909,6 +1956,11 @@ ROSDASH.jsonEditor = function (block)
 ROSDASH.jsonEditor.prototype.isDiff = function (json)
 {
 	
+}
+ROSDASH.jsonEditor.prototype.updateJson = function (data)
+{
+	this.json = data;
+	console.debug(this.json, ROSDASH.user_conf)
 }
 ROSDASH.jsonEditor.prototype.addWidget = function (widget)
 {
@@ -1933,10 +1985,18 @@ ROSDASH.jsonEditor.prototype.init = function ()
         editor.toggleClass('expanded');
         $(this).text(editor.hasClass('expanded') ? 'Collapse' : 'Expand all');
     });
-    $('#' + that.canvas).jsonEditor(ROSDASH.widget_list);
+    $('#' + that.canvas).jsonEditor(this.json);
 }
 ROSDASH.jsonEditor.prototype.run = function (input)
-{}
+{
+	var that = this;
+	if (! this.success && (typeof input[0] == "object" || typeof input[0] == "array"))
+	{
+		that.json = input[0];
+		$('#' + that.canvas).jsonEditor(that.json, { change: that.updateJson, propertyclick: null });
+		this.success = true;
+	}
+}
 
 ROSDASH.jsonVis = function (block)
 {

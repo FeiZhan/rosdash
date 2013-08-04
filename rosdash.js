@@ -1324,7 +1324,7 @@ ROSDASH.findBlock = function (id)
 			window.cy.center(block);
 		} else
 		{
-			console.debug("cannot find", id);
+			console.log("cannot find", id);
 		}
 	}
 	return block;

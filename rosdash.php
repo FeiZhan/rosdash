@@ -118,6 +118,64 @@ function newUser ()
 	}
 	return true;
 }
+function newPanel ()
+{
+	$user = $_POST['username'];
+	if ("" == $user || " " == $user)
+	{
+		echo "user name error: ".$user;
+		return false;
+	}
+	$panel = $_POST['panel'];
+	if ("" == $panel || " " == $panel)
+	{
+		echo "panel name error: ".$panel;
+		return false;
+	}
+	// create panel
+	$conf = file_get_contents("file/index/empty-panel.json");
+	if (! $conf)
+	{
+		echo "unable to get empty panel page";
+		return false;
+	}
+	$json = json_decode($conf, true);
+	$json["user"] = $user;
+	$json["discrip"] = "";
+	$json["panel_name"] = $panel;
+	if (! file_put_contents('file/'.$user.'/'.$panel.'-panel.json', json_encode($json)))
+	{
+		echo "unable to create panel file";
+		return false;
+	}
+	if (! chmod('file/'.$user.'/'.$panel.'-panel.json', 0777))
+	{
+		echo "unable to chmod panel file";
+		return false;
+	}
+	// create index diagram
+	$conf = file_get_contents("file/index/empty-diagram.json");
+	if (! $conf)
+	{
+		echo "unable to get empty diagram page";
+		return false;
+	}
+	$json = json_decode($conf, true);
+	$json["user"] = $user;
+	$json["discrip"] = "";
+	$json["panel_name"] = $panel;
+	if (! file_put_contents('file/'.$user.'/'.$panel.'-diagram.json', json_encode($json)))
+	{
+		echo "unable to create diagram file";
+		return false;
+	}
+	if (! chmod('file/'.$user.'/'.$panel.'-diagram.json', 0777))
+	{
+		echo "unable to chmod diagram file";
+		return false;
+	}
+	return true;
+}
 // call corresponding method according to $method
 function callMethod ($func)
 {

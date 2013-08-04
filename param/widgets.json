@@ -845,6 +845,28 @@
 			}
 		]
 	}, {
+		"type": "cyNetworkLoadOnce",
+		"category": [
+			"network"
+		],
+		"class_name": "ROSDASH.cyNetworkLoadOnce",
+		"has_panel": "true",
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "cy"
+			}, {
+				"datatype": "Object",
+				"name": "eles"
+			}
+		],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "cy"
+			}
+		]
+	}, {
 		"type": "cyDiagram",
 		"category": [
 			"network"
@@ -912,5 +934,18 @@
 		"has_panel": "true",
 		"input": [],
 		"output": []
+	}, {
+		"type": "userConf",
+		"category": [
+			"user"
+		],
+		"class_name": "ROSDASH.userConf",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "conf"
+			}
+		]
 	}
 ]}
