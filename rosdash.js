@@ -116,15 +116,38 @@ ROSDASH.form_data = [{
 	}]
 }];
 ROSDASH.form;
+ROSDASH.form_conf = false;
 ROSDASH.initForm = function ()
 {
 	//ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
+	$('#' + ROSDASH.form_canvas).html('<p>ROSDASH</p><button id="conf_form" type="button">config</button><button id="property_form" type="button">property</button>');
+	$("#conf_form").click(function () {
+		ROSDASH.form_conf = true;
+		ROSDASH.blockForm(ROSDASH.blocks[ROSDASH.selected_block]);
+	});
+	$("#property_form").click(function () {
+		ROSDASH.form_conf = false;
+		ROSDASH.blockForm(ROSDASH.blocks[ROSDASH.selected_block]);
+	});
+	$("#property_form").hide();
 }
 ROSDASH.blockForm = function (block)
 {
-	if (undefined === block || undefined === block.type)
+	if (undefined === block && undefined === ROSDASH.form_conf)
 	{
 		return;
+	} else if (undefined === ROSDASH.form_conf || false == ROSDASH.form_conf)
+	{
+		$("#property_form").hide();
+		$("#conf_form").show();
+		$('#' + ROSDASH.form_canvas).find("p").html(block.id + " property");
+		ROSDASH.jsonForm(block);
+	} else
+	{
+		$("#conf_form").hide();
+		$("#property_form").show();
+		$('#' + ROSDASH.form_canvas).find("p").html(block.id + " config");
+		ROSDASH.jsonForm(block.config);
 	}
 	/*if (undefined !== ROSDASH.form)
 	{
@@ -180,12 +203,16 @@ ROSDASH.blockForm = function (block)
 		break;
 	}
 	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);*/
-	//$('#' + ROSDASH.form_canvas).html('<span>' + block.id + '</span>');
-	ROSDASH.jsonForm(block);
 }
 ROSDASH.updateJsonForm = function (data)
 {
-	console.debug(data)
+	if (ROSDASH.form_conf)
+	{
+		ROSDASH.blocks[ROSDASH.selected_block].config = data;
+	} else
+	{
+		ROSDASH.blocks[ROSDASH.selected_block] = data;
+	}
 }
 ROSDASH.jsonForm = function (json)
 {
@@ -1090,6 +1117,26 @@ ROSDASH.addConstant = function (const_type)
 	};
 	return ROSDASH.addBlock(block);
 }
+ROSDASH.transformBlockConfig = function (raw)
+{
+	for (var i in raw)
+	{
+		if ("true" == raw[i])
+		{
+			raw[i] = true;
+		} else if ("false" == raw[i])
+		{
+			raw[i] = false;
+		} else if ("null" == raw[i])
+		{
+			raw[i] = null;
+		} else if (typeof raw[i] == "object")
+		{
+			raw[i] = ROSDASH.transformBlockConfig(raw[i]);
+		}
+	}
+	return raw;
+}
 ROSDASH.addBlock = function (def)
 {
 	var block = ROSDASH.initBlockConf(def);
@@ -1097,6 +1144,16 @@ ROSDASH.addBlock = function (def)
 	if (undefined === block)
 	{
 		return;
+	}
+	if (undefined === def.config)
+	{
+		if (undefined !== ROSDASH.widget_def[def.type].config)
+		{
+			def.config = ROSDASH.transformBlockConfig(ROSDASH.widget_def[def.type].config);
+		}
+	} else
+	{
+		def.config = ROSDASH.transformBlockConfig(def.config);
 	}
 	// if no position specified, use the position for a new block
 	var next_pos = ROSDASH.getNextNewBlockPos();
@@ -1364,12 +1421,15 @@ ROSDASH.selectBlockCallback = function (evt)
 				html += "<p>output: " + widget.output[pin_num].name + " (" + widget.output[pin_num].datatype + ")</p>";
 			}
 		// select body
-		} else if (evt.cyTarget.hasClass("body"))
+		}
+		else if (evt.cyTarget.hasClass("body"))
 		{
 			var block = ROSDASH.blocks[id];
 			var widget = ROSDASH.widget_def[block.type];
 			// add a popup to selected block to show description
 			ROSDASH.addBlockPopup(block);
+			// a sidebar for block json information
+			ROSDASH.form_conf = false;
 			ROSDASH.blockForm(block);
 			if (undefined !== block.type)
 			{
@@ -2352,6 +2412,13 @@ ROSDASH.readDiagram = function ()
 	{
 		console.log("read diagram: ", ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-diagram.json');
 		ROSDASH.diagram = data;
+		for (var i in ROSDASH.diagram.block)
+		{
+			if (undefined !== ROSDASH.diagram.block[i].config)
+			{
+				ROSDASH.diagram.block[i].config = ROSDASH.transformBlockConfig(ROSDASH.diagram.block[i].config);
+			}
+		}
 		ROSDASH.traverseDiagram();
 	}).error(function(d) {
 		console.error("read diagram error: ", ROSDASH.user_conf.name + "/" + ROSDASH.user_conf.panel_name + '-diagram.json', d);

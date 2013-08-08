@@ -1397,7 +1397,6 @@ ROSDASH.Flot = function (block)
 				return v.toFixed(2);
 			}
 		},
-		grid: {show: true},
 		legend: { position: "nw" },
 		grid: {
 			show: true,
@@ -1426,6 +1425,11 @@ ROSDASH.Flot.prototype.getDefaultData = function ()
 ROSDASH.Flot.prototype.init = function ()
 {
 	var id = "flot_" + this.block.id;
+	if (undefined !== this.block.config)
+	{
+		this.option = this.block.config;
+	}
+	console.debug(this.option)
 	// if the canvas exists
 	if ($("#" + id).length > 0)
 	{
@@ -1788,7 +1792,6 @@ ROSDASH.userWelcome.prototype.signup = function (name)
 }
 ROSDASH.userWelcome.prototype.newPanel = function (name)
 {
-	console.debug("new panel", name);
 	var self = this;
 	$.ajax({
 		type: "POST",
