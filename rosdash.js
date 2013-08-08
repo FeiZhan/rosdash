@@ -2,6 +2,7 @@ var ROSDASH = new Object();
 
 ///////////////////////////////////// constant parameters
 
+
 ///////////////////////////////////// dialog
 
 //@deprecated dialog form
@@ -95,6 +96,7 @@ ROSDASH.saveProperty = function (dialog)
 	});
 }
 
+// sidebar form by FlexiJsonEditor
 ROSDASH.form_canvas = "rosform";
 ROSDASH.form_data = [{
 	type: "fieldset",
@@ -116,7 +118,9 @@ ROSDASH.form_data = [{
 	}]
 }];
 ROSDASH.form;
+// if it is a config or not
 ROSDASH.form_conf = false;
+// init the sidebar when start
 ROSDASH.initForm = function ()
 {
 	//ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
@@ -129,20 +133,25 @@ ROSDASH.initForm = function ()
 		ROSDASH.form_conf = false;
 		ROSDASH.blockForm(ROSDASH.blocks[ROSDASH.selected_block]);
 	});
+	// initially hide the button
 	$("#property_form").hide();
+	$("#conf_form").hide();
 }
+// a form for block
 ROSDASH.blockForm = function (block)
 {
 	if (undefined === block && undefined === ROSDASH.form_conf)
 	{
 		return;
-	} else if (undefined === ROSDASH.form_conf || false == ROSDASH.form_conf)
+	}
+	// for property of block
+	else if (undefined === ROSDASH.form_conf || false == ROSDASH.form_conf)
 	{
 		$("#property_form").hide();
 		$("#conf_form").show();
 		$('#' + ROSDASH.form_canvas).find("p").html(block.id + " property");
 		ROSDASH.jsonForm(block);
-	} else
+	} else // for config of block
 	{
 		$("#conf_form").hide();
 		$("#property_form").show();
@@ -204,6 +213,7 @@ ROSDASH.blockForm = function (block)
 	}
 	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);*/
 }
+// when changes, update the form
 ROSDASH.updateJsonForm = function (data)
 {
 	if (ROSDASH.form_conf)
@@ -214,6 +224,7 @@ ROSDASH.updateJsonForm = function (data)
 		ROSDASH.blocks[ROSDASH.selected_block] = data;
 	}
 }
+// show the form
 ROSDASH.jsonForm = function (json)
 {
 	if (undefined === json)
@@ -225,32 +236,39 @@ ROSDASH.jsonForm = function (json)
 
 ///////////////////////////////////// toolbar
 
-ROSDASH.toolbar = undefined;
+// toolbar above for both panel and diagram
+ROSDASH.toolbar;
 ROSDASH.list_depth;
+// list the content in toolbar
 //@todo reconfigure
 ROSDASH.listInToolbar = function ()
 {
+	// remove the original items
 	ROSDASH.toolbar.forEachItem(function(itemId) {
 		if (itemId != "logo")
 		{
 			ROSDASH.toolbar.removeItem(itemId);
 		}
     });
+    // add button for back to main toolbar
     ROSDASH.toolbar.addButton("main", 1, "", "redo.gif", "redo_dis.gif");
     var count = 1;
+    // show items for the list
     for (var i in ROSDASH.list_depth)
     {
+		// an item
 		if (typeof ROSDASH.list_depth[i] == "string")
 		{
 			ROSDASH.toolbar.addButton("list-" + ROSDASH.list_depth[i], ++ count, ROSDASH.list_depth[i], "settings.gif", "settings.gif");
 		} else if ("_" == i)
 		{
 			continue;
-		} else
+		} else // an directory
 		{
 			ROSDASH.toolbar.addButton("list-" + i, ++ count, i, "other.gif", "other.gif");
 		}
 	}
+	// show items in a directory
 	if ("_" in ROSDASH.list_depth)
 	{
 		var list = ROSDASH.list_depth["_"];
@@ -269,17 +287,22 @@ ROSDASH.listInToolbar = function ()
 		}
 	}
 }
+// list the property of a widget or block
 ROSDASH.listProperty = function (type)
 {
+	// remove previous items
 	ROSDASH.toolbar.forEachItem(function(itemId){
 		if (itemId != "logo" && itemId != "input")
 		{
 			ROSDASH.toolbar.removeItem(itemId);
 		}
     });
+    // set property of selected item
     ROSDASH.toolbar.addButton("setproperty", 2, "set property", "paste.gif", "paste_dis.gif");
+    // back to main toolbar
     ROSDASH.toolbar.addButton("main", 3, "back", "redo.gif", "redo_dis.gif");
 	var selected;
+	// choose between panel or diagram
 	switch (type)
 	{
 	case "panel":
@@ -298,12 +321,14 @@ ROSDASH.listProperty = function (type)
 		break;
 	}
 	var count = 3;
+	// add buttons for each property item
 	for (var i in selected)
 	{
 		ROSDASH.toolbar.addButton("property-" + i, ++ count, i, "settings.gif", "settings.gif");
 	}
 }
 ROSDASH.selected_property;
+// init the toolbar for panel
 ROSDASH.initPanelToolbar = function ()
 {
 	if ($("#toolbarObj").length <= 0)
@@ -313,11 +338,14 @@ ROSDASH.initPanelToolbar = function ()
 	}
 	if (undefined === ROSDASH.toolbar)
 	{
+		// default settings for toolbar
 		ROSDASH.toolbar = new dhtmlXToolbarObject("toolbarObj");
 		ROSDASH.toolbar.setIconSize(32);
 		ROSDASH.toolbar.setIconsPath("lib/dhtmlxSuite/dhtmlxToolbar/samples/common/imgs/");
+		// onclick event for each button in toolbar
 		ROSDASH.toolbar.attachEvent("onClick", function(id)
 		{
+			// if widget property buttons
 			if ("property-" == id.substring(0, 9))
 			{
 				if (undefined === ROSDASH.selected_widget)
@@ -326,26 +354,27 @@ ROSDASH.initPanelToolbar = function ()
 				}
 				var selected = ROSDASH.widgets[ROSDASH.selected_widget];
 				var property = id.substring(9);
+				// show the value of selected property in the input box
 				ROSDASH.toolbar.setValue("input", selected[property], true);
 				ROSDASH.selected_property = property;
 				return;
 			}
 			switch (id)
 			{
-			case "main":
+			case "main": // back to main view of toolbar
 				ROSDASH.initPanelToolbar();
 				break;
-			case "addwidget":
+			case "addwidget": // add a new widget by the input box
 				ROSDASH.addWidgetByType(ROSDASH.toolbar.getValue("input"));
 				break;
-			case "listwidget":
+			case "listwidget": // list items of widget
 				ROSDASH.list_depth = ROSDASH.widget_list;
 				ROSDASH.listInToolbar();
 				break;
-			case "adddiagram":
+			case "adddiagram":// add widget to diagram
 				ROSDASH.addToDiagram();
 				break;
-			case "save":
+			case "save": // save to json file
 				ROSDASH.savePanel();
 				break;
 			case "undo":
@@ -354,15 +383,16 @@ ROSDASH.initPanelToolbar = function ()
 			case "redo":
 				console.log("redo");
 				break;
-			case "property":
+			case "property": // list the property of selected widget
 				//ROSDASH.showProperty();
 				ROSDASH.listProperty("panel");
 				break;
-			case "setproperty":
+			case "setproperty": // set the property of selected widget
 				ROSDASH.setWidgetProperty();
 				break;
-			case "diagram":
+			case "diagram": // open the corresponding diagram
 				var url = 'diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + ROSDASH.user_conf.panel_name + '&host=' + ROSDASH.user_conf.ros_host + '&port=' + ROSDASH.user_conf.ros_port;
+				// if an item is selected, diagram should focus on that
 				if (undefined !== ROSDASH.selected_widget)
 				{
 					url += '&selected=' + ROSDASH.selected_widget;
@@ -370,18 +400,22 @@ ROSDASH.initPanelToolbar = function ()
 				window.open(url);
 				break;
 			default:
+				// maybe clicked a widget or a directory in toolbar
 				var widget_id = id.substring(5);
 				if (widget_id in ROSDASH.list_depth)
 				{
+					// clicked a widget, add it
 					if (typeof ROSDASH.list_depth[widget_id] == "string")
 					{
 						ROSDASH.addWidgetByType(widget_id);
-					} else
+					} else // clicked a directory, open it
 					{
 						ROSDASH.list_depth = ROSDASH.list_depth[widget_id];
 						ROSDASH.listInToolbar();
 					}
-				} else if (("_" in ROSDASH.list_depth))
+				}
+				// list widgets in a directory
+				else if (("_" in ROSDASH.list_depth))
 				{
 					for (var i in ROSDASH.list_depth["_"])
 					{
@@ -398,14 +432,17 @@ ROSDASH.initPanelToolbar = function ()
 			}
 		});
 	}
+	// remove previous items
 	ROSDASH.toolbar.forEachItem(function(itemId)
 	{
 		ROSDASH.toolbar.removeItem(itemId);
 	});
 	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
+	// add user name to logo text
 	if ("index" != ROSDASH.user_conf.name)
 	{
 		logo_text += '-<a href="panel.html?user=' + ROSDASH.user_conf.name + '" target="_blank">' + ROSDASH.user_conf.name + '</a>';
+		// add panel name to logo text
 		if ("index" != ROSDASH.user_conf.panel_name)
 		{
 			logo_text += "-" + ROSDASH.user_conf.panel_name;
@@ -422,6 +459,7 @@ ROSDASH.initPanelToolbar = function ()
     ROSDASH.toolbar.addButton("property", 8, "property", "paste.gif", "paste_dis.gif");
     ROSDASH.toolbar.addButton("diagram", 9, "diagram", "database.gif", "database.gif");
 }
+// set the property of widget
 ROSDASH.setWidgetProperty = function ()
 {
 	if (undefined === ROSDASH.selected_widget)
@@ -430,6 +468,7 @@ ROSDASH.setWidgetProperty = function ()
 	}
 	var selected = ROSDASH.widgets[ROSDASH.selected_widget];
 	var value = ROSDASH.toolbar.getValue("input");
+	// if set proper property
 	switch (ROSDASH.selected_property)
 	{
 	case "id":
@@ -443,6 +482,7 @@ ROSDASH.setWidgetProperty = function ()
 		break;
 	}
 }
+// init the toolbar for diagram
 ROSDASH.initDiagramToolbar = function ()
 {
 	if ($("#toolbarObj").length <= 0)
@@ -452,9 +492,11 @@ ROSDASH.initDiagramToolbar = function ()
 	}
 	if (undefined === ROSDASH.toolbar)
 	{
+		// basic settings for toolbar
 		ROSDASH.toolbar = new dhtmlXToolbarObject("toolbarObj");
 		ROSDASH.toolbar.setIconSize(32);
 		ROSDASH.toolbar.setIconsPath("lib/dhtmlxSuite/dhtmlxToolbar/samples/common/imgs/");
+		//@here onclick event for items in toolbar
 		ROSDASH.toolbar.attachEvent("onClick", function(id)
 		{
 			if ("property-" == id.substring(0, 9))
