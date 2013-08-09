@@ -1897,6 +1897,7 @@ ROSDASH.default_style = cytoscape.stylesheet()
 		'border-width': 0,
 	});
 // save data to json in server
+//@bug PHP will ignore empty json part
 ROSDASH.saveJson = function (data, filename)
 {
 	$.ajax({

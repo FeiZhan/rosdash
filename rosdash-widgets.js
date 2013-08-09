@@ -1061,8 +1061,8 @@ ROSDASH.Ros3d.prototype.init = function ()
 		// Create the main viewer.
 		this.viewer = new ROS3D.Viewer({
 		  divID : this.canvas_id,
-		  width : ROSDASH.user_conf.widget_width,
-		  height : ROSDASH.user_conf.content_height,
+		  width : 600, //ROSDASH.user_conf.widget_width,
+		  height : 600, //ROSDASH.user_conf.content_height,
 		  antialias : true
 		});
 		this.viewer.addObject(new ROS3D.Grid());
@@ -1429,7 +1429,6 @@ ROSDASH.Flot.prototype.init = function ()
 	{
 		this.option = this.block.config;
 	}
-	console.debug(this.option)
 	// if the canvas exists
 	if ($("#" + id).length > 0)
 	{

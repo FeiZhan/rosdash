@@ -854,7 +854,12 @@
 		],
 		"class_name": "ROSDASH.cyNetwork",
 		"has_panel": "true",
-		"input": [],
+		"input": [
+			{
+				"datatype": "Object",
+				"name": "cyLoadOnce"
+			}
+		],
 		"output": [
 			{
 				"datatype": "Object",

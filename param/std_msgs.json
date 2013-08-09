@@ -91,5 +91,15 @@
 				"name": "a"
 			}
 		]
+	}, {
+		"name": "json",
+		"package": "std_msgs",
+		"field_num": 1,
+		"field": [
+			{
+				"type": "json",
+				"name": "json"
+			}
+		]
 	}
 ]}
