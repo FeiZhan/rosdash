@@ -1053,7 +1053,13 @@ ROSDASH.loadConfJson = function ()
 }
 ROSDASH.checkWidgetTypeValid = function (name)
 {
-	return (name in ROSDASH.widget_def);
+	if ((name in ROSDASH.widget_def) && undefined !== ROSDASH.widget_def[name].class_name)
+	{
+		return true;
+	} else
+	{
+		return false;
+	}
 }
 
 ///////////////////////////////////// blocks
@@ -1215,12 +1221,24 @@ ROSDASH.addBlock = function (def)
 		color = "Gold";
 		break;
 	}
+	// true name, temporarily for old blocks
+	var true_name = block.name;
+	if ("constant" == def.type && undefined !== def.value)
+	{
+		if ("array" == typeof def.value || "object" == typeof def.value)
+		{
+			true_name = JSON.stringify(def.value);
+		} else
+		{
+			true_name = def.value;
+		}
+	}
 	// add the body of the block
 	var body = window.cy.add({
 		group: "nodes",
 		data: {
 			id: block.id,
-			name: block.name,
+			name: true_name, //block.name,
 			faveColor: color,
 		},
 		position: { x: block.x, y: block.y },
@@ -1271,25 +1289,44 @@ ROSDASH.initBlockConf = function (def)
 	} else if (ROSDASH.checkMsgTypeValid(def.type))
 	{
 		block = def;
-		block.type = "constant";
+		// should be in front of other elements
 		block.list_name = def.type;
-		block.constant = true;
 		block.constname = def.type;
+		block.type = "constant";
+		block.constant = true;
 		block.value = "";
 	} else
 	{
 		// the widget type is invalid, and the error message is sent from ROSDASH.checkWidgetTypeValid
 		return undefined;
 	}
-	block.input_num = ROSDASH.widget_def[def.type].input.length;
-	block.input = ROSDASH.widget_def[def.type].input;
-	block.output_num = ROSDASH.widget_def[def.type].output.length;
-	block.output = ROSDASH.widget_def[def.type].output;
+	if (undefined !== ROSDASH.widget_def[def.type].input)
+	{
+		block.input_num = ROSDASH.widget_def[def.type].input.length;
+		block.input = ROSDASH.widget_def[def.type].input;
+	} else
+	{
+		block.input_num = 0;
+		block.input = new Array();
+	}
+	if (undefined !== ROSDASH.widget_def[def.type].output)
+	{
+		block.output_num = ROSDASH.widget_def[def.type].output.length;
+		block.output = ROSDASH.widget_def[def.type].output;
+	} else
+	{
+		block.output_num = 0;
+		block.output = new Array();
+	}
 	return block;
 }
 // determine the block number
 ROSDASH.getBlockNum = function (def, block_type)
 {
+	if (typeof def.number == "string")
+	{
+		def.number = parseInt(def.number);
+	}
 	// if no block number specified
 	if (undefined === def.number)
 	{
@@ -1307,18 +1344,32 @@ ROSDASH.getBlockNum = function (def, block_type)
 		}
 		def.number = ROSDASH.widget_def[block_type].count;
 		def.id = block_type + "-" +  ROSDASH.widget_def[block_type].count;
-		def.name = block_type + " " +  ROSDASH.widget_def[block_type].count;
+		if ("constant" == def.type && undefined !== def.value)
+		{
+			if ("array" == typeof def.value || "object" == typeof def.value)
+			{
+				def.name = JSON.stringify(def.value);
+			} else
+			{
+				def.name = def.value;
+			}
+		} else
+		{
+			def.name = block_type + " " +  ROSDASH.widget_def[block_type].count;
+		}
 	}
 	// if no widget_def, initialize to def.number
 	else if (undefined === ROSDASH.widget_def[block_type])
 	{
 		ROSDASH.widget_def[block_type] = new Object();
 		ROSDASH.widget_def[block_type].count = def.number;
-	}	// if no count, initialize to def.number
+	}
+	// if no count, initialize to def.number
 	else if (undefined === ROSDASH.widget_def[block_type].count)
 	{
 		ROSDASH.widget_def[block_type].count = 0;
-	}	// if larger than count, set count to def.number
+	}
+	// if larger than count, set count to def.number
 	else if (def.number > ROSDASH.widget_def[block_type].count)
 	{
 		ROSDASH.widget_def[block_type].count = def.number;
@@ -1330,7 +1381,7 @@ ROSDASH.getBlockNum = function (def, block_type)
 			if (block_type == ROSDASH.blocks[i].type && def.number == ROSDASH.blocks[i].number)
 			{
 				console.error("block number conflicts: " + def.id);
-				return;
+				return def;
 			}
 		}
 	}

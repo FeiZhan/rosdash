@@ -23,7 +23,7 @@
 		"input": [
 			{
 				"datatype": "universal",
-				"name": "input0"
+				"name": "input"
 			}, {
 				"datatype": "universal",
 				"name": "input1"
