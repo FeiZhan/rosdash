@@ -1072,6 +1072,7 @@ ROSDASH.INPUT_POS = {
 	"3": [[-70, -20], [-70, 0], [-70, 20]],
 	"4": [[-70, -30], [-70, -10], [-70, 10], [-70, 30]],
 	"5": [[-70, -40], [-70, -20], [-70, 0], [-70, 20], [-70, 40]],
+	"6": [[-70, -50], [-70, -30], [-70, -10], [-70, 10], [-70, 30], [-70, 50]],
 	// more is coming
 };
 ROSDASH.OUTPUT_POS = {
@@ -1302,8 +1303,9 @@ ROSDASH.initBlockConf = function (def)
 	}
 	if (undefined !== ROSDASH.widget_def[def.type].input)
 	{
+		var tmp = ROSDASH.widget_def[def.type].input.slice();
 		block.input_num = ROSDASH.widget_def[def.type].input.length;
-		block.input = ROSDASH.widget_def[def.type].input;
+		block.input = tmp;
 	} else
 	{
 		block.input_num = 0;
@@ -1311,8 +1313,9 @@ ROSDASH.initBlockConf = function (def)
 	}
 	if (undefined !== ROSDASH.widget_def[def.type].output)
 	{
+		var tmp = ROSDASH.widget_def[def.type].output.slice();
 		block.output_num = ROSDASH.widget_def[def.type].output.length;
-		block.output = ROSDASH.widget_def[def.type].output;
+		block.output = tmp;
 	} else
 	{
 		block.output_num = 0;
@@ -1429,21 +1432,46 @@ ROSDASH.getPinNum = function (pin)
 	return parseFloat(pin.substring(index + 2));
 }
 // change the pins of a block
-//@todo
-ROSDASH.changePin = function (block, pin_type, pin_num, action)
+ROSDASH.changePin = function (id, pin_type, action)
 {
-	var tmp = block;
-	ROSDASH.removeBlock(block.id);
+	var block = ROSDASH.blocks[id.substring(0, id.length - 2)];
+	if (undefined === block)
+	{
+		return;
+	}
+	var count = 0;
 	switch (action)
 	{
 	case "add":
-		tmp[pin_type][pin_num].exist = true;
-		break;
-	case "remove":
-		tmp[pin_type][pin_num].exist = false;
+		for (var i in block[pin_type])
+		{
+			if ("true" == block[pin_type][i].addKey)
+			{
+				++ count;
+				var tmp = jQuery.extend(true, {}, block[pin_type][i]);
+				tmp.addKey = "false";
+				block[pin_type].push(tmp);
+				window.cy.add({
+					group: "nodes",
+					data: {
+						id: block.id + "-i" + (block[pin_type].length - 1)
+					},
+					position: { x: block.x, y: block.y },
+					classes: pin_type,
+					locked: true
+				});
+				console.debug(block[pin_type])
+			}
+		}
+		if (count)
+		{
+			for (var i in block[pin_type])
+			{
+				window.cy.nodes("#" + block.id + "-" + pin_type.substring(0, 1) + i).position({x : block.x + ROSDASH.INPUT_POS[block[pin_type].length][i][0], y : block.y + ROSDASH.INPUT_POS[block[pin_type].length][i][1]});
+			}
+		}
 		break;
 	}
-	ROSDASH.addBlock(tmp);
 }
 
 ///////////////////////////////////// block actions
@@ -1513,8 +1541,8 @@ ROSDASH.selectBlockCallback = function (evt)
 			{
 				html += "<p>output: " + widget.output[pin_num].name + " (" + widget.output[pin_num].datatype + ")</p>";
 			}
-		// select body
 		}
+		// select body
 		else if (evt.cyTarget.hasClass("body"))
 		{
 			var block = ROSDASH.blocks[id];
@@ -1566,6 +1594,13 @@ ROSDASH.selectBlockCallback = function (evt)
 			if (block.constant)
 			{
 				html += 'value: <input type="text" name="value" value="' + block.value + '" class="text ui-widget-content ui-corner-all" />';
+			}
+		}
+		else if (evt.cyTarget.hasClass("popup"))
+		{
+			if (evt.cyTarget.id().substring(evt.cyTarget.id().length - 2) == "-a")
+			{
+				ROSDASH.changePin(evt.cyTarget.id(), "input", "add");
 			}
 		} else
 		{
@@ -1850,14 +1885,44 @@ ROSDASH.addBlockPopup = function (target)
 		});
 	}
 	// popup names for inputs
-	for (var i = 0; i < target.input_num; ++ i)
+	for (var i = 0; i < target.input.length; ++ i)
 	{
 		ROSDASH.addPinPopup(target, "input", i);
 	}
 	// popup names for outputs
-	for (var i = 0; i < target.output_num; ++ i)
+	for (var i = 0; i < target.output.length; ++ i)
 	{
 		ROSDASH.addPinPopup(target, "output", i);
+	}
+	// popup for add a new pin
+	for (var i in target.input)
+	{
+		if ("true" == target.input[i].addKey)
+		{
+			window.cy.add({
+				group: "nodes",
+				data: {
+					id: target.id + "-a",
+					name: "add key",
+					weight: 100,
+					height: 80,
+					faveShape: "roundrectangle",
+					"faveColor": "Coral",
+				},
+				position: { x: target.x, y: target.y - 200 },
+				classes: "popup"
+			});
+			window.cy.add({
+				group: "edges",
+				"data": {
+				"source": target.id + "-a",
+				"target": target.id,
+				"strength": 100,
+				'target-arrow-shape': 'triangle'
+				}
+			});
+			break;
+		}
 	}
 }
 ROSDASH.addEdgePopup = function (edge)

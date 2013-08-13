@@ -161,10 +161,12 @@
 		"input": [
 			{
 				"datatype": "universal",
-				"name": "key"
+				"name": "key",
+				"addKey": "true"
 			}, {
 				"datatype": "universal",
-				"name": "value"
+				"name": "value",
+				"addKey": "true"
 			}
 		],
 		"output": [
