@@ -1,0 +1,15 @@
+.treetable span {
+	cursor: pointer;	}
+
+	/* Styles for the analysis columns */
+	.treetable span.property {
+		padding: 0 0 0 12px;
+		width: 200px;	}
+
+	.treetable span.type {
+		text-align: center;
+		width: 70px;	}
+
+	.treetable span.value {
+		text-align: center;
+		width: 250px;	}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Tree</title>
+
+	<!-- Aristo has some very nice styles for buttons, headers, etc. -->
+	<link type=text/css rel=stylesheet href='css/Aristo/jquery-ui-1.8.7.custom.css' />
+	<!-- Oh, jQuery, how doth we love thee... -->
+	<script src='js/jquery-1.5.1.js'></script>
+	<script src='js/jquery-ui-1.8.13.custom.min.js'></script>
+
+	<link type=text/css rel=stylesheet href='tree.css' />
+	<script src='tree.js'></script>
+
+	<link type=text/css rel=stylesheet href='treeify.css' />
+	<script src='treeify.js'></script>
+</head>
+<body>
+<div id="tree-wrapper">
+
+	<a href="tree.zip">Download stand-alone zip</a>
+</div>
+<script>
+$(function(){
+	var obj = {'id':'485a3ac4-2af0-4ae0-8807-243c5ce44ec5','items':[{'id':'0cec00fd-8b66-4cdf-9d02-934e0022e3ed','fieldType':'Cdm.Record','fieldValue':{'id':'e438a5f3-949c-458d-846b-576f7502dde2','Name':{'id':'19ea39c9-3796-46d6-9a6a-78f24fe2ede3','fieldType':'Cdm.Simple.String','fieldValue':'City_1023'},'Population':{'id':'c87dadf3-05f2-4c76-82bb-687e5caef971','fieldType':'Cdm.Simple.Integer','fieldValue':413977}}},{'id':'aad3f6b2-e9d2-47f5-ac88-1d1fe429dbf5','fieldType':'Cdm.Record','fieldValue':{'id':'26be2ca6-e95f-4820-bbe1-1b7a87e94d94','Name':{'id':'086c8946-7420-462f-ad1f-0eb64423873b','fieldType':'Cdm.Simple.String','fieldValue':'City_1022'},'Population':{'id':'0607ab9b-a154-441e-a9ad-7e8d33f4c534','fieldType':'Cdm.Simple.Integer','fieldValue':1442359}}},{'id':'73257b56-4d0d-418e-a979-fd876ac8e9d6','fieldType':'Cdm.Record','fieldValue':{'id':'7e990feb-5393-4fe2-9b0a-931e05d7a558','Name':{'id':'8001dd71-13f2-44a2-bf45-7f6422bc7f43','fieldType':'Cdm.Simple.String','fieldValue':'City_1021'},'Population':{'id':'ef01d5c5-49bf-49f7-b4d5-bbd7b54e5960','fieldType':'Cdm.Simple.Integer','fieldValue':513460}}},{'id':'695095c6-d46a-4a4f-858a-c2190a232ed0','fieldType':'Cdm.Record','fieldValue':{'id':'22aa1eed-70d7-4410-ae10-150cc78c661f','Name':{'id':'83a6036c-5908-4b59-9f31-bd0961fbd12e','fieldType':'Cdm.Simple.String','fieldValue':'City_1020'},'Population':{'id':'64007852-8bdc-4bab-8d7f-c72057d5732b','fieldType':'Cdm.Simple.Integer','fieldValue':892215}}},{'id':'17269e60-1d90-4f88-a162-3ffbaed7f2ef','fieldType':'Cdm.Record','fieldValue':{'id':'db9d1742-7fbd-46e4-9a27-9840fdfb5ddf','Name':{'id':'bd2ae763-b3ac-4b23-95af-7188d4fb6b62','fieldType':'Cdm.Simple.String','fieldValue':'City_1019'},'Population':{'id':'e0a5607f-d47d-4f7e-a118-7015be351fa0','fieldType':'Cdm.Simple.Integer','fieldValue':782794}}},{'id':'ef538a50-0058-4e9f-a8d5-abf762233b33','fieldType':'Cdm.Record','fieldValue':{'id':'7c81b1a8-1767-451a-8fc7-1f6d78ba61ca','Name':{'id':'8afe72b6-e8ab-44fd-a8d4-9ff44665fc5a','fieldType':'Cdm.Simple.String','fieldValue':'City_1018'},'Population':{'id':'1da8f4d4-5061-4a79-b278-a4540d675095','fieldType':'Cdm.Simple.Integer','fieldValue':662420}}},{'id':'fbf0a30b-9b14-4797-a84d-990eb214f945','fieldType':'Cdm.Record','fieldValue':{'id':'28a00508-d5fc-4e0f-9c2f-579648139ae5','Name':{'id':'3ff186c7-ea77-4920-a7b1-bfb7b64be3c9','fieldType':'Cdm.Simple.String','fieldValue':'City_1017'},'Population':{'id':'23680d8f-5dda-4c3a-9a0d-c7910da94483','fieldType':'Cdm.Simple.Integer','fieldValue':1377620}}},{'id':'1142bf2c-5060-4cd5-aa56-ad1155cbdb5d','fieldType':'Cdm.Record','fieldValue':{'id':'a177229e-b206-48cc-a109-44f5761ff0dd','Name':{'id':'3466e7a7-ed83-4076-b071-781b541f77cf','fieldType':'Cdm.Simple.String','fieldValue':'City_1016'},'Population':{'id':'383586c0-8106-4936-bde8-826ce978b02c','fieldType':'Cdm.Simple.Integer','fieldValue':1416526}}},{'id':'e22990bb-11ee-4b20-a5d4-eda1b01ccfcc','fieldType':'Cdm.Record','fieldValue':{'id':'85666129-4c6f-4eba-90b9-8595018b03c7','Name':{'id':'41f6ce82-8d53-4a01-8c26-275eb1f9af7d','fieldType':'Cdm.Simple.String','fieldValue':'City_1015'},'Population':{'id':'5b148db2-f5ed-4a5b-9523-b7ce49e1bbb9','fieldType':'Cdm.Simple.Integer','fieldValue':221362}}},{'id':'4f984e39-9c1d-4728-9a6c-365c95f281cd','fieldType':'Cdm.Record','fieldValue':{'id':'a6cd9bcb-89e7-4e83-a853-f7a9208c8266','Name':{'id':'ae047d22-11b8-45b4-ab67-2536634b6442','fieldType':'Cdm.Simple.String','fieldValue':'City_1014'},'Population':{'id':'637aadd4-445e-4d56-9bfb-ea132191f150','fieldType':'Cdm.Simple.Integer','fieldValue':1398486}}}]};
+
+	var tree = Treeify(obj);
+	$("#tree-wrapper").prepend(tree);
+});
+</script>
+</body>
+</html>

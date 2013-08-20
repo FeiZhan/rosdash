@@ -1,0 +1,57 @@
+/* Get the whole thing in a nice, slim box in the center of the page. */
+#tree-wrapper {
+	width: 750px;
+	margin: 0 auto;	}
+
+#tree {
+	}
+
+	#tree .head {
+		}
+
+/*		#tree .head span {*/
+/*			cursor: default;	}*/
+
+	#tree span {
+		cursor: pointer;	}
+
+		/* Styles for the analysis columns */
+		#tree span.aspect {
+			padding: 0 0 0 12px;
+			width: 340px;	}
+
+		#tree span.weight {
+			text-align: center;
+			width: 70px;	}
+
+		#tree span.grade {
+			text-align: center;
+			width: 70px;	}
+
+		#tree span.cost {
+			text-align: center;
+			width: 70px;	}
+
+		#tree span.value {
+			cursor: default;
+			text-align: center;
+			width: 70px;	}
+
+		#tree span.aggregate {
+			font-weight: bold;
+			cursor: default;	}
+
+.head, .footer {
+	cursor: default;	}
+
+.footer {
+	height: 1%;
+	overflow: auto;	}
+
+	.footer .buttons {
+		float: right;	}
+
+/* UI Styles */
+.ui-slider {
+	cursor: pointer;	}
+

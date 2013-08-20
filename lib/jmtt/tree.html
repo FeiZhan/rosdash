@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Tree</title>
+
+	<!-- Aristo has some very nice styles for buttons, headers, etc. -->
+	<link type=text/css rel=stylesheet href='css/Aristo/jquery-ui-1.8.7.custom.css' />
+	<!-- Oh, jQuery, how doth we love thee... -->
+	<script src='js/jquery-1.5.1.js'></script>
+	<script src='js/jquery-ui-1.8.13.custom.min.js'></script>
+
+	<link type=text/css rel=stylesheet href='tree.css' />
+	<script src='tree.js'></script>
+
+	<link type=text/css rel=stylesheet href='analysis.css' />
+	<script src='analysis.js'></script>
+</head>
+<body>
+<div id="tree-wrapper">
+
+<!--
+As far as HTML goes, we want this to be as simple as possible. Currently, no
+jQuery plugin I am aware of uses uls to structure the tree data. I think this
+is not a good thing- the tree relationship is the more important aspect of a
+tree table, and using ul/li lets the html capture those semantics without
+resorting to attaching classes to the trs. Of course, this leaves the question
+of where table cells come from.
+
+Tables use 6 tags <table>, <thead>, <tbody>, <tr>, <th>, and <td> to achieve
+their effects. Of these, <thead> and <tbody> can be subsumed into <tr> classes.
+<th> is rarely necessary, since it is assumed as thead>tr. This leaves us with
+needing <table>, <tr>, and <td>. <table> and <tr> are clearly <ul> and <li>,
+leaving <div> and <span> as the potential choices for representing cells. I
+chose span. To be flexible, it can be whatever you want (pass {"cell_tag":"p"}
+to the ctor), as long as it's consistent.
+
+To make the cells at least appear to be in a sensible column arrangement, the
+tree needs spans with a fixed-width layout (px or %, no ems). To not make it
+super obnoxious to type classes for every span, only the first li of the first
+head needs to have classes. Those classes will be cloned to every cell
+thereafter. There are two reserved classes. class.expander will be prepended to
+every row, and will have the open/close control. class.controls will be appeneded
+to every row, and will have the add child, add sibling, and delete node controls.
+
+-->
+	<ul id="tree">
+		<li class="head">
+			<span class="aspect">Aspect</span><span class="weight">Weight</span><span class="grade">Grade</span><span class="cost"/>Cost</span><span class="value"/>G/$</span>
+		</li>
+		<li>
+			<span>Software Develoment</span><span>70%</span><span></span>
+			<ul>
+				<li>
+					<span>Design</span><span>30%</span><span></span>
+					<ul>
+						<li>
+							<span>Requirements</span><span>33%</span><span>85</span><span>30</span>
+						</li>
+						<li>
+							<span>Mockups</span><span>33%</span><span>90</span><span>5</span>
+						</li>
+						<li>
+							<span>Planning</span><span>33%</span><span>60</span><span>50</span>
+						</li>
+					</ul>
+				</li>
+				<li>
+					<span>Development</span><span>50%</span><span>80</span><span>70</span>
+				</li>
+				<li>
+					<span>QA</span><span>20%</span><span>50</span><span>100</span>
+				</li>
+			</ul>
+		</li>
+		<li>
+			<span>Marketing</span><span>30%</span><span></span>
+			<ul>
+				<li>
+					<span>Online</span><span>45%</span><span>85</span><span>10</span>
+				</li>
+				<li>
+					<span>Print</span><span>35%</span><span>60</span><span>25</span>
+				</li>
+				<li>
+					<span>Radio</span><span>25%</span><span>75</span><span>15</span>
+				</li>
+			</ul>
+		</li>
+	</ul>
+
+	<a href="tree.zip">Download stand-alone zip</a>
+</div>
+<script>
+$(function(){
+	var analysis = new Analysis('#tree');
+	analysis.calculate();
+});
+</script>
+</body>
+</html>
