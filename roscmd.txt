@@ -1,0 +1,27 @@
+main:
+
+roscore
+roslaunch rosbridge_server rosbridge_websocket.launch
+
+basic topics:
+
+rostopic pub /listener std_msgs/String "Hello, World"
+
+ros 2d 3d:
+
+rosrun map_server map_server /opt/ros/groovy/share/rail_maps/ps/ilab.pgm 0.05
+
+turtlesim:
+
+rosrun turtlesim turtle_teleop_key
+
+mjpeg server:
+
+rosrun mjpeg_server mjpeg_server
+rosbag play wall2.bag
+http://192.168.1.116:8080/stream?topic=/ardrone/image_raw
+
+keyboard teleop js:
+
+roslaunch pr2_gazebo pr2_empty_world.launch
+roslaunch rosbridge_server rosbridge_websocket.launch

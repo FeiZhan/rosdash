@@ -980,7 +980,7 @@ ROSDASH.Turtlesim.prototype.addWidget = function (widget)
 ROSDASH.Turtlesim.prototype.init = function ()
 {
 	//@note a traditional ROS connection
-	var ros = new ROS('ws://192.168.1.125:9090');
+	var ros = new ROS('ws://localhost:9090');
 	var self = this;
 	ros.on('connection', function()
 	{
