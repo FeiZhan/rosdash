@@ -9,7 +9,7 @@ rostopic pub /listener std_msgs/String "Hello, World"
 
 ros 2d 3d:
 
-rosrun map_server map_server /opt/ros/groovy/share/rail_maps/ps/ilab.pgm 0.05
+rosrun map_server map_server /opt/ros/groovy/share/rail_maps/maps/ilab.pgm 0.05
 
 turtlesim:
 
@@ -21,7 +21,18 @@ rosrun mjpeg_server mjpeg_server
 rosbag play wall2.bag
 http://192.168.1.116:8080/stream?topic=/ardrone/image_raw
 
-keyboard teleop js:
+keyboard teleop js, mjpegcanvasjs:
 
 roslaunch pr2_gazebo pr2_empty_world.launch
 roslaunch rosbridge_server rosbridge_websocket.launch
+
+nav2djs:
+
+roslaunch pr2_gazebo pr2_wg_world.launch
+roslaunch pr2_tuckarm tuck_arms.launch
+rosrun robot_pose_publisher robot_pose_publisher
+
+pi_face_tracker_gui:
+
+roslaunch ros2opencv openni_node.launch
+roslaunch pi_face_tracker face_tracker_kinect.launch
