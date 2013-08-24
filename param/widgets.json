@@ -959,11 +959,11 @@
 		"input": [],
 		"output": []
 	}, {
-		"type": "userConf",
+		"type": "userConfig",
 		"category": [
 			"user"
 		],
-		"class_name": "ROSDASH.userConf",
+		"class_name": "ROSDASH.userConfig",
 		"input": [],
 		"output": [
 			{

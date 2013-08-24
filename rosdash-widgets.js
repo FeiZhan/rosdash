@@ -354,27 +354,27 @@ ROSDASH.RosList.prototype.run = function (input)
 {
 	var output = new Array();
 	var tmp = new Array();
-	var max = Math.max( Math.max(ROSDASH.ros_msg.topic["_"].length, ROSDASH.ros_msg.service["_"].length), ROSDASH.ros_msg.param["_"].length);
+	var max = Math.max( Math.max(ROSDASH.rosNames.topic["_"].length, ROSDASH.rosNames.service["_"].length), ROSDASH.rosNames.param["_"].length);
 	for (var i = 0; i < max; ++ i)
 	{
 		tmp = new Array();
-		if (ROSDASH.ros_msg.topic["_"].length > i)
+		if (ROSDASH.rosNames.topic["_"].length > i)
 		{
-			tmp[0] = ROSDASH.ros_msg.topic["_"][i];
+			tmp[0] = ROSDASH.rosNames.topic["_"][i];
 		} else
 		{
 			tmp[0] = " ";
 		}
-		if (ROSDASH.ros_msg.service["_"].length > i)
+		if (ROSDASH.rosNames.service["_"].length > i)
 		{
-			tmp[1] = ROSDASH.ros_msg.service["_"][i];
+			tmp[1] = ROSDASH.rosNames.service["_"][i];
 		} else
 		{
 			tmp[1] = " ";
 		}
-		if (ROSDASH.ros_msg.param["_"].length > i)
+		if (ROSDASH.rosNames.param["_"].length > i)
 		{
-			tmp[2] = ROSDASH.ros_msg.param["_"][i];
+			tmp[2] = ROSDASH.rosNames.param["_"][i];
 		} else
 		{
 			tmp[2] = " ";
@@ -390,7 +390,7 @@ ROSDASH.TopicList = function (block)
 }
 ROSDASH.TopicList.prototype.run = function (input)
 {
-	return {o0: ROSDASH.ros_msg.topic["_"]};
+	return {o0: ROSDASH.rosNames.topic["_"]};
 }
 
 // ROS topic
@@ -904,7 +904,7 @@ ROSDASH.cyDiagram.prototype.init = function ()
 	{
 		return;
 	}
-	ROSDASH.runDiagram(ROSDASH.user_conf.name, ROSDASH.user_conf.panel_name, undefined);
+	ROSDASH.runDiagram(ROSDASH.userConf.name, ROSDASH.userConf.panel_name, undefined);
 	this.init_success = true;
 }
 
@@ -974,7 +974,7 @@ ROSDASH.Turtlesim = function (block)
 }
 ROSDASH.Turtlesim.prototype.addWidget = function (widget)
 {
-	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="' + ROSDASH.user_conf.widget_width + 'px" height="' + ROSDASH.user_conf.content_height + 'px" style="border: 1px solid black"></canvas>';
+	widget.widgetContent = '<canvas id="' + this.canvas_id + '" width="' + ROSDASH.userConf.widget_width + 'px" height="' + ROSDASH.userConf.content_height + 'px" style="border: 1px solid black"></canvas>';
 	return widget;
 }
 ROSDASH.Turtlesim.prototype.init = function ()
@@ -1014,8 +1014,8 @@ ROSDASH.Ros2d.prototype.init = function ()
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
 		  divID : this.canvas_id,
-		  width : ROSDASH.user_conf.widget_width,
-		  height : ROSDASH.user_conf.content_height
+		  width : ROSDASH.userConf.widget_width,
+		  height : ROSDASH.userConf.content_height
 		});
 		// Setup the map client.
 		var gridClient = new ROS2D.OccupancyGridClient({
@@ -1061,8 +1061,8 @@ ROSDASH.Ros3d.prototype.init = function ()
 		// Create the main viewer.
 		this.viewer = new ROS3D.Viewer({
 		  divID : this.canvas_id,
-		  width : 600, //ROSDASH.user_conf.widget_width,
-		  height : 600, //ROSDASH.user_conf.content_height,
+		  width : 600, //ROSDASH.userConf.widget_width,
+		  height : 600, //ROSDASH.userConf.content_height,
 		  antialias : true
 		});
 		this.viewer.addObject(new ROS3D.Grid());
@@ -1263,9 +1263,9 @@ ROSDASH.RosMjpeg.prototype.init = function ()
 	}
 	this.viewer = new MJPEGCANVAS.Viewer({
 		divID : this.canvas,
-		host : ROSDASH.user_conf.ros_host,
-		width : 640, //ROSDASH.user_conf.widget_width,
-		height : 480, //ROSDASH.user_conf.content_height,
+		host : ROSDASH.userConf.ros_host,
+		width : 640, //ROSDASH.userConf.widget_width,
+		height : 480, //ROSDASH.userConf.content_height,
 		// get from block config
 		topic : '/ardrone/image_raw'
 	});
@@ -1750,13 +1750,13 @@ ROSDASH.GmapSimRobotByJoystick.prototype.run = function (input)
 
 //////////////////////////////////// user interfaces
 
-ROSDASH.userConf = function (block)
+ROSDASH.userConfig = function (block)
 {
 	this.block = block;
 }
-ROSDASH.userConf.prototype.run = function (input)
+ROSDASH.userConfig.prototype.run = function (input)
 {
-	return {o0: ROSDASH.user_conf};
+	return {o0: ROSDASH.userConf};
 }
 
 // user list
@@ -1845,13 +1845,13 @@ ROSDASH.userWelcome.prototype.newPanel = function (name)
 		url: "rosdash.php",
 		data: {
 			func: "newPanel",
-			username: ROSDASH.user_conf.name,
+			username: ROSDASH.userConf.name,
 			panel: name,
 		},
 		success: function( data, textStatus, jqXHR )
 		{
 			console.log("newUser success: ", data);
-			location.replace("panel.html?user=" + ROSDASH.user_conf.name + "&panel=" + name);
+			location.replace("panel.html?user=" + ROSDASH.userConf.name + "&panel=" + name);
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
@@ -1864,7 +1864,7 @@ ROSDASH.userWelcome.prototype.run = function (input)
 {
 	var output = "";
 	var that = this;
-	if ("index" == ROSDASH.user_conf.name)
+	if ("index" == ROSDASH.userConf.name)
 	{
 		output += '<h1 style="color:blue;">Welcome to ROSDASH !</h1>'
 			+ '<p style="color:Navy;">A web-based platform of dashboards for roboticists and ROS users.</p>'
@@ -1883,10 +1883,10 @@ ROSDASH.userWelcome.prototype.run = function (input)
 		}
 	} else
 	{
-		output += '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.user_conf.name + ' !</h1>';
-		if (undefined !== ROSDASH.user_conf.discrip && "" != ROSDASH.user_conf.discrip)
+		output += '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.userConf.name + ' !</h1>';
+		if (undefined !== ROSDASH.userConf.discrip && "" != ROSDASH.userConf.discrip)
 		{
-			output += '<p style="color:Navy;">' + ROSDASH.user_conf.discrip + '</p>';
+			output += '<p style="color:Navy;">' + ROSDASH.userConf.discrip + '</p>';
 		}
 		output += '<p>Please select your panel or diagram from the list to the right, or</p>'
 			+ '<p>Add a new one '
@@ -1924,7 +1924,7 @@ ROSDASH.panelList.prototype.init = function ()
 		url: "rosdash.php",
 		data: {
 			func: "getPanelList",
-			user: ROSDASH.user_conf.name
+			user: ROSDASH.userConf.name
 		},
 		success: function( data, textStatus, jqXHR )
 		{
@@ -1943,10 +1943,10 @@ ROSDASH.panelList.prototype.init = function ()
 					} else if (d[i].substring(pos) == "-panel.json")
 					{
 						self.list.push(file_name);
-						self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
+						self.list.push('<a href="panel.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
 						if (d.indexOf(file_name + "-diagram.json") != -1)
 						{
-							self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
+							self.list.push('<a href="diagram.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
 							d.splice(d.indexOf(file_name + "-diagram.json"), 1);
 						} else
 						{
@@ -1957,13 +1957,13 @@ ROSDASH.panelList.prototype.init = function ()
 						self.list.push(file_name);
 						if (d.indexOf(file_name + "-panel.json") != -1)
 						{
-							self.list.push('<a href="panel.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
+							self.list.push('<a href="panel.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
 							d.splice(d.indexOf(file_name + "-panel.json"), 1);
 						} else
 						{
 							self.list.push(" ");
 						}
-						self.list.push('<a href="diagram.html?user=' + ROSDASH.user_conf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
+						self.list.push('<a href="diagram.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
 					}
 				}
 			}
@@ -2010,7 +2010,7 @@ ROSDASH.jsonEditor.prototype.isDiff = function (json)
 ROSDASH.jsonEditor.prototype.updateJson = function (data)
 {
 	this.json = data;
-	console.debug(this.json, ROSDASH.user_conf)
+	console.debug(this.json, ROSDASH.userConf)
 }
 ROSDASH.jsonEditor.prototype.addWidget = function (widget)
 {
