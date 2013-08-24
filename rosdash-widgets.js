@@ -964,6 +964,136 @@ ROSDASH.draculaNetwork.prototype.run = function (input)
 	}
 }
 
+//////////////////////////////////// multimedia
+
+ROSDASH.UserCamera = function (block)
+{
+	this.block = block;
+	this.canvas_id = "UserCamera_" + this.block.id;
+	this.init_success = false;
+	this.video;
+	this.canvas;
+	this.context;
+	this.imageData;
+	this.detector;
+    this.lastTime = 0;
+	this.vendors = ['ms', 'moz', 'webkit', 'o'];
+}
+ROSDASH.UserCamera.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<video id="video' + this.canvas_id + '" autoplay="true" style="display:none;"></video>' + 
+		'<canvas id="canvas' + this.canvas_id + '" style="width:640px; height:480px;"></canvas>';
+	return widget;
+}
+ROSDASH.UserCamera.prototype.init = function ()
+{
+	if ($("#video" + this.canvas_id).length > 0)
+	{
+		this.onLoad();
+		this.init_success = true;
+	}
+}
+ROSDASH.UserCamera.prototype.onLoad = function ()
+{
+	this.video = document.getElementById("video" + this.canvas_id);
+	this.canvas = document.getElementById("canvas" + this.canvas_id);
+	this.context = this.canvas.getContext("2d");
+	this.canvas.width = parseInt(this.canvas.style.width);
+	this.canvas.height = parseInt(this.canvas.style.height);
+	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+	var that = this;
+	if (navigator.getUserMedia) {
+		function successCallback(stream){
+		  if (window.webkitURL) {
+			that.video.src = window.webkitURL.createObjectURL(stream);
+		  } else if (video.mozSrcObject !== undefined) {
+			that.video.mozSrcObject = stream;
+		  } else {
+			that.video.src = stream;
+		  }
+		}
+		function errorCallback(error) {}
+		navigator.getUserMedia({video: true}, successCallback, errorCallback);
+		that.detector = new AR.Detector();
+		this.requestAnimationFrame();
+	}
+}
+ROSDASH.UserCamera.prototype.tick = function ()
+{
+	var that = this;
+	this.requestAnimationFrame();
+	if (this.video.readyState === this.video.HAVE_ENOUGH_DATA){
+		this.snapshot();
+		var markers = this.detector.detect(this.imageData);
+		this.drawCorners(markers);
+		this.drawId(markers);
+	}
+}
+ROSDASH.UserCamera.prototype.requestAnimationFrame = function(element)
+{
+	var currTime = new Date().getTime();
+	var timeToCall = Math.max(0, 16 - (currTime - this.lastTime));
+	var that = this;
+	var id = window.setTimeout(function() { that.tick(currTime + timeToCall); }, 
+	  timeToCall);
+	this.lastTime = currTime + timeToCall;
+	return id;
+}
+ROSDASH.UserCamera.prototype.snapshot = function ()
+{
+	this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+	this.imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+}
+ROSDASH.UserCamera.prototype.drawCorners = function (markers)
+{
+	var corners, corner, i, j;
+	this.context.lineWidth = 3;
+	for (i = 0; i !== markers.length; ++ i)
+	{
+		corners = markers[i].corners;
+		this.context.strokeStyle = "red";
+		this.context.beginPath();
+		for (j = 0; j !== corners.length; ++ j)
+		{
+			corner = corners[j];
+			this.context.moveTo(corner.x, corner.y);
+			corner = corners[(j + 1) % corners.length];
+			this.context.lineTo(corner.x, corner.y);
+		}
+		this.context.stroke();
+		this.context.closePath();
+		this.context.strokeStyle = "green";
+		this.context.strokeRect(corners[0].x - 2, corners[0].y - 2, 4, 4);
+	}
+}
+ROSDASH.UserCamera.prototype.drawId = function (markers)
+{
+	var corners, corner, x, y, i, j;
+	this.context.strokeStyle = "blue";
+	this.context.lineWidth = 1;
+	for (i = 0; i !== markers.length; ++ i)
+	{
+		corners = markers[i].corners;
+		x = Infinity;
+		y = Infinity;
+		for (j = 0; j !== corners.length; ++ j)
+		{
+			corner = corners[j];
+			x = Math.min(x, corner.x);
+			y = Math.min(y, corner.y);
+		}
+		this.context.strokeText(markers[i].id, x, y)
+	}
+}
+ROSDASH.UserCamera.prototype.run = function (input)
+{
+	if (! this.init_success)
+	{
+		this.init();
+	}
+	return {o0 : this.video};
+}
+
 //////////////////////////////////// ROSJS
 
 // Turtlesim from ROS desktop widget
@@ -2065,10 +2195,23 @@ ROSDASH.jsonVis = function (block)
         }
     };
 }
+ROSDASH.jsonVis.prototype.treeify = function (json, name, head)
+{
+    head['name']  = name;
+    if (_.isObject(json) || _.isArray(json)) {
+        head['children'] = [];
+        for (var key in json) {
+            if (!json.hasOwnProperty(key)) continue;
+            var child = {};
+            head['children'].push(child);
+            this.treeify(json[key], key, child);
+        }
+    }
+}
 ROSDASH.jsonVis.prototype.vizcluster = function (json)
 {
     var tree = {};
-    treeify(json, 'JSON', tree);
+    this.treeify(json, 'JSON', tree);
     $('#' + this.canvas).empty();
     var w = 900;
     var h = 900;

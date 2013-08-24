@@ -984,5 +984,18 @@
 				"name": "viewer"
 			}
 		]
+	}, {
+		"type": "UserCamera",
+		"category": [
+			"multimedia"
+		],
+		"class_name": "ROSDASH.UserCamera",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "video"
+			}
+		]
 	}
 ]}
