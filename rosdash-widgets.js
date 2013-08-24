@@ -1243,6 +1243,54 @@ ROSDASH.RosInteractiveMarker.prototype.run = function (input)
 	return {o0: marker};
 }
 
+ROSDASH.RosMjpeg = function (block)
+{
+	this.block = block;
+	this.canvas = this.block.id + "_RosMjpeg";
+	this.viewer;
+	this.init_success = false;
+}
+ROSDASH.RosMjpeg.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas + '" style="height:100%; width:100%;" />';
+	return widget;
+}
+ROSDASH.RosMjpeg.prototype.init = function ()
+{
+	if ($("#" + this.canvas).length <= 0 || ! ROSDASH.ros_connected)
+	{
+		return;
+	}
+	this.viewer = new MJPEGCANVAS.Viewer({
+		divID : this.canvas,
+		host : ROSDASH.user_conf.ros_host,
+		width : 640, //ROSDASH.user_conf.widget_width,
+		height : 480, //ROSDASH.user_conf.content_height,
+		// get from block config
+		topic : '/ardrone/image_raw'
+	});
+/*
+    var viewer = new MJPEGCANVAS.MultiStreamViewer({
+      divID : 'mjpeg',
+      host : 'localhost',
+      width : 640,
+      height : 480,
+      topics : [ '/wide_stereo/left/image_color', '/l_forearm_cam/image_color',
+          '/r_forearm_cam/image_color' ],
+      labels : [ 'Robot View', 'Left Arm View', 'Right Arm View' ]
+    });
+*/
+	this.init_success = true;
+}
+ROSDASH.RosMjpeg.prototype.run = function (input)
+{
+	if (! this.init_success)
+	{
+		this.init();
+	}
+	return {o0: this.viewer};
+}
+
 //////////////////////////////////// map
 
 // google maps

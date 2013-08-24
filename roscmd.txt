@@ -21,10 +21,9 @@ rosrun mjpeg_server mjpeg_server
 rosbag play wall2.bag
 http://192.168.1.116:8080/stream?topic=/ardrone/image_raw
 
-keyboard teleop js, mjpegcanvasjs:
+mjpegcanvasjs, keyboardteleopjs:
 
 roslaunch pr2_gazebo pr2_empty_world.launch
-roslaunch rosbridge_server rosbridge_websocket.launch
 
 nav2djs:
 

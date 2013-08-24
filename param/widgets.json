@@ -971,5 +971,18 @@
 				"name": "conf"
 			}
 		]
+	}, {
+		"type": "RosMjpeg",
+		"category": [
+			"ros"
+		],
+		"class_name": "ROSDASH.RosMjpeg",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "viewer"
+			}
+		]
 	}
 ]}
