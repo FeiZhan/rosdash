@@ -1018,5 +1018,55 @@
 		"class_name": "ROSDASH.HandTracker",
 		"input": [],
 		"output": []
+	}, {
+		"type": "slide",
+		"category": [
+			"other"
+		],
+		"class_name": "ROSDASH.slide",
+		"input": [],
+		"output": []
+	}, {
+		"type": "JsDatabase",
+		"category": [
+			"database"
+		],
+		"class_name": "ROSDASH.JsDatabase",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "database"
+			}
+		]
+	}, {
+		"type": "JsDbInsert",
+		"category": [
+			"database"
+		],
+		"class_name": "ROSDASH.JsDbInsert",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "database"
+			}
+		]
+	}, {
+		"type": "JsDbQuery",
+		"category": [
+			"database"
+		],
+		"class_name": "ROSDASH.JsDbQuery",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "value"
+			}, {
+				"datatype": "Object",
+				"name": "database"
+			}
+		]
 	}
 ]}

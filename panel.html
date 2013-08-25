@@ -117,19 +117,6 @@
 $(function() {
 	ROSDASH.connectROS("<?php echo $_GET["host"]; ?>", "<?php echo $_GET["port"]; ?>");
 	ROSDASH.runPanel("<?php echo $_GET["user"]; ?>", "<?php echo $_GET["panel"]; ?>", "<?php echo $_GET["selected"]; ?>");
-
-	/*var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
-	cities.insert({name:"Portland",state:"OR"});
-	console.debug("db: " + cities({name:"Boston"}).count());*/
-	
-	var myjson = { any: { json: { value: 1 } } };
-    var opt = { 
-        change: function(data) { /* called on every change */ },
-        propertyclick: function(path) { /* called when a property is clicked with the JS path to that property */ }
-    };
-    /* opt.propertyElement = '<textarea>'; */ // element of the property field, <input> is default
-    /* opt.valueElement = '<textarea>'; */  // element of the value field, <input> is default
-    $('#mydiv').jsonEditor(myjson, opt);
 });
 		</script>
 	</head>

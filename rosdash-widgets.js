@@ -964,6 +964,53 @@ ROSDASH.draculaNetwork.prototype.run = function (input)
 	}
 }
 
+//////////////////////////////////// database
+
+	/*var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
+	cities.insert({name:"Portland",state:"OR"});
+	console.debug("db: " + cities({name:"Boston"}).count());*/
+ROSDASH.JsDatabase = function (block)
+{
+	this.block = block;
+	this.database;
+}
+ROSDASH.JsDatabase.prototype.init = function ()
+{
+	this.database = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
+}
+ROSDASH.JsDatabase.prototype.run = function (input)
+{
+	return {o0 : this.database};
+}
+
+ROSDASH.JsDbInsert = function (block)
+{
+	this.block = block;
+}
+ROSDASH.JsDbInsert.prototype.run = function (input)
+{
+	if (undefined !== input[0])
+	{
+		input[0].insert({key: input[1], value: input[2]});
+	}
+	return {o0 : input[0]};
+}
+
+ROSDASH.JsDbQuery = function (block)
+{
+	this.block = block;
+}
+ROSDASH.JsDbQuery.prototype.run = function (input)
+{
+	var output;
+	if (undefined !== input[0])
+	{
+		output = input[0]({key: input[1]}).value;
+	}
+	return {o0 : input[0], o1 : output};
+}
+
+
 //////////////////////////////////// multimedia
 
 ROSDASH.UserCamera = function (block)
@@ -2494,7 +2541,17 @@ ROSDASH.jsonVis.prototype.run = function (input)
 	this.vizcluster(input[0]);
 }
 
-//////////////////////////////////// for fun
+//////////////////////////////////// others
+
+ROSDASH.slide = function (block)
+{
+	this.block = block;
+}
+ROSDASH.slide.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<iframe src="http://www.slideshare.net/slideshow/embed_code/16073451" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px" allowfullscreen webkitallowfullscreen mozallowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/narrendar/ros-an-opensource-robotic-framework" title="ROS - An Opensource Robotic Framework" target="_blank">ROS - An Opensource Robotic Framework</a> </strong> from <strong><a href="http://www.slideshare.net/narrendar" target="_blank">Narrendar Narren</a></strong> </div>';
+	return widget;
+}
 
 ROSDASH.youtube = function (block)
 {
@@ -2509,6 +2566,8 @@ ROSDASH.youtube.prototype.init = function ()
 {}
 ROSDASH.youtube.prototype.run = function (input)
 {}
+
+//////////////////////////////////// for fun
 
 ROSDASH.DoodleGod = function (block)
 {
