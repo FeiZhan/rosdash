@@ -997,5 +997,26 @@
 				"name": "video"
 			}
 		]
+	}, {
+		"type": "HeadTracker",
+		"category": [
+			"multimedia"
+		],
+		"class_name": "ROSDASH.HeadTracker",
+		"input": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "pos"
+			}
+		]
+	}, {
+		"type": "HandTracker",
+		"category": [
+			"multimedia"
+		],
+		"class_name": "ROSDASH.HandTracker",
+		"input": [],
+		"output": []
 	}
 ]}

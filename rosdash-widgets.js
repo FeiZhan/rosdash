@@ -1094,6 +1094,229 @@ ROSDASH.UserCamera.prototype.run = function (input)
 	return {o0 : this.video};
 }
 
+ROSDASH.HeadTracker = function (block)
+{
+	this.block = block;
+	this.canvas = "HeadTracker" + this.block.id;
+	this.pos;
+}
+ROSDASH.HeadTracker.prototype.addWidget = function (widget)
+{
+	widget.widgetTitle += "";
+	widget.widgetContent = '<canvas id="compare' + this.canvas + '" width="320" height="240" style="display:none"></canvas>' +
+		'<video id="vid' + this.canvas + '" autoplay loop width="320" height="240"></video>' +
+		'<canvas id="overlay' + this.canvas + '" width="320" height="240"></canvas>' +
+		'<canvas id="debug' + this.canvas + '" width="320" height="240"></canvas>' +
+		'<p id="gUMMessage"></p>' +
+		'<p>Status : <span id="headtrackerMessage"></span></p>' +
+		'<p><input type="button" onclick="htracker.stop();htracker.start();" value="reinitiate facedetection"></input>' +
+		'<br/><br/>' +
+		'<input type="checkbox" onclick="showProbabilityCanvas()" value="asdfasd"></input>Show probability-map</p>';
+	return widget;
+}
+ROSDASH.HeadTracker.prototype.init = function ()
+{
+	if ($("#vid" + this.canvas).length <= 0)
+	{
+		return;
+	}
+	// set up video and canvas elements needed
+	var videoInput = document.getElementById('vid' + this.canvas);
+	var canvasInput = document.getElementById('compare' + this.canvas);
+	var canvasOverlay = document.getElementById('overlay' + this.canvas)
+	var debugOverlay = document.getElementById('debug' + this.canvas);
+	var overlayContext = canvasOverlay.getContext('2d');
+	canvasOverlay.style.position = "absolute";
+	canvasOverlay.style.top = "auto"; //'0px';
+	canvasOverlay.style.zIndex = '100001';
+	canvasOverlay.style.display = 'block';
+	debugOverlay.style.position = "absolute";
+	debugOverlay.style.top = "auto"; //'0px';
+	debugOverlay.style.zIndex = '100002';
+	debugOverlay.style.display = 'none';
+	// add some custom messaging
+	statusMessages = {
+		"whitebalance" : "checking for stability of camera whitebalance",
+		"detecting" : "Detecting face",
+		"hints" : "Hmm. Detecting the face is taking a long time",
+		"redetecting" : "Lost track of face, redetecting",
+		"lost" : "Lost track of face",
+		"found" : "Tracking face"
+	};
+	supportMessages = {
+		"no getUserMedia" : "Unfortunately, <a href='http://dev.w3.org/2011/webrtc/editor/getusermedia.html'>getUserMedia</a> is not supported in your browser. Try <a href='http://www.opera.com/browser/'>downloading Opera 12</a> or <a href='http://caniuse.com/stream'>another browser that supports getUserMedia</a>. Now using fallback video for facedetection.",
+		"no camera" : "No camera found. Using fallback video for facedetection."
+	};
+	document.addEventListener("headtrackrStatus", function(event) {
+		if (event.status in supportMessages) {
+			var messagep = document.getElementById('gUMMessage');
+			messagep.innerHTML = supportMessages[event.status];
+		} else if (event.status in statusMessages) {
+			var messagep = document.getElementById('headtrackerMessage');
+			messagep.innerHTML = statusMessages[event.status];
+		}
+	}, true);
+	// the face tracking setup
+	var htracker = new headtrackr.Tracker({altVideo : {ogv : "./media/capture5.ogv", mp4 : "./media/capture5.mp4"}, calcAngles : true, ui : false, headPosition : false, debug : debugOverlay});
+	htracker.init(videoInput, canvasInput);
+	htracker.start();
+	var that = this;
+	// for each facetracking event received draw rectangle around tracked face on canvas
+	document.addEventListener("facetrackingEvent", function( event ) {
+		// clear canvas
+		overlayContext.clearRect(0,0,320,240);
+		// once we have stable tracking, draw rectangle
+		if (event.detection == "CS") {
+			that.pos = event;
+			overlayContext.translate(event.x, event.y)
+			overlayContext.rotate(event.angle-(Math.PI/2));
+			overlayContext.strokeStyle = "#00CC00";
+			overlayContext.strokeRect((-(event.width/2)) >> 0, (-(event.height/2)) >> 0, event.width, event.height);
+			overlayContext.rotate((Math.PI/2)-event.angle);
+			overlayContext.translate(-event.x, -event.y);
+		}
+	});
+	// turn off or on the canvas showing probability
+	function showProbabilityCanvas() {
+		var debugCanvas = document.getElementById('debug');
+		if (debugCanvas.style.display == 'none') {
+			debugCanvas.style.display = 'block';
+		} else {
+			debugCanvas.style.display = 'none';
+		}
+	}
+}
+ROSDASH.HeadTracker.prototype.run = function (input)
+{
+	return {o0 : this.pos};
+}
+
+ROSDASH.HandTracker = function (block)
+{
+	this.block = block;
+	this.canvas = "HandTracker_" + this.block.id;
+}
+ROSDASH.HandTracker.prototype.addWidget = function (widget)
+{
+	widget.widgetContent =	'<video id="video" autoplay="true" style="display:none;"></video>' +
+		'<canvas id="canvas" style="width:640px; height:480px;border:1px solid black;"></canvas>' +
+		'<div style="margin: 15px;">' +
+		  '<input id="cbxHull" type="checkbox" checked="checked">Convex Hull</input>' +
+		  '<input id="cbxDefects" type="checkbox">Convexity Defects</input>' +
+		  '<input id="cbxSkin" type="checkbox" checked="checked">Skin Detection</input>' +
+		'</div>';
+	return widget;
+}
+ROSDASH.HandTracker.prototype.init = function ()
+{
+	var that = this;
+	this.tracker = new HT.Tracker( {fast: true} );
+	this.cbxHull = document.getElementById("cbxHull");
+	this.cbxDefects = document.getElementById("cbxDefects");
+	this.cbxSkin = document.getElementById("cbxSkin");
+	this.video = document.getElementById("video");
+	this.canvas = document.getElementById("canvas");
+	this.context = this.canvas.getContext("2d");
+	this.canvas.width = parseInt(this.canvas.style.width) / 2;
+	this.canvas.height = parseInt(this.canvas.style.height) / 2;
+	this.image = this.context.createImageData(
+	this.canvas.width * 0.2, this.canvas.height * 0.2);
+	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+	if (navigator.getUserMedia){
+	navigator.getUserMedia({video:true},
+	  function(stream){ return that.videoReady(stream); },
+	  function(error){ return that.videoError(error); } );
+	}
+};
+ROSDASH.HandTracker.prototype.videoReady = function (stream)
+{
+	if (window.webkitURL) {
+		this.video.src = window.webkitURL.createObjectURL(stream);
+	} else if (video.mozSrcObject !== undefined) {
+		this.video.mozSrcObject = stream;
+	} else {
+		this.video.src = stream;
+	}
+	this.tick();
+};
+ROSDASH.HandTracker.prototype.videoError = function (error)
+{};
+ROSDASH.HandTracker.prototype.tick = function ()
+{
+	var that = this, image, candidate;
+	requestAnimationFrame( function() { return that.tick(); } );
+	if (this.video.readyState === this.video.HAVE_ENOUGH_DATA){
+		image = this.snapshot();
+		candidate = this.tracker.detect(image);
+		this.draw(candidate);
+	}
+};
+ROSDASH.HandTracker.prototype.snapshot = function ()
+{
+	this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+	return this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+};
+ROSDASH.HandTracker.prototype.draw = function (candidate)
+{
+	if (candidate){
+		if (this.cbxHull.checked){
+		  this.drawHull(candidate.hull, "red");
+		}
+		if (this.cbxDefects.checked){
+		  this.drawDefects(candidate.defects, "blue");
+		}
+	}
+	if (this.cbxSkin.checked){
+		this.context.putImageData(
+		  this.createImage(this.tracker.mask, this.image), 
+		  this.canvas.width - this.image.width,
+		  this.canvas.height - this.image.height);
+	}
+};
+ROSDASH.HandTracker.prototype.drawHull = function (hull, color)
+{
+	var len = hull.length, i = 1;
+	if (len > 0){
+		this.context.beginPath();
+		this.context.strokeStyle = color;
+		this.context.moveTo(hull[0].x, hull[0].y);
+		for (; i < len; ++ i){
+		  this.context.lineTo(hull[i].x, hull[i].y);
+		}
+		this.context.stroke();
+		this.context.closePath();
+	}
+};
+ROSDASH.HandTracker.prototype.drawDefects = function (defects, color)
+{
+	var len = defects.length, i = 0, point;
+	if (len > 0){
+		this.context.beginPath();
+		this.context.strokeStyle = color;
+		for (; i < len; ++ i){
+		  point = defects[i].depthPoint;
+		  this.context.strokeRect(point.x - 2, point.y - 2, 4, 4);
+		}
+		this.context.stroke();
+		this.context.closePath();
+	}
+};
+ROSDASH.HandTracker.prototype.createImage = function (imagesrc, imagedst)
+{
+	var src = imagesrc.data, dst = imagedst.data,
+	  width = imagesrc.width, span = 4 * width,
+	  len = src.length, i = 0, j = 0, k = 0;
+	for(i = 0; i < len; i += span){
+		for(j = 0; j < width; j += 5){
+		  dst[k] = dst[k + 1] = dst[k + 2] = src[i];
+		  dst[k + 3] = 255;
+		  k += 4;
+		  i += 5;
+		}
+	}
+	return imagedst;
+};
+
 //////////////////////////////////// ROSJS
 
 // Turtlesim from ROS desktop widget
