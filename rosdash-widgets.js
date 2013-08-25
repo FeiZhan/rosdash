@@ -1145,7 +1145,9 @@ ROSDASH.HeadTracker = function (block)
 {
 	this.block = block;
 	this.canvas = "HeadTracker" + this.block.id;
-	this.pos;
+	var LAB = [49.276802, -122.914913];
+	this.pos = new Object();
+	this.last = LAB;
 }
 ROSDASH.HeadTracker.prototype.addWidget = function (widget)
 {
@@ -1214,7 +1216,10 @@ ROSDASH.HeadTracker.prototype.init = function ()
 		overlayContext.clearRect(0,0,320,240);
 		// once we have stable tracking, draw rectangle
 		if (event.detection == "CS") {
-			that.pos = event;
+			for (var i in event)
+			{
+				that.pos[i] = event[i];
+			}
 			overlayContext.translate(event.x, event.y)
 			overlayContext.rotate(event.angle-(Math.PI/2));
 			overlayContext.strokeStyle = "#00CC00";
@@ -1235,7 +1240,19 @@ ROSDASH.HeadTracker.prototype.init = function ()
 }
 ROSDASH.HeadTracker.prototype.run = function (input)
 {
-	return {o0 : this.pos};
+	var output = {x : this.last[0], y : this.last[1]};
+	if (undefined !== this.pos)
+	{
+		this.pos.dx = (undefined !== this.pos.lastX) ? this.pos.x - this.pos.lastX : 0;
+		this.pos.dy = (undefined !== this.pos.lastY) ? this.pos.y - this.pos.lastY : 0;
+		this.pos.lastX = this.pos.x;
+		this.pos.lastY = this.pos.y;
+		output.x = this.last[0] - this.pos.dy * 0.0001;
+		output.y = this.last[1] + this.pos.dx * 0.0001;
+		this.last[0] = output.x;
+		this.last[1] = output.y;
+	}
+	return {o0 : output};
 }
 
 ROSDASH.HandTracker = function (block)
