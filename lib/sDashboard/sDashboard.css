@@ -57,6 +57,8 @@
 	height: 180px;
 	overflow-x: auto;
 	overflow-y: auto;
+	/* to make float painting canvas above original div */
+	position: relative;
 }
 
 .sDashboardWidgetContentMaximized {

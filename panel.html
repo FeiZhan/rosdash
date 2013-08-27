@@ -107,9 +107,26 @@
 		<!-- headtrackr -->
 		<script src="lib/headtrackr/headtrackr.min.js"></script>
 		<!-- handtracking -->
-		<script type="text/javascript" src="lib/js-handtracking-read-only/samples/fast_demo/libs/polyfill.js"></script> 
-		<script type="text/javascript" src="lib/js-handtracking-read-only/samples/fast_demo/cv.js"></script> 
-		<script type="text/javascript" src="lib/js-handtracking-read-only/samples/fast_demo/handtracking.js"></script> 
+		<script type="text/javascript" src="lib/js-handtracking-read-only/samples/fast_demo/libs/polyfill.js"></script>
+		<script type="text/javascript" src="lib/js-handtracking-read-only/samples/fast_demo/cv.js"></script>
+		<script type="text/javascript" src="lib/js-handtracking-read-only/samples/fast_demo/handtracking.js"></script>
+		<!-- jsDraw2DX -->
+		<script type="text/JavaScript" src="lib/jsDraw2DX/jsDraw2DX.js"></script>
+		<!-- easeljs -->
+		<link href="lib/EaselJS/examples/assets/demoStyles.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/utils/UID.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/geom/Matrix2D.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/events/EventDispatcher.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/display/DisplayObject.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/display/Container.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/display/Stage.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/events/MouseEvent.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/display/Shape.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/display/Graphics.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/utils/Ticker.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/display/Text.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/ui/Touch.js"></script>
+		<script type="text/javascript" src="lib/EaselJS/src/easeljs/geom/Point.js"></script>
 		<!-- rosdash -->
 		<script src="rosdash.js"></script>
 		<script src="rosdash-widgets.js"></script>
@@ -130,5 +147,24 @@ $(function() {
 			</form>
 		</div>
 		<ul id="myDashboard"></ul>
+		<script type="text/JavaScript">
+/*
+		//<div id="graphics" style="overflow:hidden; position: absolute; top: 100px; left: 100px; width:600px;height:300px;"></div>
+//Create jsGraphics object
+var gr = new jxGraphics(document.getElementById("graphics"));
+//Create jxColor object
+var col = new jxColor("red");
+//Create jxPen object
+var pen = new jxPen(col,'2px');
+//Draw a Line between 2 points
+//Define end points to draw line
+var pt1 = new jxPoint(20,30);
+var pt2 = new jxPoint(120,230);
+//Create line object  
+var line = new jxLine(pt1,pt2,pen);
+//Draw the line on the graphics
+//line.draw(gr); 
+*/
+		</script>
 	</body>
 </html>

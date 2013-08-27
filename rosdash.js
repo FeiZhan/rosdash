@@ -399,6 +399,9 @@ ROSDASH.initPanelToolbar = function ()
 				}
 				window.open(url);
 				break;
+			case "zindex":
+				$("#myCanvas").zIndex( ($("#myCanvas").zIndex() == 100) ? -10 : 100 );
+				break;
 			default:
 				// maybe clicked a widget or a directory in toolbar
 				var widget_id = id.substring(5);
@@ -458,6 +461,7 @@ ROSDASH.initPanelToolbar = function ()
     ROSDASH.toolbar.addButton("redo", 7, "redo", "redo.gif", "redo_dis.gif");
     ROSDASH.toolbar.addButton("property", 8, "property", "paste.gif", "paste_dis.gif");
     ROSDASH.toolbar.addButton("diagram", 9, "diagram", "database.gif", "database.gif");
+    ROSDASH.toolbar.addButton("zindex", 9, "zindex", "database.gif", "database.gif");
 }
 // set the property of widget
 ROSDASH.setWidgetProperty = function ()

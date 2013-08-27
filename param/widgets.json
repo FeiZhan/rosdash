@@ -1068,5 +1068,13 @@
 				"name": "database"
 			}
 		]
+	}, {
+		"type": "Painter",
+		"category": [
+			"drawing"
+		],
+		"class_name": "ROSDASH.Painter",
+		"input": [],
+		"output": []
 	}
 ]}

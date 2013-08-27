@@ -966,9 +966,6 @@ ROSDASH.draculaNetwork.prototype.run = function (input)
 
 //////////////////////////////////// database
 
-	/*var cities = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
-	cities.insert({name:"Portland",state:"OR"});
-	console.debug("db: " + cities({name:"Boston"}).count());*/
 ROSDASH.JsDatabase = function (block)
 {
 	this.block = block;
@@ -1010,6 +1007,85 @@ ROSDASH.JsDbQuery.prototype.run = function (input)
 	return {o0 : input[0], o1 : output};
 }
 
+ROSDASH.RedisDb = function (block)
+{
+	this.block = block;
+	this.database = {host : "", port : "6379"};
+}
+ROSDASH.RedisDb.prototype.run = function (input)
+{
+	return {o0 : this.database};
+}
+
+//////////////////////////////////// drawings
+
+ROSDASH.Painter = function (block)
+{
+	this.block = block;
+	this.target_id = "turtlesim-0";
+	this.canvas;
+	this.stage;
+	this.drawingCanvas;
+	this.oldPt;
+	this.oldMidPt;
+	this.title;
+	this.color;
+	this.stroke;
+	this.colors;
+	this.index;
+}
+ROSDASH.Painter.prototype.init = function ()
+{
+	var html = '<canvas id="myCanvas" width="960" height="400" style="position: absolute; top: 0px; left: 0px; z-index: 100; border-style:solid; border-width:2px;"></canvas>'
+	$("#myDashboard").sDashboard("addContentById", this.target_id, html);
+	var that = this;
+	if (window.top != window) {
+		document.getElementById("header").style.display = "none";
+	}
+	function stop() {}
+	function handleMouseDown(event) {
+		if (that.stage.contains(that.title)) { that.stage.clear(); that.stage.removeChild(that.title); }
+		that.color = that.colors[(that.index++)%that.colors.length];
+		that.stroke = 5; //Math.random()*30 + 10 | 0;
+		that.oldPt = new createjs.Point(that.stage.mouseX, that.stage.mouseY);
+		that.oldMidPt = that.oldPt;
+		that.stage.addEventListener("stagemousemove" , handleMouseMove);
+	}
+	function handleMouseMove(event) {
+		var midPt = new createjs.Point(that.oldPt.x + that.stage.mouseX>>1, that.oldPt.y+that.stage.mouseY>>1);
+		that.drawingCanvas.graphics.clear().setStrokeStyle(that.stroke, 'round', 'round').beginStroke(that.color).moveTo(midPt.x, midPt.y).curveTo(that.oldPt.x, that.oldPt.y, that.oldMidPt.x, that.oldMidPt.y);
+		that.oldPt.x = that.stage.mouseX;
+		that.oldPt.y = that.stage.mouseY;
+		that.oldMidPt.x = midPt.x;
+		that.oldMidPt.y = midPt.y;
+		that.stage.update();
+	}
+	function handleMouseUp(event) {
+		that.stage.removeEventListener("stagemousemove" , handleMouseMove);
+	}
+	this.canvas = document.getElementById("myCanvas");
+	this.index = 0;
+	this.colors = ["#828b20", "#b0ac31", "#cbc53d", "#fad779", "#f9e4ad", "#faf2db", "#563512", "#9b4a0b", "#d36600", "#fe8a00", "#f9a71f"];
+	//check to see if we are running in a browser with touch support
+	this.stage = new createjs.Stage(this.canvas);
+	this.stage.autoClear = false;
+	this.stage.enableDOMEvents(true);
+	createjs.Touch.enable(this.stage);
+	createjs.Ticker.setFPS(24);
+	this.drawingCanvas = new createjs.Shape();
+	this.stage.addEventListener("stagemousedown", handleMouseDown);
+	this.stage.addEventListener("stagemouseup", handleMouseUp);
+	/*title = new createjs.Text("Click and Drag to draw", "36px Arial", "#777777");
+	title.x = 300;
+	title.y = 200;
+	stage.addChild(title);*/
+	this.stage.addChild(this.drawingCanvas);
+	this.stage.update();
+}
+ROSDASH.Painter.prototype.run = function (input)
+{
+	return;
+}
 
 //////////////////////////////////// multimedia
 
@@ -1273,6 +1349,10 @@ ROSDASH.HandTracker.prototype.addWidget = function (widget)
 }
 ROSDASH.HandTracker.prototype.init = function ()
 {
+	if ($("#cbxHull").length <= 0)
+	{
+		return;
+	}
 	var that = this;
 	this.tracker = new HT.Tracker( {fast: true} );
 	this.cbxHull = document.getElementById("cbxHull");
