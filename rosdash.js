@@ -872,18 +872,25 @@ ROSDASH.waitJson = function ()
 	var flag = true;
 	for (var i in ROSDASH.jsonReadArray)
 	{
+		console.debug(i)
 		if (ROSDASH.jsonReadArray[i].status < 2)
 		{
 			flag = false;
+			// if returned but not succeed, read again
+			if (1 == ROSDASH.jsonReadArray[i].status)
+			{
+				ROSDASH.readJson(i);
+			}
 			break;
 		}
 	}
 	if (! flag)
 	{
-		setTimeout(ROSDASH.waitJson, 200);
+		setTimeout(ROSDASH.waitJson, 100);
 	} else
 	{
 		// event;
+		console.debug("ready")
 	}
 }
 
@@ -899,6 +906,7 @@ ROSDASH.loadMsg = function ()
 	for (var i in ROSDASH.msg_json)
 	{
 		++ ROSDASH.init_count;
+		ROSDASH.readJson("param/" + i);
 		$.getJSON("param/" + i + ".json", function(data, status, xhr)
 		{
 			for (var j in data)
@@ -980,6 +988,7 @@ ROSDASH.loadWidgetJson = function ()
 	for (var i in ROSDASH.widget_json)
 	{
 		++ ROSDASH.init_count;
+		ROSDASH.readJson("param/" + i);
 		$.getJSON("param/" + i + ".json", function(data, status, xhr)
 		{
 			for (var j in data)
@@ -1061,6 +1070,7 @@ ROSDASH.loadConfJson = function ()
 {
 	++ ROSDASH.init_count;
 	// load user config json
+	ROSDASH.readJson("file/" + ROSDASH.userConf.name + "/conf");
 	$.getJSON("file/" + ROSDASH.userConf.name + "/conf.json", function(data, status, xhr)
 	{
 		ROSDASH.setUserConf(data);
@@ -1069,6 +1079,7 @@ ROSDASH.loadConfJson = function ()
 		for (var i in ROSDASH.userConf.json)
 		{
 			++ ROSDASH.init_count;
+			ROSDASH.readJson(i);
 			$.getJSON(i, function(data, status, xhr)
 			{
 				console.log("load user specified json: ", i);
@@ -2190,6 +2201,7 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 	ROSDASH.userConf.view_type = "diagram";
 	ROSDASH.initJson();
 	ROSDASH.loadConfJson();
+	ROSDASH.waitJson();
 	var style = ROSDASH.default_style;
 	var empty_ele = {nodes: new Array(), edges: new Array()};
 	// generate an empty cytoscape diagram
@@ -2616,6 +2628,7 @@ ROSDASH.runPanel = function (user, panel_name, selected)
 	ROSDASH.initJson();
 	ROSDASH.loadConfJson();
 	ROSDASH.readDiagram();
+	ROSDASH.waitJson();
 	// load panel from json
 	$.getJSON('file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-panel.json', function(data)
 	{
