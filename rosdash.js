@@ -852,6 +852,41 @@ ROSDASH.checkRosConflict = function (name, type)
 	return (-1 != jQuery.inArray(name, ROSDASH.rosBlocks[type]));
 }
 
+///////////////////////////////////// load json
+
+ROSDASH.jsonReadArray = new Object();
+ROSDASH.readJson = function (file)
+{
+	ROSDASH.jsonReadArray[file] = new Object();
+	ROSDASH.jsonReadArray[file].status = 0;
+	$.getJSON(file + ".json", function(data, status, xhr)
+	{
+		ROSDASH.jsonReadArray[file].data = data;
+		++ ROSDASH.jsonReadArray[file].status;
+	}).always(function() {
+		++ ROSDASH.jsonReadArray[file].status;
+	});
+}
+ROSDASH.waitJson = function ()
+{
+	var flag = true;
+	for (var i in ROSDASH.jsonReadArray)
+	{
+		if (ROSDASH.jsonReadArray[i].status < 2)
+		{
+			flag = false;
+			break;
+		}
+	}
+	if (! flag)
+	{
+		setTimeout(ROSDASH.waitJson, 200);
+	} else
+	{
+		// event;
+	}
+}
+
 ///////////////////////////////////// msg type definitions
 
 ROSDASH.msg_json = {
@@ -939,10 +974,8 @@ ROSDASH.widget_def = new Object();
 ROSDASH.block_list = new Object();
 ROSDASH.widget_list = new Object();
 ROSDASH.init_count = 0;
-// init msg type and widget definitions from json
-ROSDASH.initJson = function ()
+ROSDASH.loadWidgetJson = function ()
 {
-	ROSDASH.loadMsg();
 	// read from widget definition json
 	for (var i in ROSDASH.widget_json)
 	{
@@ -1017,6 +1050,12 @@ ROSDASH.initJson = function ()
 		});
 	}
 }
+// init msg type and widget definitions from json
+ROSDASH.initJson = function ()
+{
+	ROSDASH.loadMsg();
+	ROSDASH.loadWidgetJson();
+}
 // load json files from user config
 ROSDASH.loadConfJson = function ()
 {
@@ -1071,25 +1110,7 @@ ROSDASH.checkWidgetTypeValid = function (name)
 
 // default settings for blocks
 ROSDASH.NEW_POS = [0, 0];
-ROSDASH.INPUT_POS = {
-	"1": [[-70, 0]],
-	"2": [[-70, -20], [-70, 20]],
-	"3": [[-70, -20], [-70, 0], [-70, 20]],
-	"4": [[-70, -30], [-70, -10], [-70, 10], [-70, 30]],
-	"5": [[-70, -40], [-70, -20], [-70, 0], [-70, 20], [-70, 40]],
-	"6": [[-70, -50], [-70, -30], [-70, -10], [-70, 10], [-70, 30], [-70, 50]],
-	// more is coming
-};
-ROSDASH.OUTPUT_POS = {
-	"1": [[70, 0]],
-	"2": [[70, -20], [70, 20]],
-	"3": [[70, -20], [70, 0], [70, 20]],
-	"4": [[70, -30], [70, -10], [70, 10], [70, 30]],
-	"5": [[70, -40], [70, -20], [70, 0], [70, 20], [70, 40]],
-	// more is coming
-};
-// generate the position for new blocks to be
-//@todo getNextNewBlockPos
+//@todo generate the position for new blocks to be
 ROSDASH.getNextNewBlockPos = function ()
 {
 	return ROSDASH.NEW_POS;
@@ -1152,7 +1173,7 @@ ROSDASH.addTopic = function (def)
 	ROSDASH.rosBlocks.topic.push(name);
 	return body;
 }
-// a list of configuration for each block
+// a list of configurations for each block
 ROSDASH.blocks = new Object();
 ROSDASH.addBlockByType = function (type)
 {
@@ -1171,6 +1192,7 @@ ROSDASH.addConstant = function (const_type)
 	};
 	return ROSDASH.addBlock(block);
 }
+// transform from raw json into real json
 ROSDASH.transformBlockConfig = function (raw)
 {
 	for (var i in raw)
@@ -1194,29 +1216,32 @@ ROSDASH.transformBlockConfig = function (raw)
 ROSDASH.addBlock = function (def)
 {
 	var block = ROSDASH.initBlockConf(def);
-	// if fail to init a block by definition
+	// if fail to init a block
 	if (undefined === block)
 	{
 		return;
 	}
 	if (undefined === def.config)
 	{
+		// assign config to a block from definition
 		if (undefined !== ROSDASH.widget_def[def.type].config)
 		{
 			def.config = ROSDASH.transformBlockConfig(ROSDASH.widget_def[def.type].config);
 		}
 	} else
 	{
+		// transform config from raw json into real json
 		def.config = ROSDASH.transformBlockConfig(def.config);
 	}
-	// if no position specified, use the position for a new block
+	// if no position specified, use the new position for a block
 	var next_pos = ROSDASH.getNextNewBlockPos();
 	block.x = (typeof def.x != "undefined") ? parseFloat(def.x) : next_pos[0];
 	block.y = (typeof def.y != "undefined") ? parseFloat(def.y) : next_pos[1];
 	// determine the block number
-	def = ROSDASH.getBlockNum(def, block.list_name);
+	block = ROSDASH.getBlockNum(block, block.list_name);
+	// set color by type
 	var color = "Aquamarine";
-	switch (def.type)
+	switch (block.type)
 	{
 	case "constant":
 		color = "Chartreuse";
@@ -1227,16 +1252,16 @@ ROSDASH.addBlock = function (def)
 		color = "Gold";
 		break;
 	}
-	// true name, temporarily for old blocks
+	//@note true name, temporarily for old blocks
 	var true_name = block.name;
-	if ("constant" == def.type && undefined !== def.value)
+	if ("constant" == block.type && undefined !== block.value)
 	{
-		if ("array" == typeof def.value || "object" == typeof def.value)
+		if ("array" == typeof block.value || "object" == typeof block.value)
 		{
-			true_name = JSON.stringify(def.value);
+			true_name = JSON.stringify(block.value);
 		} else
 		{
-			true_name = def.value;
+			true_name = block.value;
 		}
 	}
 	// add the body of the block
@@ -1244,13 +1269,13 @@ ROSDASH.addBlock = function (def)
 		group: "nodes",
 		data: {
 			id: block.id,
-			name: true_name, //block.name,
+			name: true_name, //@note block.name,
 			faveColor: color,
 		},
 		position: { x: block.x, y: block.y },
 		classes: "body"
 	});
-	// add input pins
+	// add input pins @note should use pin category
 	for (var i = 0; i < block.input_num; ++ i)
 	{
 		window.cy.add({
@@ -1276,25 +1301,26 @@ ROSDASH.addBlock = function (def)
 			locked: true
 		});
 	}
-	// save the information of the block into ROSDASH.blocks based on id
+	// save the information of the block into ROSDASH.blocks by id
 	ROSDASH.blocks[block.id] = block;
 	return body;
 }
 // init the configuration of a new block
 ROSDASH.initBlockConf = function (def)
 {
+	var block = def;
 	if (ROSDASH.checkWidgetTypeValid(def.type))
 	{
-		block = def;
 		block.list_name = ("constant" != def.type) ? def.type : def.constname;
 		if ("topic" == def.type || "service" == def.type || "param" == def.type)
 		{
 			block.rosname = "";
 			block.rostype = "";
 		}
-	} else if (ROSDASH.checkMsgTypeValid(def.type))
+	}
+	// constant
+	else if (ROSDASH.checkMsgTypeValid(def.type))
 	{
-		block = def;
 		// should be in front of other elements
 		block.list_name = def.type;
 		block.constname = def.type;
@@ -1306,8 +1332,10 @@ ROSDASH.initBlockConf = function (def)
 		// the widget type is invalid, and the error message is sent from ROSDASH.checkWidgetTypeValid
 		return undefined;
 	}
+	// set the input of this block
 	if (undefined !== ROSDASH.widget_def[def.type].input)
 	{
+		// assign by copy
 		var tmp = ROSDASH.widget_def[def.type].input.slice();
 		block.input_num = ROSDASH.widget_def[def.type].input.length;
 		block.input = tmp;
@@ -1316,8 +1344,10 @@ ROSDASH.initBlockConf = function (def)
 		block.input_num = 0;
 		block.input = new Array();
 	}
+	// set the output of this block
 	if (undefined !== ROSDASH.widget_def[def.type].output)
 	{
+		// assign by copy
 		var tmp = ROSDASH.widget_def[def.type].output.slice();
 		block.output_num = ROSDASH.widget_def[def.type].output.length;
 		block.output = tmp;
@@ -1329,14 +1359,14 @@ ROSDASH.initBlockConf = function (def)
 	return block;
 }
 // determine the block number
-ROSDASH.getBlockNum = function (def, block_type)
+ROSDASH.getBlockNum = function (block, block_type)
 {
-	if (typeof def.number == "string")
+	if (typeof block.number == "string")
 	{
-		def.number = parseInt(def.number);
+		block.number = parseInt(block.number);
 	}
 	// if no block number specified
-	if (undefined === def.number)
+	if (undefined === block.number)
 	{
 		// if no count, initialize to zero
 		if (undefined === ROSDASH.widget_def[block_type])
@@ -1346,31 +1376,33 @@ ROSDASH.getBlockNum = function (def, block_type)
 		} else if (undefined === ROSDASH.widget_def[block_type].count)
 		{
 			ROSDASH.widget_def[block_type].count = 0;
-		} else
+		} else // add the count by one
 		{
 			++ ROSDASH.widget_def[block_type].count;
 		}
-		def.number = ROSDASH.widget_def[block_type].count;
-		def.id = block_type + "-" +  ROSDASH.widget_def[block_type].count;
-		if ("constant" == def.type && undefined !== def.value)
+		block.number = ROSDASH.widget_def[block_type].count;
+		// add id by number
+		block.id = block_type + "-" +  ROSDASH.widget_def[block_type].count;
+		// if constant, set the name as value
+		if ("constant" == block.type && undefined !== block.value)
 		{
-			if ("array" == typeof def.value || "object" == typeof def.value)
+			if ("array" == typeof block.value || "object" == typeof block.value)
 			{
-				def.name = JSON.stringify(def.value);
+				block.name = JSON.stringify(block.value);
 			} else
 			{
-				def.name = def.value;
+				block.name = block.value;
 			}
-		} else
+		} else // set the name by id
 		{
-			def.name = block_type + " " +  ROSDASH.widget_def[block_type].count;
+			block.name = block_type + " " +  ROSDASH.widget_def[block_type].count;
 		}
 	}
 	// if no widget_def, initialize to def.number
 	else if (undefined === ROSDASH.widget_def[block_type])
 	{
 		ROSDASH.widget_def[block_type] = new Object();
-		ROSDASH.widget_def[block_type].count = def.number;
+		ROSDASH.widget_def[block_type].count = block.number;
 	}
 	// if no count, initialize to def.number
 	else if (undefined === ROSDASH.widget_def[block_type].count)
@@ -1378,26 +1410,45 @@ ROSDASH.getBlockNum = function (def, block_type)
 		ROSDASH.widget_def[block_type].count = 0;
 	}
 	// if larger than count, set count to def.number
-	else if (def.number > ROSDASH.widget_def[block_type].count)
+	else if (block.number > ROSDASH.widget_def[block_type].count)
 	{
-		ROSDASH.widget_def[block_type].count = def.number;
-	} else	// otherwise, ignore the count
+		ROSDASH.widget_def[block_type].count = block.number;
+	} else // otherwise, ignore the count
 	{
 		// test if conflict with other block number
 		for (var i in ROSDASH.blocks)
 		{
-			if (block_type == ROSDASH.blocks[i].type && def.number == ROSDASH.blocks[i].number)
+			if (block_type == ROSDASH.blocks[i].type && block.number == ROSDASH.blocks[i].number)
 			{
-				console.error("block number conflicts: " + def.id);
-				return def;
+				console.error("block number conflicts: " + block.id);
+				return block;
 			}
 		}
 	}
-	return def;
+	return block;
 }
 
 ///////////////////////////////////// pins
 
+// input pin position distribution
+ROSDASH.INPUT_POS = {
+	"1": [[-70, 0]],
+	"2": [[-70, -20], [-70, 20]],
+	"3": [[-70, -20], [-70, 0], [-70, 20]],
+	"4": [[-70, -30], [-70, -10], [-70, 10], [-70, 30]],
+	"5": [[-70, -40], [-70, -20], [-70, 0], [-70, 20], [-70, 40]],
+	"6": [[-70, -50], [-70, -30], [-70, -10], [-70, 10], [-70, 30], [-70, 50]],
+	// more is coming
+};
+// output pin position distribution
+ROSDASH.OUTPUT_POS = {
+	"1": [[70, 0]],
+	"2": [[70, -20], [70, 20]],
+	"3": [[70, -20], [70, 0], [70, 20]],
+	"4": [[70, -30], [70, -10], [70, 10], [70, 30]],
+	"5": [[70, -40], [70, -20], [70, 0], [70, 20], [70, 40]],
+	// more is coming
+};
 //@todo
 ROSDASH.addPin = function (block, type, num)
 {
@@ -1479,9 +1530,9 @@ ROSDASH.changePin = function (id, pin_type, action)
 	}
 }
 
-///////////////////////////////////// block actions
+///////////////////////////////////// block actions (cytoscape)
 
-// find block by ID or name
+// find block by id or name
 ROSDASH.findBlock = function (id)
 {
 	if (undefined === id || "" == id || " " == id)
@@ -1489,138 +1540,28 @@ ROSDASH.findBlock = function (id)
 		return undefined;
 	}
 	var block;
+	// find by id
 	window.cy.nodes("#" + id).each(function (i, ele) {
 		block = ele;
 	});
-	if (undefined !== block)
+	if (undefined === block)
 	{
-		block.select();
-		window.cy.center(block);
-	} else
-	{
+		// find by name
 		window.cy.nodes('[name="' + id + '"]').each(function (i, ele) {
 			block = ele;
 		});
-		if (undefined !== block)
-		{
-			block.select();
-			window.cy.center(block);
-		} else
+		if (undefined === block)
 		{
 			console.log("cannot find", id);
 		}
 	}
-	return block;
-}
-ROSDASH.selected_block;
-// update the property dialog box when selected
-//@deprecated
-ROSDASH.selectBlockCallback = function (evt)
-{
-	var html = "";
-	// select node
-	if (evt.cyTarget.isNode())
+	// if find, center to it
+	if (undefined !== block)
 	{
-		var id = evt.cyTarget.id();
-		// select pin
-		if (evt.cyTarget.hasClass("pin") || evt.cyTarget.hasClass("input") || evt.cyTarget.hasClass("output"))
-		{
-			var hyphen = id.lastIndexOf("-");
-			var id2 = id.substring(0, hyphen);
-			var block = ROSDASH.blocks[id2];
-			var widget = ROSDASH.widget_def[block.type];
-			if (undefined !== block.type)
-			{
-				html += "<p>type: " + block.type + "</p>";
-			}
-			if (undefined !== block.id)
-			{
-				ROSDASH.selected_block = block.id;
-				html += '<p>id: ' + block.id + "</p>";
-			}
-			var pin_num = parseFloat(id.substring(hyphen + 2));
-			if (evt.cyTarget.hasClass("input"))
-			{
-				html += "<p>input: " + widget.input[pin_num].name + " (" + widget.input[pin_num].datatype + ")</p>";
-			} else if (evt.cyTarget.hasClass("output"))
-			{
-				html += "<p>output: " + widget.output[pin_num].name + " (" + widget.output[pin_num].datatype + ")</p>";
-			}
-		}
-		// select body
-		else if (evt.cyTarget.hasClass("body"))
-		{
-			var block = ROSDASH.blocks[id];
-			var widget = ROSDASH.widget_def[block.type];
-			// add a popup to selected block to show description
-			ROSDASH.addBlockPopup(block);
-			// a sidebar for block json information
-			ROSDASH.form_conf = false;
-			ROSDASH.blockForm(block);
-			if (undefined !== block.type)
-			{
-				html += "<p>type: " + block.type + "</p>";
-			}
-			if (undefined !== block.id)
-			{
-				ROSDASH.selected_block = block.id;
-				html += '<p>id: ' + block.id + "</p>";
-			}
-			if (undefined !== widget.input)
-			{
-				html += "<p>input: " + widget.input.length + "</p>";
-				if (widget.input.length > 0)
-				{
-					html += "<ul>";
-					for (var i in widget.input)
-					{
-						html += "<li>" + widget.input[i].name + " (" + widget.input[i].datatype + ")</li>";
-					}
-					html += "</ul>";
-				}
-			}
-			if (undefined !== widget.output)
-			{
-				html += "<p>output: " + widget.output.length + "</p>";
-				if (widget.output.length > 0)
-				{
-					html += "<ul>";
-					for (var i in widget.output)
-					{
-						html += "<li>" + widget.output[i].name + " (" + widget.output[i].datatype + ")</li>";
-					}
-					html += "</ul>";
-				}
-			}
-			if ("topic" == block.type)
-			{
-				html += "<p>topic: " + block.rosname + "</p>";
-			}
-			if (block.constant)
-			{
-				html += 'value: <input type="text" name="value" value="' + block.value + '" class="text ui-widget-content ui-corner-all" />';
-			}
-		}
-		else if (evt.cyTarget.hasClass("popup"))
-		{
-			if (evt.cyTarget.id().substring(evt.cyTarget.id().length - 2) == "-a")
-			{
-				ROSDASH.changePin(evt.cyTarget.id(), "input", "add");
-			}
-		} else
-		{
-			return;
-		}
-	} else		// select edge
-	{
-		ROSDASH.selected_block = undefined;
-		// add a popup to selected edge to show description
-		ROSDASH.addEdgePopup(evt.cyTarget);
-		html = '<p>type: edge</p>'
-				+ '<p>source: ' + evt.cyTarget.source().id() + '</p>'
-				+ '<p>target: ' + evt.cyTarget.target().id() + '</p>';
+		block.select();
+		window.cy.center(block);
 	}
-	$("#dialog-form").find("#property").html(html);
+	return block;
 }
 ROSDASH.removeBlock = function (name)
 {
@@ -1632,7 +1573,9 @@ ROSDASH.removeBlock = function (name)
 	{
 		ele.each(function (i, ele)
 		{
+			// reserve the id
 			id = ele.id();
+			// remove block from blocks
 			if (ele.id() in ROSDASH.blocks)
 			{
 				type = ROSDASH.blocks[ele.id()].type;
@@ -1640,8 +1583,9 @@ ROSDASH.removeBlock = function (name)
 			}
 			ele.remove();
 		});
-	}	// then the argument block
-	else if (undefined != name && "" != name)
+	}
+	// then the block from the function argument
+	else if (undefined !== name && "" != name)
 	{
 		id = name;
 		// first check id
@@ -1654,6 +1598,7 @@ ROSDASH.removeBlock = function (name)
 		}
 		if (0 < ele.size())
 		{
+			// remove block from blocks
 			if (id in ROSDASH.blocks)
 			{
 				type = ROSDASH.blocks[id].type;
@@ -1675,7 +1620,14 @@ ROSDASH.removeBlock = function (name)
 	{
 		ROSDASH.removeBlock(id + "-o" + i);
 	}
+	//@todo remove popups
 }
+
+//@todo put a thershold time for movement
+ROSDASH.last_move = {
+	id: undefined,
+	time: 0
+};
 // let pins follow body when moving
 ROSDASH.followBlock = function (target)
 {
@@ -1689,7 +1641,7 @@ ROSDASH.followBlock = function (target)
 	ROSDASH.blocks[id].x = target.position('x');
 	ROSDASH.blocks[id].y = target.position('y');
 	var type = ROSDASH.blocks[id].type;
-	// update input pins
+	// input pins follow @todo move to pin category
 	var pin_num = ROSDASH.widget_def[type].input.length;
 	for (var i = 0; i < pin_num; ++ i)
 	{
@@ -1701,7 +1653,7 @@ ROSDASH.followBlock = function (target)
 			});
 		});
 	}
-	// update output pins
+	// input pins follow @todo move to pin category
 	pin_num = ROSDASH.widget_def[type].output.length;
 	for (var i = 0; i < pin_num; ++ i)
 	{
@@ -1721,18 +1673,14 @@ ROSDASH.blockMoveCallback = function ()
 	{
 		ROSDASH.followBlock(evt.cyTarget);
 	});
-	//@deprecated
-	window.cy.on('free', function(evt)
-	{
-		//ROSDASH.saveDiagram();
-	});
 }
+
 //  the former one when connecting
 ROSDASH.connect_former = new Object();
 // connect two pins
 ROSDASH.connectBlocks = function (source, target)
 {
-	// if source and target do not exist
+	// if source or target does not exist
 	var body = source.substring(0, source.lastIndexOf("-"));
 	if (! (body in ROSDASH.blocks))
 	{
@@ -1746,12 +1694,16 @@ ROSDASH.connectBlocks = function (source, target)
 		return;
 	}
 	var flag = false;
-	// if target has duplicate connection
+	// if target has duplicate connection @todo maybe a better finding way?
 	window.cy.edges().each(function (i, ele)
 	{
+		if (true == flag)
+		{
+			return;
+		}
 		if (ele.source().id() == target || ele.target().id() == target)
 		{
-			console.error("duplicate connect: " + target);
+			console.error("duplicate connect: ", target);
 			flag = true;
 			return;
 		}
@@ -1787,12 +1739,13 @@ ROSDASH.connectBlocksCallback = function ()
 		{
 			return;
 		}
-		// if no former or unselected the former for a while
+		// if no former or unselected the former for a while, set the former
 		if (undefined === ROSDASH.connect_former.block || new Date().getTime() - ROSDASH.connect_former.unselect > 300)
 		{
 			ROSDASH.connect_former.block = evt.cyTarget;
 			ROSDASH.connect_former.type = connect_type;
-		}	// can be connected if connect types are different
+		}
+		// can be connected if connect types are different
 		else if (undefined != ROSDASH.connect_former.block && connect_type != ROSDASH.connect_former.type)
 		{
 			if (1 == connect_type)
@@ -1815,6 +1768,133 @@ ROSDASH.connectBlocksCallback = function ()
 	});
 }
 
+///////////////////////////////////// block selection (cytoscape and so on)
+
+ROSDASH.selected_block;
+// update the sidebar and popups when selected
+ROSDASH.selectBlockCallback = function (evt)
+{
+	var html = "";
+	// select node
+	if (evt.cyTarget.isNode())
+	{
+		// select pin
+		if (evt.cyTarget.hasClass("pin") || evt.cyTarget.hasClass("input") || evt.cyTarget.hasClass("output"))
+		{
+			ROSDASH.selectPin(evt);
+		}
+		// select body
+		else if (evt.cyTarget.hasClass("body"))
+		{
+			var id = evt.cyTarget.id();
+			var block = ROSDASH.blocks[id];
+			// add a popup to selected block to show description
+			ROSDASH.addBlockPopup(block);
+			// a sidebar for block json information
+			ROSDASH.form_conf = false;
+			ROSDASH.blockForm(block);
+			ROSDASH.selectBody(evt);
+		}
+		// select popup
+		else if (evt.cyTarget.hasClass("popup"))
+		{
+			if (evt.cyTarget.id().substring(evt.cyTarget.id().length - 2) == "-a")
+			{
+				ROSDASH.changePin(evt.cyTarget.id(), "input", "add");
+			}
+		}
+	} else // select edge
+	{
+		ROSDASH.selected_block = undefined;
+		// add a popup to selected edge to show description
+		ROSDASH.addEdgePopup(evt.cyTarget);
+		ROSDASH.selectEdge(evt);
+	}
+	//$("#dialog-form").find("#property").html(html);
+}
+ROSDASH.selectPin = function (evt)
+{
+	var id = evt.cyTarget.id();
+	var hyphen = id.lastIndexOf("-");
+	var id2 = id.substring(0, hyphen);
+	var block = ROSDASH.blocks[id2];
+	var widget = ROSDASH.widget_def[block.type];
+	var html;
+	if (undefined !== block.type)
+	{
+		html += "<p>type: " + block.type + "</p>";
+	}
+	if (undefined !== block.id)
+	{
+		ROSDASH.selected_block = block.id;
+		html += '<p>id: ' + block.id + "</p>";
+	}
+	var pin_num = parseFloat(id.substring(hyphen + 2));
+	if (evt.cyTarget.hasClass("input"))
+	{
+		html += "<p>input: " + widget.input[pin_num].name + " (" + widget.input[pin_num].datatype + ")</p>";
+	} else if (evt.cyTarget.hasClass("output"))
+	{
+		html += "<p>output: " + widget.output[pin_num].name + " (" + widget.output[pin_num].datatype + ")</p>";
+	}
+}
+ROSDASH.selectBody = function (evt)
+{
+	var id = evt.cyTarget.id();
+	var block = ROSDASH.blocks[id];
+	var widget = ROSDASH.widget_def[block.type];
+	var html;
+	if (undefined !== block.type)
+	{
+		html += "<p>type: " + block.type + "</p>";
+	}
+	if (undefined !== block.id)
+	{
+		ROSDASH.selected_block = block.id;
+		html += '<p>id: ' + block.id + "</p>";
+	}
+	if (undefined !== widget.input)
+	{
+		html += "<p>input: " + widget.input.length + "</p>";
+		if (widget.input.length > 0)
+		{
+			html += "<ul>";
+			for (var i in widget.input)
+			{
+				html += "<li>" + widget.input[i].name + " (" + widget.input[i].datatype + ")</li>";
+			}
+			html += "</ul>";
+		}
+	}
+	if (undefined !== widget.output)
+	{
+		html += "<p>output: " + widget.output.length + "</p>";
+		if (widget.output.length > 0)
+		{
+			html += "<ul>";
+			for (var i in widget.output)
+			{
+				html += "<li>" + widget.output[i].name + " (" + widget.output[i].datatype + ")</li>";
+			}
+			html += "</ul>";
+		}
+	}
+	if ("topic" == block.type)
+	{
+		html += "<p>topic: " + block.rosname + "</p>";
+	}
+	if (block.constant)
+	{
+		html += 'value: <input type="text" name="value" value="' + block.value + '" class="text ui-widget-content ui-corner-all" />';
+	}
+}
+ROSDASH.selectEdge = function (evt)
+{
+	var html = '<p>type: edge</p>'
+		+ '<p>source: ' + evt.cyTarget.source().id() + '</p>'
+		+ '<p>target: ' + evt.cyTarget.target().id() + '</p>';
+}
+
 ///////////////////////////////////// block popups and comments
 
 // remove all popups when unselected
@@ -1825,6 +1905,7 @@ ROSDASH.removePopup = function ()
 		ele.remove();
 	});
 }
+// add a popup to a pin
 ROSDASH.addPinPopup = function (block, pin_type, num)
 {
 	if (undefined === block[pin_type][num] || undefined === block[pin_type][num].name)
@@ -1842,7 +1923,7 @@ ROSDASH.addPinPopup = function (block, pin_type, num)
 			weight: 40,
 			height: 80,
 			faveShape: "ellipse",
-			"faveColor": "Cornsilk",
+			faveColor: "Cornsilk",
 		},
 		position: { x: pin_pos.x + (("input" == pin_type) ? -70 : 70), y: pin_pos.y },
 		classes: "popup"
@@ -1944,7 +2025,9 @@ ROSDASH.addEdgePopup = function (edge)
 	ROSDASH.addPinPopup(ROSDASH.blocks[source_id], "output", source_num);
 	ROSDASH.addPinPopup(ROSDASH.blocks[target_id], "input", target_num);
 }
+
 ROSDASH.comment_count = 0;
+// add a comment block by the content
 ROSDASH.addBlockComment = function (content)
 {
 	if (undefined === content || "" == content || " " == content)
@@ -2040,6 +2123,7 @@ ROSDASH.saveJson = function (data, filename)
 		}
 	});
 }
+// save diagram into file
 ROSDASH.saveDiagram = function ()
 {
 	// basic json for a diagram
@@ -2067,24 +2151,18 @@ ROSDASH.saveDiagram = function ()
 	});
 	ROSDASH.saveJson(json, json.user + "/" + json.panel_name + "-diagram");
 }
+// load diagram from json
 ROSDASH.loadDiagram = function (json)
 {
 	// load blocks
 	for (var i in json.block)
 	{
-		switch (json.block[i].type)
-		{
-		case "topic":
-			ROSDASH.addTopic(json.block[i]);
-			break;
-		default:
-			ROSDASH.addBlock(json.block[i]);
-			break;
-		}
+		ROSDASH.addBlock(json.block[i]);
 	}
 	// load edges
 	for (var i in json.edge)
 	{
+		// identify the source and target @todo should move to connect function
 		var source = json.edge[i].source;
 		var index = source.lastIndexOf("-");
 		var type1 = source.substring(index + 1, index + 2);
@@ -2102,8 +2180,10 @@ ROSDASH.loadDiagram = function (json)
 	// fit page into best view
 	window.cy.fit();
 }
+// main function for diagram
 ROSDASH.runDiagram = function (user, panel_name, selected)
 {
+	//@todo should have init event
 	ROSDASH.initForm();
 	ROSDASH.initDiagramToolbar();
 	ROSDASH.setUser(user, panel_name);
@@ -2125,6 +2205,7 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 			{
 				function start()
 				{
+					// wait for init functions @todo should have ready event
 					if (0 <= ROSDASH.init_count)
 					{
 						ROSDASH.loadDiagram(data);
@@ -2144,7 +2225,7 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 			}).error(function(d) {
 				console.error("load diagram error: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json', d);
 			});
-			// set callback functions
+			// set callback functions @todo should have ready event
 			ROSDASH.blockMoveCallback();
 			ROSDASH.connectBlocksCallback();
 		}
@@ -2187,7 +2268,7 @@ ROSDASH.transformToElements = function (json)
 	return ele;
 }
 
-///////////////////////////////////// widgets
+///////////////////////////////////// widget actions (sDashboard)
 
 // set the default value of widget content
 ROSDASH.parseWidgetContent = function (widget)
@@ -2303,6 +2384,7 @@ ROSDASH.parseExampleData = function (widget)
 	}
 	return widget;
 }
+// a list of widgets in use
 ROSDASH.widgets = new Object();
 // set the widget number
 ROSDASH.getWidgetNum = function (def)
@@ -2313,16 +2395,19 @@ ROSDASH.getWidgetNum = function (def)
 		ROSDASH.widget_def[def.widgetType] = new Object();
 		if (undefined === def.number)
 		{
+			// init to 0
 			ROSDASH.widget_def[def.widgetType].count = 0;
 			def.number = ROSDASH.widget_def[def.widgetType].count;
 		} else
 		{
 			ROSDASH.widget_def[def.widgetType].count = def.number;
 		}
-	} else if (undefined === ROSDASH.widget_def[def.widgetType].count)
+	}
+	else if (undefined === ROSDASH.widget_def[def.widgetType].count)
 	{
 		if (undefined === def.number)
 		{
+			// init to 0
 			ROSDASH.widget_def[def.widgetType].count = 0;
 			def.number = ROSDASH.widget_def[def.widgetType].count;
 		} else
@@ -2358,7 +2443,7 @@ ROSDASH.addWidgetByType = function (name)
 	{
 		return;
 	}
-	// set a new count number
+	// set a new count number @todo should use getWidgetNum
 	if (undefined === ROSDASH.widget_def[name])
 	{
 		ROSDASH.widget_def[name] = new Object();
@@ -2383,7 +2468,7 @@ ROSDASH.addWidgetByType = function (name)
 		header_height: ROSDASH.userConf.header_height,
 		content_height: ROSDASH.userConf.content_height
 	};
-	// move other widgets backward by one
+	// move other widgets backward by one @todo should have add new widget event
 	for (var i in ROSDASH.widgets)
 	{
 		++ ROSDASH.widgets[i].pos;
@@ -2398,10 +2483,6 @@ ROSDASH.addWidget = function (def)
 		console.error("widget id duplicate: " + def.widgetId);
 		// show the effect
 		$("#myDashboard").sDashboard("addWidget", def);
-		return;
-	}
-	if (! ROSDASH.checkWidgetTypeValid(def.widgetType))
-	{
 		return;
 	}
 	def = ROSDASH.getWidgetNum(def);
@@ -2646,19 +2727,18 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[i].output = new Object();
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].done = false;
-
 			// instantiate widget class
 			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
 		} else // if in the connection
 		{
-			if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
-			{
+if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
+{
 console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def);
 for (var i in ROSDASH.widget_def)
 {
 	console.debug(i, ROSDASH.widget_def[i])
 }
-			}
+}
 			// validate the existence of the block
 			ROSDASH.diagram_connection[i].exist = true;
 			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
@@ -2668,12 +2748,11 @@ for (var i in ROSDASH.widget_def)
 
 ///////////////////////////////////// diagram execution
 
-// new object by a string of name
+// new object by a string of name with at most two arguments
 ROSDASH.newObjByName = function (name, arg1, arg2)
 {
 	if (typeof name != "string")
 	{
-		//console.error("class name error");
 		return undefined;
 	}
 	// split by . to parse class with namespaces
@@ -2688,6 +2767,7 @@ ROSDASH.newObjByName = function (name, arg1, arg2)
 	// if the class is valid
 	if(typeof context == "object" && typeof context[class_name] == "function")
 	{
+		// new an object of the class
 		if (undefined === arg1 && undefined === arg2)
 		{
 			return new context[class_name] ();
@@ -2709,7 +2789,6 @@ ROSDASH.checkFuncByName = function (name, context)
 {
 	if (typeof name != "string")
 	{
-		//console.error("function name error");
 		return false;
 	}
 	// if context is undfined, it should be window
@@ -2737,7 +2816,6 @@ ROSDASH.runFuncByName = function (name, context, arg1, arg2)
 {
 	if (typeof name != "string")
 	{
-		//console.error("function name error");
 		return undefined;
 	}
 	// if context is undfined, it should be window
@@ -2770,9 +2848,9 @@ ROSDASH.runFuncByName = function (name, context, arg1, arg2)
 		return undefined;
 	}
 }
-// the outputs for all blocks
+// the outputs for all blocks @merge with diagram_connection
 ROSDASH.diagram_output = new Object();
-// call init functions of widgets
+// call init functions of widgets @todo change to event
 ROSDASH.initWidgets = function ()
 {
 	for (var i in ROSDASH.diagram_connection)
@@ -2796,8 +2874,10 @@ ROSDASH.initWidgets = function ()
 	}
 }
 ROSDASH.done_count = 0;
+ROSDASH.cycle = -1;
 ROSDASH.runWidgets = function ()
 {
+	++ ROSDASH.cycle;
 	ROSDASH.done_count = 0;
 	var last_count = -1;
 	// reset all blocks as undone
