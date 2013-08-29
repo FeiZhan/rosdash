@@ -614,14 +614,25 @@ ROSDASH.Text = function (block)
 	this.block = block;
 	this.title;
 	this.content;
+	this.once = false;
 }
 //@input	header and content strings
 //@output	none
 ROSDASH.Text.prototype.run = function (input)
 {
+	if (undefined !== this.block.config && this.block.config.once && this.once)
+	{
+		return;
+	}
 	// default value for inputs
 	input[0] = (undefined === input[0]) ? this.block.name : input[0];
-	input[1] = (undefined === input[1]) ? "(empty content)" : input[1];
+	if (undefined === input[1])
+	{
+		input[1] = "(empty content)";
+	} else
+	{
+		this.once = true;
+	}
 	if (this.title != input[0])
 	{
 		this.title = input[0];
@@ -2500,10 +2511,6 @@ ROSDASH.jsonEditor = function (block)
 		}
 	};
 }
-ROSDASH.jsonEditor.prototype.isDiff = function (json)
-{
-	
-}
 ROSDASH.jsonEditor.prototype.updateJson = function (data)
 {
 	this.json = data;
@@ -2532,6 +2539,16 @@ ROSDASH.jsonEditor.prototype.init = function ()
         editor.toggleClass('expanded');
         $(this).text(editor.hasClass('expanded') ? 'Collapse' : 'Expand all');
     });
+    if (undefined !== this.block.config && (typeof ROSDASH[this.block.config.jsonname] == "object" || typeof ROSDASH[this.block.config.jsonname] == "array"))
+    {
+		var header = this.block.config.jsonname;
+		if (this.block.config.readonly)
+		{
+			header += " (readonly)";
+		}
+		$("#myDashboard").sDashboard("setHeaderById", this.block.id, header);
+		this.json = ROSDASH[this.block.config.jsonname];
+	}
     $('#' + that.canvas).jsonEditor(this.json);
 }
 ROSDASH.jsonEditor.prototype.run = function (input)

@@ -118,22 +118,22 @@ ROSDASH.form_data = [{
 	type: "label",
 	label: "ROSDASH",
 	name: "rosform",
-	width: 190
+	width: 180
 	}, {
 		type: "button",
 		value: "Blocks",
 		name: "addblock",
-		width: 130
+		width: 180
 	}, {
 		type: "button",
 		value: "Constants",
 		name: "addconstant",
-		width: 130
+		width: 180
 	}, {
 		type: "button",
 		value: "ROS items",
 		name: "addROSitem",
-		width: 130
+		width: 180
 	}
 	//, {type:"newcolumn"}
 ];
@@ -967,6 +967,7 @@ ROSDASH.checkRosConflict = function (name, type)
 
 ///////////////////////////////////// load json
 
+// other json representations should be removed
 ROSDASH.jsonReadArray = new Object();
 ROSDASH.readJson = function (file)
 {
@@ -991,6 +992,7 @@ ROSDASH.waitJson = function ()
 			// if returned but not succeed, read again
 			if (1 == ROSDASH.jsonReadArray[i].status)
 			{
+				console.warning("read json file", i, "failed");
 				ROSDASH.readJson(i);
 			}
 			break;
@@ -1001,9 +1003,8 @@ ROSDASH.waitJson = function ()
 		setTimeout(ROSDASH.waitJson, 100);
 	} else
 	{
-		// event;
-		ROSDASH.ee.emitEvent('jsonReady', [100]);
-		console.debug("ready")
+		console.log("jsonReady");
+		ROSDASH.ee.emitEvent("jsonReady");
 	}
 }
 
@@ -1018,8 +1019,9 @@ ROSDASH.loadMsg = function ()
 {
 	for (var i in ROSDASH.msg_json)
 	{
-		++ ROSDASH.init_count;
 		ROSDASH.readJson("param/" + i);
+/*
+		++ ROSDASH.init_count;
 		$.getJSON("param/" + i + ".json", function(data, status, xhr)
 		{
 			for (var j in data)
@@ -1048,6 +1050,7 @@ ROSDASH.loadMsg = function ()
 			// if json connection replies, count the init value
 			-- ROSDASH.init_count;
 		});
+*/
 	}
 }
 // get message type definitions from ROSDASH.msg_def
@@ -1232,12 +1235,10 @@ ROSDASH.checkWidgetTypeValid = function (name)
 
 ///////////////////////////////////// blocks
 
-// default settings for blocks
-ROSDASH.NEW_POS = [0, 0];
 //@todo generate the position for new blocks to be
 ROSDASH.getNextNewBlockPos = function ()
 {
-	return ROSDASH.NEW_POS;
+	return [0, 0];
 }
 //@deprecated
 ROSDASH.addTopicByName = function (name)
@@ -1345,17 +1346,17 @@ ROSDASH.addBlock = function (def)
 	{
 		return;
 	}
-	if (undefined === def.config)
+	if (undefined === block.config)
 	{
 		// assign config to a block from definition
-		if (undefined !== ROSDASH.widget_def[def.type].config)
+		if (undefined !== ROSDASH.widget_def[block.type].config)
 		{
-			def.config = ROSDASH.transformBlockConfig(ROSDASH.widget_def[def.type].config);
+			block.config = ROSDASH.transformBlockConfig(ROSDASH.widget_def[block.type].config);
 		}
 	} else
 	{
 		// transform config from raw json into real json
-		def.config = ROSDASH.transformBlockConfig(def.config);
+		block.config = ROSDASH.transformBlockConfig(block.config);
 	}
 	// if no position specified, use the new position for a block
 	var next_pos = ROSDASH.getNextNewBlockPos();
@@ -2859,11 +2860,11 @@ ROSDASH.traverseDiagram = function ()
 		{
 if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 {
-console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def);
-for (var i in ROSDASH.widget_def)
-{
-	console.debug(i, ROSDASH.widget_def[i])
-}
+	console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def);
+	for (var i in ROSDASH.widget_def)
+	{
+		console.debug(i, ROSDASH.widget_def[i])
+	}
 }
 			// validate the existence of the block
 			ROSDASH.diagram_connection[i].exist = true;

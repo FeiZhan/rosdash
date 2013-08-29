@@ -495,6 +495,9 @@
 		],
 		"has_panel": "true",
 		"class_name": "ROSDASH.Text",
+		"config": {
+			"once": "false"
+		},
 		"input": [
 			{
 				"datatype": "String",
@@ -942,6 +945,10 @@
 		],
 		"class_name": "ROSDASH.jsonEditor",
 		"has_panel": "true",
+		"config": {
+			"readonly": "true",
+			"jsonname": ""
+		},
 		"input": [
 			{
 				"datatype": "Object",
