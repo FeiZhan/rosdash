@@ -149,6 +149,8 @@ ROSDASH.initForm = function ()
 		case "addblock":
 			break;
 		case "addconstant":
+			ROSDASH.formList = ROSDASH.block_list.constant;
+			ROSDASH.showBlocksInForm("addconstant");
 			break;
 		case "addROSitem":
 			ROSDASH.formList = ROSDASH.rosNames;
@@ -189,7 +191,7 @@ ROSDASH.showBlocksInForm = function ()
 	var count = 1;
 	for (var i in ROSDASH.formList)
 	{
-		if ("_" != ROSDASH.formList[i])
+		if ("_" != i)
 		{
 			ROSDASH.form.addItem(null, {
 				type: "button",
@@ -203,8 +205,8 @@ ROSDASH.showBlocksInForm = function ()
 			{
 				ROSDASH.form.addItem(null, {
 					type: "button",
-					value: i,
-					name: "blk-" + i,
+					value: ROSDASH.formList["_"][i],
+					name: "blk-" + ROSDASH.formList["_"][i],
 					width: 130
 				}, ++ count);
 			}
@@ -969,6 +971,27 @@ ROSDASH.checkRosConflict = function (name, type)
 
 // other json representations should be removed
 ROSDASH.jsonReadArray = new Object();
+// transform from raw json into real json
+ROSDASH.transformRawJson = function (raw)
+{
+	for (var i in raw)
+	{
+		if ("true" == raw[i])
+		{
+			raw[i] = true;
+		} else if ("false" == raw[i])
+		{
+			raw[i] = false;
+		} else if ("null" == raw[i])
+		{
+			raw[i] = null;
+		} else if (typeof raw[i] == "object")
+		{
+			raw[i] = ROSDASH.transformRawJson(raw[i]);
+		}
+	}
+	return raw;
+}
 ROSDASH.readJson = function (file)
 {
 	ROSDASH.jsonReadArray[file] = new Object();
@@ -1004,8 +1027,32 @@ ROSDASH.waitJson = function ()
 	} else
 	{
 		console.log("jsonReady");
+		ROSDASH.parseMsg();
 		ROSDASH.ee.emitEvent("jsonReady");
 	}
+}
+// save data to json in server
+//@bug PHP will ignore empty json part
+ROSDASH.saveJson = function (data, filename)
+{
+	$.ajax({
+		type: "POST",
+		url: "rosdash.php",
+		dataType: 'json',
+		data: {
+			func: "saveFile",
+			file_name: filename,
+			data: data
+		},
+		success: function( data, textStatus, jqXHR )
+		{
+			console.log("saveJson success: ", textStatus);
+		},
+		error: function(jqXHR, textStatus, errorThrown)
+		{
+			console.log("saveJson error: ", jqXHR, textStatus, errorThrown);
+		}
+	});
 }
 
 ///////////////////////////////////// msg type definitions
@@ -1013,44 +1060,41 @@ ROSDASH.waitJson = function ()
 ROSDASH.msg_json = {
 	"std_msgs": new Object()
 };
-ROSDASH.msg_def = new Object();
 // load message type definitions from json
 ROSDASH.loadMsg = function ()
 {
 	for (var i in ROSDASH.msg_json)
 	{
 		ROSDASH.readJson("param/" + i);
-/*
-		++ ROSDASH.init_count;
-		$.getJSON("param/" + i + ".json", function(data, status, xhr)
+	}
+}
+// parse message for sidebar list
+ROSDASH.parseMsg = function ()
+{
+	for (var i in ROSDASH.msg_json)
+	{
+		var data = ROSDASH.jsonReadArray["param/" + i].data;
+		for (var j in data)
 		{
-			for (var j in data)
+			// add to block list constant
+			if (undefined === ROSDASH.block_list.constant)
 			{
-				ROSDASH.msg_json[j] = data;
-				// add to block list constant
-				if (undefined === ROSDASH.block_list.constant)
+				ROSDASH.block_list.constant = new Object();
+			}
+			if (undefined === ROSDASH.block_list.constant["_"])
+			{
+				ROSDASH.block_list.constant["_"] = new Array();
+			}
+			var list = ROSDASH.block_list.constant["_"];
+			for (var k in data[j])
+			{
+				if (undefined != data[j][k].name)
 				{
-					ROSDASH.block_list.constant = new Object();
-				}
-				if (undefined === ROSDASH.block_list.constant["_"])
-				{
-					ROSDASH.block_list.constant["_"] = new Array();
-				}
-				var list = ROSDASH.block_list.constant["_"];
-				for (var k in data[j])
-				{
-					if (undefined != data[j][k].name)
-					{
-						// add to block list for toolbar
-						list.push(data[j][k].name);
-					}
+					// add to block list for toolbar
+					list.push(data[j][k].name);
 				}
 			}
-		}).always(function() {
-			// if json connection replies, count the init value
-			-- ROSDASH.init_count;
-		});
-*/
+		}
 	}
 }
 // get message type definitions from ROSDASH.msg_def
@@ -1175,6 +1219,12 @@ ROSDASH.loadWidgetJson = function ()
 		});
 	}
 }
+// parse widget json for sidebar list
+ROSDASH.parseWidgetJson = function ()
+{
+	
+}
+
 // init msg type and widget definitions from json
 ROSDASH.initJson = function ()
 {
@@ -1302,10 +1352,7 @@ ROSDASH.addTopic = function (def)
 ROSDASH.blocks = new Object();
 ROSDASH.addBlockByType = function (type)
 {
-	var block = {
-		type: type,
-	};
-	return ROSDASH.addBlock(block);
+	return ROSDASH.addBlock({type: type});
 }
 ROSDASH.addConstant = function (const_type)
 {
@@ -1317,27 +1364,7 @@ ROSDASH.addConstant = function (const_type)
 	};
 	return ROSDASH.addBlock(block);
 }
-// transform from raw json into real json
-ROSDASH.transformBlockConfig = function (raw)
-{
-	for (var i in raw)
-	{
-		if ("true" == raw[i])
-		{
-			raw[i] = true;
-		} else if ("false" == raw[i])
-		{
-			raw[i] = false;
-		} else if ("null" == raw[i])
-		{
-			raw[i] = null;
-		} else if (typeof raw[i] == "object")
-		{
-			raw[i] = ROSDASH.transformBlockConfig(raw[i]);
-		}
-	}
-	return raw;
-}
+
 ROSDASH.addBlock = function (def)
 {
 	var block = ROSDASH.initBlockConf(def);
@@ -1351,12 +1378,12 @@ ROSDASH.addBlock = function (def)
 		// assign config to a block from definition
 		if (undefined !== ROSDASH.widget_def[block.type].config)
 		{
-			block.config = ROSDASH.transformBlockConfig(ROSDASH.widget_def[block.type].config);
+			block.config = ROSDASH.transformRawJson(ROSDASH.widget_def[block.type].config);
 		}
 	} else
 	{
 		// transform config from raw json into real json
-		block.config = ROSDASH.transformBlockConfig(block.config);
+		block.config = ROSDASH.transformRawJson(block.config);
 	}
 	// if no position specified, use the new position for a block
 	var next_pos = ROSDASH.getNextNewBlockPos();
@@ -1923,6 +1950,11 @@ ROSDASH.selectBlockCallback = function (evt)
 		// select popup
 		else if (evt.cyTarget.hasClass("popup"))
 		{
+			if (evt.cyTarget.hasClass("pinput") || evt.cyTarget.hasClass("poutput"))
+			{
+				console.debug("popup")
+				// connect
+			}
 			if (evt.cyTarget.id().substring(evt.cyTarget.id().length - 2) == "-a")
 			{
 				ROSDASH.changePin(evt.cyTarget.id(), "input", "add");
@@ -2051,7 +2083,7 @@ ROSDASH.addPinPopup = function (block, pin_type, num)
 			faveColor: "Cornsilk",
 		},
 		position: { x: pin_pos.x + (("input" == pin_type) ? -70 : 70), y: pin_pos.y },
-		classes: "popup"
+		classes: "popup p" + pin_type
 	});
 	window.cy.add({
 		group: "edges",
@@ -2225,29 +2257,6 @@ ROSDASH.default_style = cytoscape.stylesheet()
 		'background-color': 'grey',
 		'border-width': 0,
 	});
-// save data to json in server
-//@bug PHP will ignore empty json part
-ROSDASH.saveJson = function (data, filename)
-{
-	$.ajax({
-		type: "POST",
-		url: "rosdash.php",
-		dataType: 'json',
-		data: {
-			func: "saveFile",
-			file_name: filename,
-			data: data
-		},
-		success: function( data, textStatus, jqXHR )
-		{
-			console.log("saveJson success: ", textStatus);
-		},
-		error: function(jqXHR, textStatus, errorThrown)
-		{
-			console.log("saveJson error: ", jqXHR, textStatus, errorThrown);
-		}
-	});
-}
 // save diagram into file
 ROSDASH.saveDiagram = function ()
 {
@@ -2305,17 +2314,46 @@ ROSDASH.loadDiagram = function (json)
 	// fit page into best view
 	window.cy.fit();
 }
+ROSDASH.initDiagram = function ()
+{
+	ROSDASH.userConf.view_type = "diagram";
+	ROSDASH.initSidebar();
+	ROSDASH.initDiagramToolbar();
+	ROSDASH.initJson();
+	ROSDASH.loadConfJson();
+	ROSDASH.waitJson();
+}
+ROSDASH.DiagramCyReady = function (selected)
+{
+	// load diagram from json
+	$.getJSON('file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json', function(data)
+	{
+		function start()
+		{
+			// wait for init functions @todo should have ready event
+			if (0 <= ROSDASH.init_count)
+			{
+				ROSDASH.exeDiagram(data, selected);
+			} else
+			{
+				console.log("loading");
+				setTimeout(start, 200);
+			}
+		}
+		start();
+	}).error(function(d) {
+		console.error("load diagram error: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json', d);
+	});
+	// set callback functions @todo should have ready event
+	ROSDASH.blockMoveCallback();
+	ROSDASH.connectBlocksCallback();
+}
 // main function for diagram
 ROSDASH.runDiagram = function (user, panel_name, selected)
 {
 	//@todo should have init event
-	ROSDASH.initSidebar();
-	ROSDASH.initDiagramToolbar();
 	ROSDASH.setUser(user, panel_name);
-	ROSDASH.userConf.view_type = "diagram";
-	ROSDASH.initJson();
-	ROSDASH.loadConfJson();
-	ROSDASH.waitJson();
+	ROSDASH.initDiagram();
 	var style = ROSDASH.default_style;
 	var empty_ele = {nodes: new Array(), edges: new Array()};
 	// generate an empty cytoscape diagram
@@ -2323,39 +2361,22 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 		showOverlay: false,
 		style: style,
 		elements: empty_ele,
-		ready: function()
+		ready: function ()
 		{
 			window.cy = this;
-			// load diagram from json
-			$.getJSON('file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json', function(data)
-			{
-				function start()
-				{
-					// wait for init functions @todo should have ready event
-					if (0 <= ROSDASH.init_count)
-					{
-						ROSDASH.loadDiagram(data);
-						window.cy.elements().unlock();
-						window.cy.elements().unselect();
-						window.cy.on('select', ROSDASH.selectBlockCallback);
-						window.cy.on('unselect', ROSDASH.removePopup);
-						console.log("load diagram: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json');
-						ROSDASH.findBlock(selected);
-					} else
-					{
-						console.log("loading");
-						setTimeout(start, 200);
-					}
-				}
-				start();
-			}).error(function(d) {
-				console.error("load diagram error: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json', d);
-			});
-			// set callback functions @todo should have ready event
-			ROSDASH.blockMoveCallback();
-			ROSDASH.connectBlocksCallback();
+			ROSDASH.DiagramCyReady(selected);
 		}
 	});
+}
+ROSDASH.exeDiagram = function (data, selected)
+{
+	ROSDASH.loadDiagram(data);
+	window.cy.elements().unlock();
+	window.cy.elements().unselect();
+	window.cy.on('select', ROSDASH.selectBlockCallback);
+	//window.cy.on('unselect', ROSDASH.removePopup);
+	console.log("load diagram: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json');
+	ROSDASH.findBlock(selected);
 }
 //@deprecated
 ROSDASH.transformToElements = function (json)
@@ -2788,7 +2809,7 @@ ROSDASH.readDiagram = function ()
 		{
 			if (undefined !== ROSDASH.diagram.block[i].config)
 			{
-				ROSDASH.diagram.block[i].config = ROSDASH.transformBlockConfig(ROSDASH.diagram.block[i].config);
+				ROSDASH.diagram.block[i].config = ROSDASH.transformRawJson(ROSDASH.diagram.block[i].config);
 			}
 		}
 		ROSDASH.traverseDiagram();
