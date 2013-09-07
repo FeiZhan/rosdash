@@ -58,6 +58,8 @@ ROSDASH.memArray.prototype.run = function (input)
 	return {o0: this.data};
 }
 
+//////////////////////////////////// arithmetics
+
 // add inputs up
 ROSDASH.Addition = function (block)
 {
@@ -103,6 +105,8 @@ ROSDASH.Division.prototype.run = function (input)
 	}
 	return {o0: output};
 }
+
+//////////////////////////////////// matrix operations
 
 // just for array
 ROSDASH.Insert = function (block)
@@ -655,8 +659,7 @@ ROSDASH.Speech = function (block)
 }
 ROSDASH.Speech.prototype.addWidget = function (widget)
 {
-	//@todo change id
-	widget.widgetTitle = this.canvas_id + ' <input type="button" id="speak" value="speak" /><span id="audio"></span>';
+	widget.widgetTitle = this.block.id + ' <input type="button" id="' + this.canvas_id + '" value="speak" /><span id="audio"></span>';
 	widget.widgetContent = "";
 	return widget;
 }
@@ -668,9 +671,9 @@ ROSDASH.Speech.prototype.speak = function ()
 // add callback function to speak button
 ROSDASH.Speech.prototype.init = function ()
 {
-	if ($("#speak").length > 0)
+	if ($("#" + this.canvas_id).length > 0)
 	{
-		$("#speak").click(this.speak);
+		$("#" + this.canvas_id).click(this.speak);
 	}
 }
 //@input	the content to speak
@@ -777,7 +780,7 @@ ROSDASH.Table.prototype.run = function (input)
 	$("#myDashboard").sDashboard("setContentById", this.block.id, dataTable);
 }
 
-//////////////////////////////////// network
+//////////////////////////////////// networks
 
 ROSDASH.cyNetwork = function (block)
 {

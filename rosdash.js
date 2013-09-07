@@ -6,18 +6,6 @@ var ROSDASH = new Object();
 ///////////////////////////////////// events
 
 ROSDASH.ee = new EventEmitter();
-/*
-function testEvent(num)
-{
-	console.debug("testEvent is ready", num);
-}
-function testEvent2(num)
-{
-	console.debug("testEvent2 is ready", num);
-}
-ROSDASH.ee.addListener("jsonReady", testEvent);
-ROSDASH.ee.addListener("jsonReady", testEvent2);
-*/
 
 ///////////////////////////////////// sidebars
 
@@ -138,23 +126,64 @@ ROSDASH.form_data = [{
 	//, {type:"newcolumn"}
 ];
 ROSDASH.form;
+ROSDASH.formItemType;
 ROSDASH.formList;
 ROSDASH.initForm = function ()
 {
-	ROSDASH.resetForm();
+	if (undefined !== ROSDASH.form)
+	{
+		var items = ROSDASH.form.getItemsList();
+		for (var i in items)
+		{
+			ROSDASH.form.removeItem(items[i]);
+		}
+	}
+	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
 	ROSDASH.form.attachEvent("onButtonClick", function(id)
 	{
+		if (id.substring(0, 4) == "dir-")
+		{
+			ROSDASH.formClickDir(id.substring(4));
+		}
+		if (id.substring(0, 5) == "item-")
+		{
+			ROSDASH.formClickItem(id.substring(5));
+		}
 		switch (id)
 		{
+		case "backhome":
+			ROSDASH.initForm();
+			ROSDASH.formItemType = undefined;
+			break;
 		case "addblock":
+			ROSDASH.formList = ROSDASH.block_list;
+			ROSDASH.formItemType = "addBlockByType";
+			ROSDASH.showBlocksInForm({
+				type: "button",
+				value: "Blocks",
+				name: "addblock",
+				width: 180
+			});
 			break;
 		case "addconstant":
 			ROSDASH.formList = ROSDASH.block_list.constant;
-			ROSDASH.showBlocksInForm("addconstant");
+			ROSDASH.formItemType = "addConstant";
+			ROSDASH.showBlocksInForm({
+				type: "button",
+				value: "Constants",
+				name: "addconstant",
+				width: 180
+			});
 			break;
 		case "addROSitem":
 			ROSDASH.formList = ROSDASH.rosNames;
-			ROSDASH.showBlocksInForm("addROSitem");
+			ROSDASH.formItemType = "addTopicByName";
+			ROSDASH.showBlocksInForm({
+				type: "button",
+				value: "ROS items",
+				name: "addROSitem",
+				width: 180
+			});
 			break;
 		}
 	});
@@ -170,12 +199,7 @@ ROSDASH.clearForm = function ()
 		}
 	}
 }
-// reset the sidebarform for diagram
-ROSDASH.resetForm = function ()
-{
-	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
-}
-ROSDASH.showBlocksInForm = function ()
+ROSDASH.showBlocksInForm = function (parent)
 {
 	if (undefined === ROSDASH.formList)
 	{
@@ -184,11 +208,16 @@ ROSDASH.showBlocksInForm = function ()
 	ROSDASH.clearForm();
 	ROSDASH.form.addItem(null, {
 		type: "button",
-		value: "ROS items",
-		name: "addROSitem",
-		width: 130
+		value: "Home",
+		name: "backhome",
+		width: 180
 	}, 1);
 	var count = 1;
+	if (typeof parent == "object")
+	{
+		ROSDASH.form.addItem(null, parent, 2);
+		count = 2;
+	}
 	for (var i in ROSDASH.formList)
 	{
 		if ("_" != i)
@@ -197,7 +226,7 @@ ROSDASH.showBlocksInForm = function ()
 				type: "button",
 				value: i,
 				name: "dir-" + i,
-				width: 130
+				width: 180
 			}, ++ count);
 		} else
 		{
@@ -206,11 +235,29 @@ ROSDASH.showBlocksInForm = function ()
 				ROSDASH.form.addItem(null, {
 					type: "button",
 					value: ROSDASH.formList["_"][i],
-					name: "blk-" + ROSDASH.formList["_"][i],
-					width: 130
+					name: "item-" + ROSDASH.formList["_"][i],
+					width: 180
 				}, ++ count);
 			}
 		}
+	}
+}
+ROSDASH.formClickDir = function (name)
+{
+	if (name in ROSDASH.formList && (typeof ROSDASH.formList[name] == "object" || typeof ROSDASH.formList[name] == "array"))
+	{
+		ROSDASH.formList = ROSDASH.formList[name];
+		ROSDASH.showBlocksInForm();
+	}
+}
+ROSDASH.formClickItem = function (name)
+{
+	var fn = ROSDASH[ROSDASH.formItemType];
+	if(typeof fn === 'function') {
+		fn(name);
+	} else
+	{
+		console.error("form click item error", ROSDASH.formItemType, typeof fn, name);
 	}
 }
 
@@ -343,7 +390,6 @@ ROSDASH.initSidebar = function ()
 ROSDASH.toolbar;
 ROSDASH.list_depth;
 // list the content in toolbar
-//@todo reconfigure
 ROSDASH.listInToolbar = function ()
 {
 	// remove the original items
@@ -547,16 +593,6 @@ ROSDASH.resetPanelToolbar = function ()
 		ROSDASH.toolbar.removeItem(itemId);
 	});
 	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
-	// add user name to logo text @todo depend on user name event
-	if ("index" != ROSDASH.userConf.name)
-	{
-		logo_text += '-<a href="panel.html?user=' + ROSDASH.userConf.name + '" target="_blank">' + ROSDASH.userConf.name + '</a>';
-		// add panel name to logo text
-		if ("index" != ROSDASH.userConf.panel_name)
-		{
-			logo_text += "-" + ROSDASH.userConf.panel_name;
-		}
-	}
     ROSDASH.toolbar.addText("logo", 0, logo_text);
     ROSDASH.toolbar.addInput("input", 1, "", 60);
     ROSDASH.toolbar.addButton("addwidget", 2, "add widget", "new.gif", "new_dis.gif");
@@ -724,22 +760,12 @@ ROSDASH.resetDiagramToolbar = function ()
 		ROSDASH.toolbar.removeItem(itemId);
 	});
 	var logo_text = '<a href="index.html" target="_blank">ROSDASH</a>';
-	//@todo user name event
-	if ("index" != ROSDASH.userConf.name)
-	{
-		logo_text += '-<a href="panel.html?user=' + ROSDASH.userConf.name + '" target="_blank">' + ROSDASH.userConf.name + '</a>';
-		if ("index" != ROSDASH.userConf.panel_name)
-		{
-			logo_text += "-" + ROSDASH.userConf.panel_name;
-		}
-	}
     ROSDASH.toolbar.addText("logo", 0, logo_text);
     ROSDASH.toolbar.addInput("input", 1, "", 130);
     ROSDASH.toolbar.addButton("addblock", 2, "add block", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("listblock", 3, "list block", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("listconst", 5, "list constant", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("addros", 6, "add ROS", "new.gif", "new_dis.gif");
-	//@bug
 	//ROSDASH.toolbar.addButton("listros", 7, "list ROS", "new.gif", "new_dis.gif");
     ROSDASH.toolbar.addButton("remove", 8, "remove", "remove-icon.gif", "remove-icon.gif");
     ROSDASH.toolbar.addButton("save", 9, "save", "save.gif", "save_dis.gif");
@@ -867,6 +893,36 @@ ROSDASH.setUserConf = function (conf)
 		}
 	}
 	ROSDASH.checkUserConfValid();
+	console.log("load user config: ", ROSDASH.userConf.name + "/conf.json");
+
+	// load json specified by user config
+	for (var i in ROSDASH.userConf.json)
+	{
+		++ ROSDASH.init_count;
+		ROSDASH.readJson(i);
+/*
+		$.getJSON(i, function(data, status, xhr)
+		{
+			console.log("load user specified json: ", i);
+			// load widgets from json specified by user
+			for (var j in data)
+			{
+				ROSDASH.widget_json[j] = data;
+				for (var k in data[j])
+				{
+					if (undefined != data[j][k].type)
+					{
+						ROSDASH.widget_def[data[j][k].type] = data[j][k];
+						// add to widget-list in the drop-down menu
+						//$("#widget-list").append('<li><a href="">' + data[j][k].type + '</a></li>');
+					}
+				}
+			}
+		}).always(function() {
+			-- ROSDASH.init_count;
+		});
+*/
+	}
 }
 // if connected ROS, set the ROS names
 // called when ROS connection made
@@ -1004,8 +1060,15 @@ ROSDASH.readJson = function (file)
 		++ ROSDASH.jsonReadArray[file].status;
 	});
 }
+ROSDASH.json_ready = false;
 ROSDASH.waitJson = function ()
 {
+	// if user conf is loaded. must be executed before examine jsonReadArray
+	var conf_path = "file/" + ROSDASH.userConf.name + "/conf";
+	if ((conf_path in ROSDASH.jsonReadArray) && 2 == ROSDASH.jsonReadArray[conf_path].status)
+	{
+		ROSDASH.setUserConf(ROSDASH.jsonReadArray[conf_path].data);
+	}
 	var flag = true;
 	for (var i in ROSDASH.jsonReadArray)
 	{
@@ -1026,8 +1089,9 @@ ROSDASH.waitJson = function ()
 		setTimeout(ROSDASH.waitJson, 100);
 	} else
 	{
-		console.log("jsonReady");
 		ROSDASH.parseMsg();
+		console.log("json is ready");
+		ROSDASH.json_ready = true;
 		ROSDASH.ee.emitEvent("jsonReady");
 	}
 }
@@ -1097,8 +1161,7 @@ ROSDASH.parseMsg = function ()
 		}
 	}
 }
-// get message type definitions from ROSDASH.msg_def
-//@bug from ROSDASH.msg_json? maybe ROSDASH.msg_def does not work?
+// get message type definitions from ROSDASH.msg_json
 ROSDASH.getMsgDef = function (name)
 {
 	for (var i in ROSDASH.msg_json)
@@ -1219,58 +1282,14 @@ ROSDASH.loadWidgetJson = function ()
 		});
 	}
 }
-// parse widget json for sidebar list
-ROSDASH.parseWidgetJson = function ()
-{
-	
-}
 
 // init msg type and widget definitions from json
 ROSDASH.initJson = function ()
 {
-	ROSDASH.loadMsg();
-	ROSDASH.loadWidgetJson();
-}
-// load json files from user config
-ROSDASH.loadConfJson = function ()
-{
-	++ ROSDASH.init_count;
 	// load user config json
 	ROSDASH.readJson("file/" + ROSDASH.userConf.name + "/conf");
-	$.getJSON("file/" + ROSDASH.userConf.name + "/conf.json", function(data, status, xhr)
-	{
-		ROSDASH.setUserConf(data);
-		console.log("load user config: ", ROSDASH.userConf.name + "/conf.json");
-		// load json specified by user config
-		for (var i in ROSDASH.userConf.json)
-		{
-			++ ROSDASH.init_count;
-			ROSDASH.readJson(i);
-			$.getJSON(i, function(data, status, xhr)
-			{
-				console.log("load user specified json: ", i);
-				// load widgets from json specified by user
-				//@todo can be changed into a function
-				for (var j in data)
-				{
-					ROSDASH.widget_json[j] = data;
-					for (var k in data[j])
-					{
-						if (undefined != data[j][k].type)
-						{
-							ROSDASH.widget_def[data[j][k].type] = data[j][k];
-							// add to widget-list in the drop-down menu
-							//$("#widget-list").append('<li><a href="">' + data[j][k].type + '</a></li>');
-						}
-					}
-				}
-			}).always(function() {
-				-- ROSDASH.init_count;
-			});
-		}
-	}).always(function() {
-		-- ROSDASH.init_count;
-	});
+	ROSDASH.loadMsg();
+	ROSDASH.loadWidgetJson();
 }
 ROSDASH.checkWidgetTypeValid = function (name)
 {
@@ -1285,12 +1304,12 @@ ROSDASH.checkWidgetTypeValid = function (name)
 
 ///////////////////////////////////// blocks
 
-//@todo generate the position for new blocks to be
+//@todo generate the position for new blocks to be. maybe should follow the mouse
 ROSDASH.getNextNewBlockPos = function ()
 {
 	return [0, 0];
 }
-//@deprecated
+//@deprecated maybe
 ROSDASH.addTopicByName = function (name)
 {
 	return ROSDASH.addTopic({rosname: name});
@@ -1590,7 +1609,7 @@ ROSDASH.INPUT_POS = {
 	"4": [[-70, -30], [-70, -10], [-70, 10], [-70, 30]],
 	"5": [[-70, -40], [-70, -20], [-70, 0], [-70, 20], [-70, 40]],
 	"6": [[-70, -50], [-70, -30], [-70, -10], [-70, 10], [-70, 30], [-70, 50]],
-	// more is coming
+	// more are coming
 };
 // output pin position distribution
 ROSDASH.OUTPUT_POS = {
@@ -1599,7 +1618,8 @@ ROSDASH.OUTPUT_POS = {
 	"3": [[70, -20], [70, 0], [70, 20]],
 	"4": [[70, -30], [70, -10], [70, 10], [70, 30]],
 	"5": [[70, -40], [70, -20], [70, 0], [70, 20], [70, 40]],
-	// more is coming
+	"6": [[70, -50], [70, -30], [70, -10], [70, 10], [70, 30], [70, 50]],
+	// more are coming
 };
 //@todo
 ROSDASH.addPin = function (block, type, num)
@@ -1775,13 +1795,7 @@ ROSDASH.removeBlock = function (name)
 	//@todo remove popups
 }
 
-//@todo put a thershold time for movement
-ROSDASH.last_move = {
-	id: undefined,
-	time: 0
-};
-// let pins follow body when moving
-ROSDASH.followBlock = function (target)
+ROSDASH.moveBlock = function (target)
 {
 	var id = target.id();
 	if (undefined === ROSDASH.blocks[id])
@@ -1797,13 +1811,31 @@ ROSDASH.followBlock = function (target)
 	var pin_num = ROSDASH.widget_def[type].input.length;
 	for (var i = 0; i < pin_num; ++ i)
 	{
+		window.cy.nodes('[id = "' + id + "-i" + i + '"]').hide();
+	}
+	// input pins follow @todo move to pin category
+	pin_num = ROSDASH.widget_def[type].output.length;
+	for (var i = 0; i < pin_num; ++ i)
+	{
+		window.cy.nodes('[id = "' + id + "-o" + i + '"]').hide();
+	}
+}
+// let pins follow body when moving
+ROSDASH.followBlock = function (target)
+{
+	var id = target.id();
+	var type = ROSDASH.blocks[id].type;
+	// input pins follow @todo move to pin category
+	var pin_num = ROSDASH.widget_def[type].input.length;
+	for (var i = 0; i < pin_num; ++ i)
+	{
 		window.cy.nodes('[id = "' + id + "-i" + i + '"]').positions(function (j, ele)
 		{
 			ele.position({
 				x: target.position('x') + ROSDASH.INPUT_POS[pin_num][i][0],
 				y: target.position('y') + ROSDASH.INPUT_POS[pin_num][i][1]
 			});
-		});
+		}).show();
 	}
 	// input pins follow @todo move to pin category
 	pin_num = ROSDASH.widget_def[type].output.length;
@@ -1815,13 +1847,17 @@ ROSDASH.followBlock = function (target)
 				x: target.position('x') + ROSDASH.OUTPUT_POS[pin_num][i][0],
 				y: target.position('y') + ROSDASH.OUTPUT_POS[pin_num][i][1]
 			});
-		});
+		}).show();
 	}
 }
 ROSDASH.blockMoveCallback = function ()
 {
 	// let pins follow the body when move
 	window.cy.on('position', function(evt)
+	{
+		ROSDASH.moveBlock(evt.cyTarget);
+	});
+	window.cy.on('free', function(evt)
 	{
 		ROSDASH.followBlock(evt.cyTarget);
 	});
@@ -2296,7 +2332,7 @@ ROSDASH.loadDiagram = function (json)
 	// load edges
 	for (var i in json.edge)
 	{
-		// identify the source and target @todo should move to connect function
+		// identify the source and target @note should move to connect function
 		var source = json.edge[i].source;
 		var index = source.lastIndexOf("-");
 		var type1 = source.substring(index + 1, index + 2);
@@ -2320,7 +2356,6 @@ ROSDASH.initDiagram = function ()
 	ROSDASH.initSidebar();
 	ROSDASH.initDiagramToolbar();
 	ROSDASH.initJson();
-	ROSDASH.loadConfJson();
 	ROSDASH.waitJson();
 }
 ROSDASH.DiagramCyReady = function (selected)
@@ -2330,8 +2365,9 @@ ROSDASH.DiagramCyReady = function (selected)
 	{
 		function start()
 		{
-			// wait for init functions @todo should have ready event
-			if (0 <= ROSDASH.init_count)
+			// wait for init functions
+			//@todo should have ready event, set data to jsonArray, selected to blockSelected
+			if (ROSDASH.json_ready)
 			{
 				ROSDASH.exeDiagram(data, selected);
 			} else
@@ -2344,14 +2380,13 @@ ROSDASH.DiagramCyReady = function (selected)
 	}).error(function(d) {
 		console.error("load diagram error: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json', d);
 	});
-	// set callback functions @todo should have ready event
+	// set callback functions
 	ROSDASH.blockMoveCallback();
 	ROSDASH.connectBlocksCallback();
 }
 // main function for diagram
 ROSDASH.runDiagram = function (user, panel_name, selected)
 {
-	//@todo should have init event
 	ROSDASH.setUser(user, panel_name);
 	ROSDASH.initDiagram();
 	var style = ROSDASH.default_style;
@@ -2371,14 +2406,15 @@ ROSDASH.runDiagram = function (user, panel_name, selected)
 ROSDASH.exeDiagram = function (data, selected)
 {
 	ROSDASH.loadDiagram(data);
-	window.cy.elements().unlock();
-	window.cy.elements().unselect();
+	//@bug slow down system, and useless
+	//window.cy.elements().unlock();
+	//window.cy.elements().unselect();
 	window.cy.on('select', ROSDASH.selectBlockCallback);
 	//window.cy.on('unselect', ROSDASH.removePopup);
 	console.log("load diagram: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-diagram.json');
 	ROSDASH.findBlock(selected);
 }
-//@deprecated
+//@deprecated  should change to when json is read
 ROSDASH.transformToElements = function (json)
 {
 	var ele = {
@@ -2615,7 +2651,7 @@ ROSDASH.addWidgetByType = function (name)
 		header_height: ROSDASH.userConf.header_height,
 		content_height: ROSDASH.userConf.content_height
 	};
-	// move other widgets backward by one @todo should have add new widget event
+	// move other widgets backward by one
 	for (var i in ROSDASH.widgets)
 	{
 		++ ROSDASH.widgets[i].pos;
@@ -2761,7 +2797,6 @@ ROSDASH.runPanel = function (user, panel_name, selected)
 	$("#myDashboard").bind("sdashboardheaderset", ROSDASH.headerSetCallback);
 	
 	ROSDASH.initJson();
-	ROSDASH.loadConfJson();
 	ROSDASH.readDiagram();
 	ROSDASH.waitJson();
 	// load panel from json
@@ -2770,7 +2805,7 @@ ROSDASH.runPanel = function (user, panel_name, selected)
 		function start()
 		{
 			// wait until all initializations finish
-			if (0 <= ROSDASH.init_count)
+			if (ROSDASH.json_ready)
 			{
 				ROSDASH.loadPanel(data);
 				console.log("load panel: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-panel.json');
@@ -2879,6 +2914,7 @@ ROSDASH.traverseDiagram = function ()
 			ROSDASH.diagram_connection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
 		} else // if in the connection
 		{
+//@bug wait to see where is the bug
 if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 {
 	console.debug(ROSDASH.diagram.block[i].type, ROSDASH.widget_def);
