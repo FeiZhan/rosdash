@@ -910,7 +910,11 @@
 		"class_name": "ROSDASH.arborNetwork",
 		"has_panel": "true",
 		"input": [],
-		"output": []
+		"output": [],
+		"js": [
+			"lib/arbor/docs/sample-project/main.js",
+			"lib/arbor/lib/arbor.js"
+		]
 	}, {
 		"type": "draculaNetwork",
 		"category": [
@@ -919,7 +923,10 @@
 		"class_name": "ROSDASH.draculaNetwork",
 		"has_panel": "true",
 		"input": [],
-		"output": []
+		"output": [],
+		"js": [
+			"lib/dracula/examples/example.js"
+		]
 	}, {
 		"type": "DoodleGod",
 		"category": [

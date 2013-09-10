@@ -427,6 +427,7 @@ ROSDASH.Topic.prototype.init = function ()
 		//listener.unsubscribe();
 	});
 	this.init_success = true;
+	return true;
 }
 //@input	none
 //@output	ROS topic message
@@ -480,6 +481,7 @@ ROSDASH.Service.prototype.init = function ()
 		messageType : this.block.rostype
 	});
 	this.init_success = true;
+	return true;
 }
 ROSDASH.Service.prototype.run = function (input)
 {
@@ -522,6 +524,7 @@ ROSDASH.Param.prototype.init = function ()
 		name : this.block.rosname
 	});
 	this.init_success = true;
+	return true;
 }
 ROSDASH.Param.prototype.run = function (input)
 {
@@ -568,6 +571,7 @@ ROSDASH.ToggleButton.prototype.init = function ()
 	});
 	//$('#toggle-state-switch').bootstrapSwitch('toggleState');
 	//$('#toggle-state-switch').bootstrapSwitch('setState', false); // true || false
+	return true;
 
 }
 ROSDASH.ToggleButton.prototype.run = function (input)
@@ -593,6 +597,7 @@ ROSDASH.VirtualJoystick.prototype.init = function ()
 		container	: document.getElementById(this.canvas_id),
 		mouseSupport	: true
 	});
+	return true;
 }
 ROSDASH.VirtualJoystick.prototype.run = function (input)
 {
@@ -674,7 +679,9 @@ ROSDASH.Speech.prototype.init = function ()
 	if ($("#" + this.canvas_id).length > 0)
 	{
 		$("#" + this.canvas_id).click(this.speak);
+		return true;
 	}
+	return false;
 }
 //@input	the content to speak
 //@output	none
@@ -798,7 +805,7 @@ ROSDASH.cyNetwork.prototype.init = function ()
 {
 	if ($("#" + this.canvas).length <= 0 || this.init_success)
 	{
-		return;
+		return false;
 	}
 	var that = this;
   var options = {
@@ -868,13 +875,10 @@ ROSDASH.cyNetwork.prototype.init = function ()
   };
   $('#' + this.canvas).cytoscape(options);
 	this.init_success = true;
+	return true;
 }
 ROSDASH.cyNetwork.prototype.run = function (input)
 {
-	if (! this.init_success && $("#" + this.canvas).length > 0)
-	{
-		this.init();
-	}
 	return {o0: this.cy};
 }
 
@@ -914,12 +918,17 @@ ROSDASH.cyDiagram.prototype.addWidget = function (widget)
 }
 ROSDASH.cyDiagram.prototype.init = function ()
 {
-	if (this.duplicate || $("#" + this.canvas).length <= 0 || this.init_success)
+	if ($("#" + this.canvas).length <= 0)
+	{
+		return false;
+	}
+	if (this.duplicate || this.init_success)
 	{
 		return;
 	}
 	ROSDASH.runDiagram(ROSDASH.userConf.name, ROSDASH.userConf.panel_name, undefined);
 	this.init_success = true;
+	return true;
 }
 
 ROSDASH.arborNetwork = function (block)
@@ -937,17 +946,14 @@ ROSDASH.arborNetwork.prototype.init = function ()
 {
 	if ($("#" + this.canvas).length <= 0 || this.init_success)
 	{
-		return;
+		return false;
 	}
 	arborInit(this.canvas);
 	this.init_success = true;
+	return true;
 }
 ROSDASH.arborNetwork.prototype.run = function (input)
 {
-	if (! this.init_success && $("#" + this.canvas).length > 0)
-	{
-		this.init();
-	}
 }
 
 ROSDASH.draculaNetwork = function (block)
@@ -965,17 +971,14 @@ ROSDASH.draculaNetwork.prototype.init = function ()
 {
 	if ($("#" + this.canvas).length <= 0 || this.init_success)
 	{
-		return;
+		return false;
 	}
 	draculaInit(this.canvas);
 	this.init_success = true;
+	return true;
 }
 ROSDASH.draculaNetwork.prototype.run = function (input)
 {
-	if (! this.init_success && $("#" + this.canvas).length > 0)
-	{
-		this.init();
-	}
 }
 
 //////////////////////////////////// database
@@ -988,6 +991,7 @@ ROSDASH.JsDatabase = function (block)
 ROSDASH.JsDatabase.prototype.init = function ()
 {
 	this.database = TAFFY([{name:"New York",state:"WA"},{name:"Las Vegas",state:"NV"},{name:"Boston",state:"MA"}]);
+	return true;
 }
 ROSDASH.JsDatabase.prototype.run = function (input)
 {
@@ -1095,6 +1099,7 @@ ROSDASH.Painter.prototype.init = function ()
 	stage.addChild(title);*/
 	this.stage.addChild(this.drawingCanvas);
 	this.stage.update();
+	return true;
 }
 ROSDASH.Painter.prototype.run = function (input)
 {
@@ -1128,7 +1133,9 @@ ROSDASH.UserCamera.prototype.init = function ()
 	{
 		this.onLoad();
 		this.init_success = true;
+		return true;
 	}
+	return false;
 }
 ROSDASH.UserCamera.prototype.onLoad = function ()
 {
@@ -1224,10 +1231,6 @@ ROSDASH.UserCamera.prototype.drawId = function (markers)
 }
 ROSDASH.UserCamera.prototype.run = function (input)
 {
-	if (! this.init_success)
-	{
-		this.init();
-	}
 	return {o0 : this.video};
 }
 
@@ -1257,7 +1260,7 @@ ROSDASH.HeadTracker.prototype.init = function ()
 {
 	if ($("#vid" + this.canvas).length <= 0)
 	{
-		return;
+		return false;
 	}
 	// set up video and canvas elements needed
 	var videoInput = document.getElementById('vid' + this.canvas);
@@ -1327,6 +1330,7 @@ ROSDASH.HeadTracker.prototype.init = function ()
 			debugCanvas.style.display = 'none';
 		}
 	}
+	return true;
 }
 ROSDASH.HeadTracker.prototype.run = function (input)
 {
@@ -1365,7 +1369,7 @@ ROSDASH.HandTracker.prototype.init = function ()
 {
 	if ($("#cbxHull").length <= 0)
 	{
-		return;
+		return false;
 	}
 	var that = this;
 	this.tracker = new HT.Tracker( {fast: true} );
@@ -1385,6 +1389,7 @@ ROSDASH.HandTracker.prototype.init = function ()
 	  function(stream){ return that.videoReady(stream); },
 	  function(error){ return that.videoError(error); } );
 	}
+	return true;
 };
 ROSDASH.HandTracker.prototype.videoReady = function (stream)
 {
@@ -1504,6 +1509,7 @@ ROSDASH.Turtlesim.prototype.init = function ()
 		turtleSim.spawnTurtle('turtle1');
 		turtleSim.draw();
 	});
+	return true;
 }
 
 // ros2djs
@@ -1539,14 +1545,12 @@ ROSDASH.Ros2d.prototype.init = function ()
 		  viewer.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
 		});
 		this.init_success = true;
+		return true;
 	}
+	return false;
 }
 ROSDASH.Ros2d.prototype.run = function ()
 {
-	if (! this.init_success)
-	{
-		this.init();
-	}
 }
 
 // ros3djs
@@ -1583,14 +1587,12 @@ ROSDASH.Ros3d.prototype.init = function ()
 		  rootObject : viewer.scene
 		});*/
 		this.init_success = true;
+		return true;
 	}
+	return false;
 }
 ROSDASH.Ros3d.prototype.run = function (input)
 {
-	if (! this.init_success)
-	{
-		this.init();
-	}
 	return {o0: this.viewer};
 }
 
@@ -1770,7 +1772,7 @@ ROSDASH.RosMjpeg.prototype.init = function ()
 {
 	if ($("#" + this.canvas).length <= 0 || ! ROSDASH.ros_connected)
 	{
-		return;
+		return false;
 	}
 	this.viewer = new MJPEGCANVAS.Viewer({
 		divID : this.canvas,
@@ -1792,13 +1794,10 @@ ROSDASH.RosMjpeg.prototype.init = function ()
     });
 */
 	this.init_success = true;
+	return true;
 }
 ROSDASH.RosMjpeg.prototype.run = function (input)
 {
-	if (! this.init_success)
-	{
-		this.init();
-	}
 	return {o0: this.viewer};
 }
 
@@ -1834,7 +1833,9 @@ ROSDASH.Gmap.prototype.init = function ()
 			map: this.gmap,
 			title: 'Autonomy Lab at Simon Fraser University'
 		});
+		return true;
 	}
+	return false;
 }
 //@input	none
 //@output	gmap object
@@ -1983,6 +1984,8 @@ ROSDASH.Flot.prototype.getDefaultData = function ()
 }
 ROSDASH.Flot.prototype.init = function ()
 {
+	// test multi-thread
+	//dlskfjklsdfjls
 	var id = "flot_" + this.block.id;
 	if (undefined !== this.block.config)
 	{
@@ -1992,8 +1995,10 @@ ROSDASH.Flot.prototype.init = function ()
 	if ($("#" + id).length > 0)
 	{
 		// create the canvas with default data
-			this.plot = $.plot("#" + id, this.getDefaultData(), this.option);
+		this.plot = $.plot("#" + id, this.getDefaultData(), this.option);
+		return true;
 	}
+	return false;
 }
 //@input	title, data, option, saferange
 //@output	none
@@ -2004,7 +2009,6 @@ ROSDASH.Flot.prototype.run = function (input)
 	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
 	if (undefined === this.plot)
 	{
-		this.init();
 		return;
 	}
 	//i1 data
@@ -2181,6 +2185,7 @@ ROSDASH.Vumeter.prototype.init = function ()
 	        chart.redraw();
 	    }, 500);
 	});
+	return true;
 }
 
 //////////////////////////////////// robot simulation
@@ -2281,7 +2286,7 @@ ROSDASH.userList.prototype.init = function ()
 {
 	if (this.ajax_return)
 	{
-		return;
+		return false;
 	}
 	var self = this;
 	$.ajax({
@@ -2310,6 +2315,7 @@ ROSDASH.userList.prototype.init = function ()
 	}).always(function() {
 		self.ajax_return = true;
 	});
+	return true;
 }
 ROSDASH.userList.prototype.run = function (input)
 {
@@ -2427,7 +2433,7 @@ ROSDASH.panelList.prototype.init = function ()
 {
 	if (this.ajax_return)
 	{
-		return;
+		return false;
 	}
 	var self = this;
 	$.ajax({
@@ -2486,6 +2492,7 @@ ROSDASH.panelList.prototype.init = function ()
 	}).always(function() {
 		self.ajax_return = true;
 	});
+	return true;
 }
 ROSDASH.panelList.prototype.run = function (input)
 {
@@ -2553,6 +2560,7 @@ ROSDASH.jsonEditor.prototype.init = function ()
 		this.json = ROSDASH[this.block.config.jsonname];
 	}
     $('#' + that.canvas).jsonEditor(this.json);
+    return true;
 }
 ROSDASH.jsonEditor.prototype.run = function (input)
 {
@@ -2648,6 +2656,7 @@ ROSDASH.jsonVis.prototype.addWidget = function (widget)
 ROSDASH.jsonVis.prototype.init = function ()
 {
 	this.vizcluster(this.json);
+	return true;
 }
 ROSDASH.jsonVis.prototype.run = function (input)
 {
@@ -2679,10 +2688,6 @@ ROSDASH.youtube.prototype.addWidget = function (widget)
 	widget.widgetContent = '<iframe width="640" height="360" src="//www.youtube.com/embed/SxeVZdJFB4s" frameborder="0" allowfullscreen></iframe>';
 	return widget;
 }
-ROSDASH.youtube.prototype.init = function ()
-{}
-ROSDASH.youtube.prototype.run = function (input)
-{}
 
 //////////////////////////////////// for fun
 
