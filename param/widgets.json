@@ -313,6 +313,9 @@
 				"datatype": "Bool",
 				"name": "output"
 			}
+		],
+		"js": [
+			"lib/bootstrap-switch/static/js/bootstrapSwitch.js"
 		]
 	}, {
 		"type": "arrayToStr",
@@ -521,7 +524,10 @@
 				"name": "content"
 			}
 		],
-		"output": []
+		"output": [],
+		"js": [
+			"lib/speak-js/speakClient.js"
+		]
 	}, {
 		"type": "table",
 		"category": [
@@ -764,7 +770,14 @@
 				"name": "SafeRange"
 			}
 		],
-		"output": []
+		"output": [],
+		"js": [
+			"lib/flot/jquery.flot.time.js",
+			"lib/flot/jquery.flot.selection.js",
+			"lib/flot/jquery.flot.crosshair.js",
+			"lib/flot/jquery.flot.threshold.js",
+			"lib/flot/jquery.flot.navigate.js"
+		]
 	}, {
 		"type": "vumeter",
 		"category": [
@@ -851,6 +864,9 @@
 				"datatype": "Object",
 				"name": "joystickOutput"
 			}
+		],
+		"js": [
+			"lib/virtualjoystick.js/virtualjoystick.js"
 		]
 	}, {
 		"type": "cyNetwork",
@@ -870,6 +886,9 @@
 				"datatype": "Object",
 				"name": "cy"
 			}
+		],
+		"js": [
+			"http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"
 		]
 	}, {
 		"type": "cyNetworkLoadOnce",
@@ -892,6 +911,9 @@
 				"datatype": "Object",
 				"name": "cy"
 			}
+		],
+		"js": [
+			"http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"
 		]
 	}, {
 		"type": "cyDiagram",
@@ -901,7 +923,10 @@
 		"class_name": "ROSDASH.cyDiagram",
 		"has_panel": "true",
 		"input": [],
-		"output": []
+		"output": [],
+		"js": [
+			"http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"
+		]
 	}, {
 		"type": "arborNetwork",
 		"category": [
@@ -925,6 +950,8 @@
 		"input": [],
 		"output": [],
 		"js": [
+			"lib/dracula/js/dracula_graffle.js",
+			"lib/dracula/js/dracula_graph.js",
 			"lib/dracula/examples/example.js"
 		]
 	}, {
@@ -997,6 +1024,9 @@
 				"datatype": "Object",
 				"name": "viewer"
 			}
+		],
+		"js": [
+			"lib/mjpegcanvasjs/build/mjpegcanvas.js"
 		]
 	}, {
 		"type": "UserCamera",
@@ -1023,6 +1053,9 @@
 				"datatype": "Object",
 				"name": "pos"
 			}
+		],
+		"js": [
+			"lib/headtrackr/headtrackr.min.js"
 		]
 	}, {
 		"type": "HandTracker",
@@ -1089,6 +1122,9 @@
 		],
 		"class_name": "ROSDASH.Painter",
 		"input": [],
-		"output": []
+		"output": [],
+		"js": [
+			"lib/jsDraw2DX/jsDraw2DX.js"
+		]
 	}
 ]}

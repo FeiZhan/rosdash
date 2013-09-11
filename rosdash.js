@@ -2953,9 +2953,12 @@ ROSDASH.loadJs = function (file)
 	{
 		ROSDASH.requireLoad[file] = false;
 	}
-	$.getScript(file, function(response, status) {
+	$.getScript(file, function (data, status, jqxhr) {
 		ROSDASH.requireLoad[file] = true;
 		console.debug("js loaded:", file, status);
+	}).fail(function (jqxhr, settings, exception)
+	{
+		console.debug("js fail");
 	});
 }
 

@@ -1770,7 +1770,11 @@ ROSDASH.RosMjpeg.prototype.addWidget = function (widget)
 }
 ROSDASH.RosMjpeg.prototype.init = function ()
 {
-	if ($("#" + this.canvas).length <= 0 || ! ROSDASH.ros_connected)
+	if (! ROSDASH.ros_connected)
+	{
+		return;
+	}
+	if ($("#" + this.canvas).length <= 0)
 	{
 		return false;
 	}
