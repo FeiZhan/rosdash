@@ -6,11 +6,13 @@
 ROSDASH.Constant = function (block)
 {
 	this.block = block;
+	
 }
 //@input	none
 //@output	the value of the constant
 ROSDASH.Constant.prototype.run = function (input)
 {
+	//@todo put is_number into std_msgs.json
 	if ("Float32" == this.block.constname)
 	{
 		return {o0: parseFloat(this.block.value)};
@@ -29,6 +31,7 @@ ROSDASH.multiArray = function (block)
 //@output	an array of all the values
 ROSDASH.multiArray.prototype.run = function (input)
 {
+	//@todo implement add to array
 	var a = new Array();
 	for (var i in input)
 	{
@@ -108,7 +111,7 @@ ROSDASH.Division.prototype.run = function (input)
 
 //////////////////////////////////// matrix operations
 
-// just for array
+// just for array @todo remove
 ROSDASH.Insert = function (block)
 {
 	this.block = block;
@@ -235,6 +238,7 @@ ROSDASH.Reshape.prototype.run = function (input)
 	}
 }
 
+//@todo json, add to json, diagram representation
 ROSDASH.AssocArray = function (block)
 {
 	this.block = block;
@@ -275,6 +279,7 @@ ROSDASH.arrayToStr = function (block)
 }
 //@input	the array (object, associative array, or topic message)
 //@output	the corresponding string
+//@todo str to json
 ROSDASH.arrayToStr.prototype.run = function (input)
 {
 	// if empty
@@ -388,6 +393,7 @@ ROSDASH.RosList.prototype.run = function (input)
 	return {o0: output};
 }
 
+//@todo merge to RosList
 ROSDASH.TopicList = function (block)
 {
 	this.block = block;
@@ -550,6 +556,7 @@ ROSDASH.Param.prototype.run = function (input)
 //////////////////////////////////// input
 
 // toggle button (don't use the name of switch since it is used)
+//@multiple toggle buttons
 ROSDASH.ToggleButton = function (block)
 {
 	this.block = block;
@@ -579,6 +586,7 @@ ROSDASH.ToggleButton.prototype.run = function (input)
 	return {o0: this.value};
 }
 
+//@todo show the zhunxin
 ROSDASH.VirtualJoystick = function (block)
 {
 	this.block = block;
@@ -789,6 +797,7 @@ ROSDASH.Table.prototype.run = function (input)
 
 //////////////////////////////////// networks
 
+//@todo a uniform representation for network diagram
 ROSDASH.cyNetwork = function (block)
 {
 	this.block = block;
@@ -983,6 +992,7 @@ ROSDASH.draculaNetwork.prototype.run = function (input)
 
 //////////////////////////////////// database
 
+//@todo sql
 ROSDASH.JsDatabase = function (block)
 {
 	this.block = block;
@@ -1037,6 +1047,7 @@ ROSDASH.RedisDb.prototype.run = function (input)
 
 //////////////////////////////////// drawings
 
+//@todo config the target canvas
 ROSDASH.Painter = function (block)
 {
 	this.block = block;
@@ -1938,6 +1949,7 @@ ROSDASH.FlotSafeRange.prototype.run = function (input)
 }
 
 // a plot widget
+//@todo a uniform representation for plotting
 ROSDASH.Flot = function (block)
 {
 	this.block = block;
@@ -2062,6 +2074,7 @@ ROSDASH.Flot.prototype.run = function (input)
 //////////////////////////////////// other outputs
 
 // V U meter
+//@todo input and output
 ROSDASH.Vumeter = function (block)
 {
 	this.block = block;
@@ -2194,6 +2207,7 @@ ROSDASH.Vumeter.prototype.init = function ()
 
 //////////////////////////////////// robot simulation
 
+//@todo find relevant information for ROS
 ROSDASH.Pos2d = function (block)
 {
 	this.block = block;
@@ -2680,6 +2694,7 @@ ROSDASH.slide = function (block)
 ROSDASH.slide.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<iframe src="http://www.slideshare.net/slideshow/embed_code/16073451" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px" allowfullscreen webkitallowfullscreen mozallowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/narrendar/ros-an-opensource-robotic-framework" title="ROS - An Opensource Robotic Framework" target="_blank">ROS - An Opensource Robotic Framework</a> </strong> from <strong><a href="http://www.slideshare.net/narrendar" target="_blank">Narrendar Narren</a></strong> </div>';
+	console.debug(widget)
 	return widget;
 }
 

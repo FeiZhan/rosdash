@@ -937,6 +937,7 @@ ROSDASH.setRosValue = function (host, port)
 
 ROSDASH.ros;
 ROSDASH.ros_connected = false;
+//@todo connect or disconnect by clicking
 ROSDASH.connectROS = function (host, port)
 {
 	// don't need ROS
@@ -967,6 +968,7 @@ ROSDASH.rosNames = {
 	param: {"_": new Array()}
 };
 // get existing ROS names from ROSLIB
+//@todo load dynamically
 ROSDASH.getROSNames = function (ros)
 {
 	ROSDASH.ros.getTopics(function (topics)
@@ -1025,7 +1027,7 @@ ROSDASH.checkRosConflict = function (name, type)
 
 ///////////////////////////////////// load json
 
-// other json representations should be removed
+//@todo other json representations should be removed
 ROSDASH.jsonReadArray = new Object();
 // transform from raw json into real json
 ROSDASH.transformRawJson = function (raw)
@@ -1190,6 +1192,7 @@ ROSDASH.getMsgDef = function (name)
 	}
 	return undefined;
 }
+
 ROSDASH.checkMsgTypeValid = function (name)
 {
 	return (undefined !== ROSDASH.getMsgDef(name));
