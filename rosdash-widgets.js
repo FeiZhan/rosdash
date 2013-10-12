@@ -414,7 +414,7 @@ ROSDASH.Topic = function (block)
 // subscribe a ROS topic for once
 ROSDASH.Topic.prototype.init = function ()
 {
-	if (! ROSDASH.ros_connected)
+	if (! ROSDASH.rosConnected)
 	{
 		return;
 	}
@@ -439,11 +439,11 @@ ROSDASH.Topic.prototype.init = function ()
 //@output	ROS topic message
 ROSDASH.Topic.prototype.run = function (input)
 {
-	if (! ROSDASH.ros_connected)
+	if (! ROSDASH.rosConnected)
 	{
 		return undefined;
 	}
-	if (ROSDASH.ros_connected && ! this.init_success)
+	if (ROSDASH.rosConnected && ! this.init_success)
 	{
 		this.init();
 	}
@@ -476,7 +476,7 @@ ROSDASH.Service = function (block)
 }
 ROSDASH.Service.prototype.init = function ()
 {
-	if (! ROSDASH.ros_connected)
+	if (! ROSDASH.rosConnected)
 	{
 		return;
 	}
@@ -491,11 +491,11 @@ ROSDASH.Service.prototype.init = function ()
 }
 ROSDASH.Service.prototype.run = function (input)
 {
-	if (! ROSDASH.ros_connected/* || undefined === input[0]*/)
+	if (! ROSDASH.rosConnected/* || undefined === input[0]*/)
 	{
 		return undefined;
 	}
-	if (ROSDASH.ros_connected && ! this.init_success)
+	if (ROSDASH.rosConnected && ! this.init_success)
 	{
 		this.init();
 	}
@@ -520,7 +520,7 @@ ROSDASH.Param = function (block)
 }
 ROSDASH.Param.prototype.init = function ()
 {
-	if (! ROSDASH.ros_connected)
+	if (! ROSDASH.rosConnected)
 	{
 		return;
 	}
@@ -534,11 +534,11 @@ ROSDASH.Param.prototype.init = function ()
 }
 ROSDASH.Param.prototype.run = function (input)
 {
-	if (! ROSDASH.ros_connected)
+	if (! ROSDASH.rosConnected)
 	{
 		return undefined;
 	}
-	if (ROSDASH.ros_connected && ! this.init_success)
+	if (ROSDASH.rosConnected && ! this.init_success)
 	{
 		this.init();
 	}
@@ -1537,7 +1537,7 @@ ROSDASH.Ros2d.prototype.addWidget = function (widget)
 }
 ROSDASH.Ros2d.prototype.init = function ()
 {
-	if (ROSDASH.ros_connected && $("#" + this.canvas_id).length > 0)
+	if (ROSDASH.rosConnected && $("#" + this.canvas_id).length > 0)
 	{
 		// Create the main viewer.
 		var viewer = new ROS2D.Viewer({
@@ -1582,7 +1582,7 @@ ROSDASH.Ros3d.prototype.addWidget = function (widget)
 }
 ROSDASH.Ros3d.prototype.init = function ()
 {
-	if (ROSDASH.ros_connected && $("#" + this.canvas_id).length > 0)
+	if (ROSDASH.rosConnected && $("#" + this.canvas_id).length > 0)
 	{
 		// Create the main viewer.
 		this.viewer = new ROS3D.Viewer({
@@ -1781,7 +1781,7 @@ ROSDASH.RosMjpeg.prototype.addWidget = function (widget)
 }
 ROSDASH.RosMjpeg.prototype.init = function ()
 {
-	if (! ROSDASH.ros_connected)
+	if (! ROSDASH.rosConnected)
 	{
 		return;
 	}
@@ -2293,6 +2293,45 @@ ROSDASH.userConfig.prototype.run = function (input)
 	return {o0: ROSDASH.userConf};
 }
 
+ROSDASH.UserLogin = function (block)
+{
+	this.block = block;
+}
+ROSDASH.UserLogin.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = 
+		'<div id="janrainEngageEmbed"></div>';
+	return widget;
+}
+ROSDASH.UserLogin.prototype.init = function ()
+{
+    if (typeof window.janrain !== 'object') window.janrain = {};
+    if (typeof window.janrain.settings !== 'object') window.janrain.settings = {};
+    janrain.settings.tokenUrl = 'token-url.php'; //'__REPLACE_WITH_YOUR_TOKEN_URL__';
+    function isReady()
+    {
+		janrain.ready = true;
+	};
+	/*
+    if (document.addEventListener) {
+      document.addEventListener("DOMContentLoaded", isReady, false);
+    } else {
+      window.attachEvent('onload', isReady);
+    }
+    */
+    var e = document.createElement('script');
+    e.type = 'text/javascript';
+    e.id = 'janrainAuthWidget';
+    if (document.location.protocol === 'https:') {
+      e.src = 'https://rpxnow.com/js/lib/rosdash/engage.js';
+    } else {
+      e.src = 'http://widget-cdn.rpxnow.com/js/lib/rosdash/engage.js';
+    }
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(e, s);
+    isReady();
+}
+
 // user list
 ROSDASH.userList = function (block)
 {
@@ -2694,7 +2733,6 @@ ROSDASH.slide = function (block)
 ROSDASH.slide.prototype.addWidget = function (widget)
 {
 	widget.widgetContent = '<iframe src="http://www.slideshare.net/slideshow/embed_code/16073451" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px" allowfullscreen webkitallowfullscreen mozallowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/narrendar/ros-an-opensource-robotic-framework" title="ROS - An Opensource Robotic Framework" target="_blank">ROS - An Opensource Robotic Framework</a> </strong> from <strong><a href="http://www.slideshare.net/narrendar" target="_blank">Narrendar Narren</a></strong> </div>';
-	console.debug(widget)
 	return widget;
 }
 

@@ -1126,5 +1126,14 @@
 		"js": [
 			"lib/jsDraw2DX/jsDraw2DX.js"
 		]
+	}, {
+		"type": "UserLogin",
+		"category": [
+			"user"
+		],
+		"class_name": "ROSDASH.UserLogin",
+		"input": [],
+		"output": [],
+		"js": []
 	}
 ]}

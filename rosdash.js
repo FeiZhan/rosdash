@@ -852,7 +852,7 @@ ROSDASH.checkUserConfValid = function ()
 {
 	if (ROSDASH.userConf.run_msec < 100)
 	{
-		console.error("run_msec is too low: ", ROSDASH.userConf.run_msec);
+		console.warning("run_msec is too low: ", ROSDASH.userConf.run_msec);
 		ROSDASH.userConf.run_msec = 100;
 	}
 }
@@ -893,7 +893,7 @@ ROSDASH.setUserConf = function (conf)
 		}
 	}
 	ROSDASH.checkUserConfValid();
-	console.log("load user config: ", ROSDASH.userConf.name + "/conf.json");
+	//console.log("load user config: ", ROSDASH.userConf.name + "/conf.json");
 
 	// load json specified by user config
 	for (var i in ROSDASH.userConf.json)
@@ -924,8 +924,7 @@ ROSDASH.setUserConf = function (conf)
 */
 	}
 }
-// if connected ROS, set the ROS names
-// called when ROS connection made
+// if connected ROS, set the ROS names. called when ROS connection made
 ROSDASH.setRosValue = function (host, port)
 {
 	ROSDASH.userConf.ros_host = host;
@@ -936,7 +935,7 @@ ROSDASH.setRosValue = function (host, port)
 ///////////////////////////////////// ROS
 
 ROSDASH.ros;
-ROSDASH.ros_connected = false;
+ROSDASH.rosConnected = false;
 //@todo connect or disconnect by clicking
 ROSDASH.connectROS = function (host, port)
 {
@@ -950,18 +949,20 @@ ROSDASH.connectROS = function (host, port)
 	ROSDASH.ros = new ROSLIB.Ros();
 	ROSDASH.ros.on('error', function(error) {
 		console.error("ROS connection error", host, port, error);
-		ROSDASH.ros_connected = false;
+		ROSDASH.rosConnected = false;
 	});
 	ROSDASH.ros.on('connection', function() {
-		ROSDASH.ros_connected = true;
-		console.log('ROS connection made: ' + host + ":" + port);
+		ROSDASH.rosConnected = true;
+		console.log('ROS connection made: ', host + ":" + port);
 		ROSDASH.setRosValue(host, port);
 		ROSDASH.getROSNames(ROSDASH.ros);
+		// emit event for ros connected
 		ROSDASH.ee.emitEvent('rosConnected');
 	});
 	ROSDASH.ros.connect('ws://' + host + ':' + port);
 }
 // ROS list for toolbar
+//@todo eliminate "_"
 ROSDASH.rosNames = {
 	topic: {"_": new Array()},
 	service: {"_": new Array()},
@@ -973,6 +974,7 @@ ROSDASH.getROSNames = function (ros)
 {
 	ROSDASH.ros.getTopics(function (topics)
 	{
+		//@todo change to deep copy
 		for (var i in topics)
 		{
 			ROSDASH.rosNames.topic["_"].push(topics[i]);
@@ -1012,6 +1014,7 @@ ROSDASH.checkRosNameExisting = function (name, type)
 	}
 	return (jQuery.inArray(name, array) != -1);
 }
+
 // ROS blocks in the diagram
 ROSDASH.rosBlocks = {
 	topic: new Array(),
@@ -1030,6 +1033,7 @@ ROSDASH.checkRosConflict = function (name, type)
 //@todo other json representations should be removed
 ROSDASH.jsonReadArray = new Object();
 // transform from raw json into real json
+//@todo check number or not?
 ROSDASH.transformRawJson = function (raw)
 {
 	for (var i in raw)
@@ -1050,11 +1054,15 @@ ROSDASH.transformRawJson = function (raw)
 	}
 	return raw;
 }
+// uniform function to read json and register
 ROSDASH.readJson = function (file)
 {
-	ROSDASH.jsonReadArray[file] = new Object();
-	ROSDASH.jsonReadArray[file].status = 0;
-	$.getJSON(file + ".json", function(data, status, xhr)
+	if (! (file in ROSDASH.jsonReadArray))
+	{
+		ROSDASH.jsonReadArray[file] = new Object();
+		ROSDASH.jsonReadArray[file].status = 0;
+	}
+	$.getJSON(file + ".json", function (data, status, xhr)
 	{
 		ROSDASH.jsonReadArray[file].data = data;
 		++ ROSDASH.jsonReadArray[file].status;
@@ -1062,7 +1070,7 @@ ROSDASH.readJson = function (file)
 		++ ROSDASH.jsonReadArray[file].status;
 	});
 }
-ROSDASH.json_ready = false;
+ROSDASH.jsonReady = false;
 ROSDASH.waitJson = function ()
 {
 	// if user conf is loaded. must be executed before examine jsonReadArray
@@ -1093,7 +1101,7 @@ ROSDASH.waitJson = function ()
 	{
 		ROSDASH.parseMsg();
 		console.log("json is ready");
-		ROSDASH.json_ready = true;
+		ROSDASH.jsonReady = true;
 		ROSDASH.ee.emitEvent("jsonReady");
 	}
 }
@@ -2376,7 +2384,7 @@ ROSDASH.DiagramCyReady = function (selected)
 		{
 			// wait for init functions
 			//@todo should have ready event, set data to jsonArray, selected to blockSelected
-			if (ROSDASH.json_ready)
+			if (ROSDASH.jsonReady)
 			{
 				ROSDASH.exeDiagram(data, selected);
 			} else
@@ -2814,7 +2822,7 @@ ROSDASH.runPanel = function (user, panel_name, selected)
 		function start()
 		{
 			// wait until all initializations finish
-			if (ROSDASH.json_ready)
+			if (ROSDASH.jsonReady)
 			{
 				ROSDASH.loadPanel(data);
 				console.log("load panel: " + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + '-panel.json');
