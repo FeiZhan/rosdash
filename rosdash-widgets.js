@@ -935,7 +935,7 @@ ROSDASH.cyDiagram.prototype.init = function ()
 	{
 		return;
 	}
-	ROSDASH.runDiagram(ROSDASH.userConf.name, ROSDASH.userConf.panel_name, undefined);
+	ROSDASH.startDiagram(ROSDASH.userConf.name, ROSDASH.userConf.panel_name, undefined);
 	this.init_success = true;
 	return true;
 }
