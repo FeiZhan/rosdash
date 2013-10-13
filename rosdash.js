@@ -101,10 +101,10 @@ ROSDASH.saveProperty = function (dialog)
 }
 
 // sidebar form by dhtmlXForm
-ROSDASH.form_canvas = "rosform";
-ROSDASH.form_data = [{
+ROSDASH.formCanvas = "rosform";
+ROSDASH.formMainPage = [{
 	type: "label",
-	label: "ROSDASH",
+	label: "Choose a block to add",
 	name: "rosform",
 	width: 180
 	}, {
@@ -123,38 +123,43 @@ ROSDASH.form_data = [{
 		name: "addROSitem",
 		width: 180
 	}
-	//, {type:"newcolumn"}
 ];
+// the form object
 ROSDASH.form;
+// the function handle for clicking
 ROSDASH.formItemType;
+// current directory in the form
 ROSDASH.formList;
+// init a new form when beginning or return to main page
 ROSDASH.initForm = function ()
 {
-	if (undefined !== ROSDASH.form)
-	{
-		var items = ROSDASH.form.getItemsList();
-		for (var i in items)
-		{
-			ROSDASH.form.removeItem(items[i]);
-		}
-	}
-	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);
+	ROSDASH.removeForm();
+	// create a new form
+	ROSDASH.form = new dhtmlXForm(ROSDASH.formCanvas, ROSDASH.formMainPage);
+	// callbacks for buttons in form
 	ROSDASH.form.attachEvent("onButtonClick", function(id)
 	{
+		// if a directory
 		if (id.substring(0, 4) == "dir-")
 		{
 			ROSDASH.formClickDir(id.substring(4));
+			return;
 		}
+		// if an item
 		if (id.substring(0, 5) == "item-")
 		{
 			ROSDASH.formClickItem(id.substring(5));
+			return;
 		}
 		switch (id)
 		{
+		// back to the main page
 		case "backhome":
 			ROSDASH.initForm();
+			ROSDASH.formList = undefined;
 			ROSDASH.formItemType = undefined;
 			break;
+		// add a new block
 		case "addblock":
 			ROSDASH.formList = ROSDASH.block_list;
 			ROSDASH.formItemType = "addBlockByType";
@@ -165,6 +170,7 @@ ROSDASH.initForm = function ()
 				width: 180
 			});
 			break;
+		// add a new constant
 		case "addconstant":
 			ROSDASH.formList = ROSDASH.block_list.constant;
 			ROSDASH.formItemType = "addConstant";
@@ -175,8 +181,10 @@ ROSDASH.initForm = function ()
 				width: 180
 			});
 			break;
+		// add a new ros item
 		case "addROSitem":
 			ROSDASH.formList = ROSDASH.rosNames;
+			//@bug
 			ROSDASH.formItemType = "addTopic";
 			ROSDASH.showBlocksInForm({
 				type: "button",
@@ -188,6 +196,19 @@ ROSDASH.initForm = function ()
 		}
 	});
 }
+// remove all items in form
+ROSDASH.removeForm = function ()
+{
+	if (undefined !== ROSDASH.form)
+	{
+		var items = ROSDASH.form.getItemsList();
+		for (var i in items)
+		{
+			ROSDASH.form.removeItem(items[i]);
+		}
+	}
+}
+// clear the form except title
 ROSDASH.clearForm = function ()
 {
 	var items = ROSDASH.form.getItemsList();
@@ -206,6 +227,7 @@ ROSDASH.showBlocksInForm = function (parent)
 		return;
 	}
 	ROSDASH.clearForm();
+	// back home button
 	ROSDASH.form.addItem(null, {
 		type: "button",
 		value: "Home",
@@ -213,13 +235,22 @@ ROSDASH.showBlocksInForm = function (parent)
 		width: 180
 	}, 1);
 	var count = 1;
+	// previous page button
 	if (typeof parent == "object")
 	{
-		ROSDASH.form.addItem(null, parent, 2);
-		count = 2;
+		++ count;
+		ROSDASH.form.addItem(null, parent, count);
 	}
+	++ count;
+	ROSDASH.form.addItem(null, {
+		type: "label",
+		label: "Directories:",
+		name: "directories",
+		width: 180
+		}, count);
 	for (var i in ROSDASH.formList)
 	{
+		// add a directory
 		if ("_" != i)
 		{
 			ROSDASH.form.addItem(null, {
@@ -230,6 +261,14 @@ ROSDASH.showBlocksInForm = function (parent)
 			}, ++ count);
 		} else
 		{
+			++ count;
+			ROSDASH.form.addItem(null, {
+				type: "label",
+				label: "Items:",
+				name: "items",
+				width: 180
+				}, count);
+			// add an item
 			for (var i in ROSDASH.formList["_"])
 			{
 				ROSDASH.form.addItem(null, {
@@ -242,18 +281,22 @@ ROSDASH.showBlocksInForm = function (parent)
 		}
 	}
 }
-ROSDASH.formClickDir = function (name)
+// if clicks a directory
+ROSDASH.formClickDir = function (name, parent)
 {
 	if (name in ROSDASH.formList && (typeof ROSDASH.formList[name] == "object" || typeof ROSDASH.formList[name] == "array"))
 	{
+		// new form
 		ROSDASH.formList = ROSDASH.formList[name];
-		ROSDASH.showBlocksInForm();
+		ROSDASH.showBlocksInForm(parent);
 	}
 }
+// if clicks an item
 ROSDASH.formClickItem = function (name)
 {
 	var fn = ROSDASH[ROSDASH.formItemType];
-	if(typeof fn === 'function') {
+	if(typeof fn === 'function')
+	{
 		fn(name);
 	} else
 	{
@@ -263,17 +306,19 @@ ROSDASH.formClickItem = function (name)
 
 // sidebar form by FlexiJsonEditor
 // if it is a config or not
-ROSDASH.form_conf = false;
+ROSDASH.jsonFormType = false;
 // init the sidebar when start
 ROSDASH.initJsonEditor = function ()
 {
 	$('#jsoneditor').html('<p></p><button id="conf_form" type="button">config</button><button id="property_form" type="button">property</button>');
+	// config form
 	$("#conf_form").click(function () {
-		ROSDASH.form_conf = true;
+		ROSDASH.jsonFormType = true;
 		ROSDASH.blockForm(ROSDASH.blocks[ROSDASH.selectedBlock]);
 	});
+	// property form
 	$("#property_form").click(function () {
-		ROSDASH.form_conf = false;
+		ROSDASH.jsonFormType = false;
 		ROSDASH.blockForm(ROSDASH.blocks[ROSDASH.selectedBlock]);
 	});
 	// initially hide the button
@@ -283,83 +328,31 @@ ROSDASH.initJsonEditor = function ()
 // a form for block
 ROSDASH.blockForm = function (block)
 {
-	if (undefined === block && undefined === ROSDASH.form_conf)
+	if (undefined === block && undefined === ROSDASH.jsonFormType)
 	{
 		return;
 	}
 	// for property of block
-	else if (undefined === ROSDASH.form_conf || false == ROSDASH.form_conf)
+	else if (undefined === ROSDASH.jsonFormType || false == ROSDASH.jsonFormType)
 	{
+		ROSDASH.removeForm();
 		$("#property_form").hide();
 		$("#conf_form").show();
 		$('#jsoneditor').find("p").html(block.id + " property");
 		ROSDASH.jsonForm(block);
 	} else // for config of block
 	{
+		ROSDASH.removeForm();
 		$("#conf_form").hide();
 		$("#property_form").show();
 		$('#jsoneditor').find("p").html(block.id + " config");
 		ROSDASH.jsonForm(block.config);
 	}
-	/*if (undefined !== ROSDASH.form)
-	{
-		ROSDASH.form.unload();
-	}
-	ROSDASH.form_data = [{
-        type: "fieldset",
-        label: block.id,
-        name: "rosform",
-        inputWidth: "auto",
-        list: []
-	}];
-	var list;
-	switch (block.type)
-	{
-	case "constant":
-		list = {
-			type: "input",
-			label: "value",
-			rows: 5,
-			value: block.value
-		};
-		ROSDASH.form_data[0].list.push(list);
-		break;
-	case "topic":
-	case "service":
-		list = {
-			type: "input",
-			label: "rosname",
-			rows: 2,
-			value: block.rosname
-		};
-		ROSDASH.form_data[0].list.push(list);
-		list = {
-			type: "input",
-			label: "rostype",
-			rows: 2,
-			value: block.rostype
-		};
-		ROSDASH.form_data[0].list.push(list);
-		break;
-	case "param":
-		list = {
-			type: "input",
-			label: "rosname",
-			rows: 2,
-			value: block.rosname
-		};
-		ROSDASH.form_data[0].list.push(list);
-		break;
-	default:
-		ROSDASH.jsonForm(block);
-		break;
-	}
-	ROSDASH.form = new dhtmlXForm(ROSDASH.form_canvas, ROSDASH.form_data);*/
 }
 // when changes, update the form
 ROSDASH.updateJsonForm = function (data)
 {
-	if (ROSDASH.form_conf)
+	if (ROSDASH.jsonFormType)
 	{
 		ROSDASH.blocks[ROSDASH.selectedBlock].config = data;
 	} else
@@ -374,10 +367,14 @@ ROSDASH.jsonForm = function (json)
 	{
 		json = new Object();
 	}
-	$('#jsoneditor').jsonEditor(json, { change: ROSDASH.updateJsonForm, propertyclick: null });
+	$('#jsoneditor').jsonEditor(json,
+	{
+		change: ROSDASH.updateJsonForm,
+		propertyclick: null
+	});
 }
 
-// the entire sidebar
+// init the entire sidebar
 ROSDASH.initSidebar = function ()
 {
 	ROSDASH.initForm();
@@ -2085,7 +2082,7 @@ ROSDASH.selectBlockCallback = function (evt)
 			// add a popup to selected block to show description
 			ROSDASH.addBlockPopup(evt.cyTarget.id());
 			// a sidebar for block json information
-			ROSDASH.form_conf = false;
+			ROSDASH.jsonFormType = false;
 			ROSDASH.blockForm(block);
 			ROSDASH.selectBody(evt);
 		}
