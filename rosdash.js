@@ -1087,7 +1087,8 @@ ROSDASH.waitJson = function ()
 			// run panel after loading json
 			ROSDASH.readDiagram(ROSDASH.jsonReadArray['file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-diagram"].data);
 			ROSDASH.loadPanel(ROSDASH.jsonReadArray['file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-panel"].data);
-			ROSDASH.exePanel();
+			// wait for js loading
+			setTimeout(ROSDASH.exePanel, 100);
 			break;
 		case "diagram":
 			// run diagram after loading json
@@ -1730,6 +1731,13 @@ ROSDASH.getPinNum = function (pin)
 {
 	var index = pin.lastIndexOf("-");
 	return parseFloat(pin.substring(index + 2));
+}
+// get the type of a pin
+ROSDASH.getPinType = function (pin)
+{
+	var index = pin.lastIndexOf("-");
+	// 1 is not always true
+	return pin.substring(index + 1, 1);
 }
 // get the type and number of a pin
 ROSDASH.getPinTypeNum = function (pin)
@@ -2605,6 +2613,7 @@ ROSDASH.parseWidgetContent = function (widget)
 		widget.widgetContent = '';
 		break;
 	}
+	//@todo not checked
 	// for class
 	if (undefined !== ROSDASH.diagramConnection[widget.widgetId] && undefined !== ROSDASH.diagramConnection[widget.widgetId].instance)
 	{
@@ -2618,6 +2627,7 @@ ROSDASH.parseWidgetContent = function (widget)
 	}
 	else // for jsobject
 	{
+		console.debug("jsobject");
 		var w = ROSDASH.runFuncByName(ROSDASH.widget_def[widget.widgetType].addWidget, undefined, widget);
 		if (undefined !== w)
 		{
@@ -2939,6 +2949,18 @@ ROSDASH.exePanel = function ()
 	ROSDASH.runWidgets();
 }
 
+///////////////////////////////////// panel callback
+
+ROSDASH.widgetMaxCallback = function (e, data)
+{}
+// init the HTML for each widget when it is added
+ROSDASH.widgetAddCallback = function (e, data)
+{}
+ROSDASH.widgetSetCallback = function (e, data)
+{}
+ROSDASH.headerSetCallback = function (e, data)
+{}
+
 ///////////////////////////////////// diagram analysis
 
 // diagram for analysis
@@ -2965,10 +2987,16 @@ ROSDASH.initDiagramConnection = function (id)
 	{
 		ROSDASH.diagramConnection[id] = new Object();
 		ROSDASH.diagramConnection[id].parent = new Object();
-		ROSDASH.diagramConnection[id].output = new Object();
+		// type of each connection
+		ROSDASH.diagramConnection[id].type = new Object();
+		// if exists in diagram blocks
 		ROSDASH.diagramConnection[id].exist = false;
+		// if executed for this cycle or not
 		ROSDASH.diagramConnection[id].done = false;
+		// if init method succeeds or not
 		ROSDASH.diagramConnection[id].initialized = false;
+		// the output of this block
+		ROSDASH.diagramConnection[id].output = undefined;
 	}
 }
 // traverse the diagram to obtain the connection relations
@@ -2979,24 +3007,22 @@ ROSDASH.traverseDiagram = function ()
 	{
 		var edge = ROSDASH.diagram.edge[i];
 		// obtain one block of the edge
-		var index = edge.source.lastIndexOf("-");
-		var block1 = edge.source.substring(0, index);
-		ROSDASH.initDiagramConnection(ROSDASH.getBlockParent(edge.source));
-		var type1 = edge.source.substring(index + 1);
+		var block1 = ROSDASH.getBlockParent(edge.source);
+		ROSDASH.initDiagramConnection(block1);
+		var type1 = ROSDASH.getPinTypeNum(edge.source);
 		// obtain the other block of the edge
-		index = edge.target.lastIndexOf("-");
-		var block2 = edge.target.substring(0, index);
+		var block2 = ROSDASH.getBlockParent(edge.target);
 		ROSDASH.initDiagramConnection(block2);
-		var type2 = edge.target.substring(index + 1);
+		var type2 = ROSDASH.getPinTypeNum(edge.target);
 		// save into ROSDASH.diagramConnection
 		if (type1.substring(0, 1) == "i" && type2.substring(0, 1) == "o")
 		{
 			ROSDASH.diagramConnection[block1].parent[type1] = block2;
-			ROSDASH.diagramConnection[block1].output[type1] = type2;
+			ROSDASH.diagramConnection[block1].type[type1] = type2;
 		} else if (type1.substring(0, 1) == "o" && type2.substring(0, 1) == "i")
 		{
 			ROSDASH.diagramConnection[block2].parent[type2] = block1;
-			ROSDASH.diagramConnection[block2].output[type2] = type1;
+			ROSDASH.diagramConnection[block2].type[type2] = type1;
 		}
 	}
 	// for each block
@@ -3006,16 +3032,8 @@ ROSDASH.traverseDiagram = function ()
 		if (undefined === ROSDASH.diagramConnection[i])
 		{
 			// generate that block with no connection
-			ROSDASH.diagramConnection[i] = new Object();
-			ROSDASH.diagramConnection[i].parent = new Object();
-			ROSDASH.diagramConnection[i].output = new Object();
-			ROSDASH.diagramConnection[i].exist = true;
-			ROSDASH.diagramConnection[i].done = false;
-			ROSDASH.diagramConnection[i].initialized = false;
-			// instantiate widget class
-			ROSDASH.diagramConnection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
-		} else // if in the connection
-		{
+			ROSDASH.initDiagramConnection(i);
+		}
 //@bug wait to see where is the bug
 if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 {
@@ -3025,11 +3043,9 @@ if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 		console.debug(i, ROSDASH.widget_def[i])
 	}
 }
-			// validate the existence of the block
-			ROSDASH.diagramConnection[i].exist = true;
-			ROSDASH.diagramConnection[i].initialized = false;
-			ROSDASH.diagramConnection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
-		}
+		// validate the existence of the block
+		ROSDASH.diagramConnection[i].exist = true;
+		// load required js
 		if (undefined !== ROSDASH.widget_def[ROSDASH.diagram.block[i].type].js)
 		{
 			for (var j in ROSDASH.widget_def[ROSDASH.diagram.block[i].type].js)
@@ -3037,22 +3053,29 @@ if (undefined === ROSDASH.widget_def[ROSDASH.diagram.block[i].type])
 				ROSDASH.loadJs(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].js[j]);
 			}
 		}
+		// instantiate widget class
+		ROSDASH.diagramConnection[i].instance = ROSDASH.newObjByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].class_name, ROSDASH.diagram.block[i]);
 	}
 }
 
-ROSDASH.requireLoad = new Object();
+///////////////////////////////////// widget dependency
+
+ROSDASH.requireLoaded = new Object();
+// load js file required by widgets
 ROSDASH.loadJs = function (file)
 {
-	if (undefined === ROSDASH.requireLoad[file])
+	if (undefined === ROSDASH.requireLoaded[file])
 	{
-		ROSDASH.requireLoad[file] = false;
+		ROSDASH.requireLoaded[file] = 0;
 	}
 	$.getScript(file, function (data, status, jqxhr) {
-		ROSDASH.requireLoad[file] = true;
-		console.debug("js loaded:", file, status);
+		++ ROSDASH.requireLoaded[file];
+		//console.log("js loaded:", file, status);
 	}).fail(function (jqxhr, settings, exception)
 	{
-		console.debug("js fail");
+		console.error("loading js fail:", file, jqxhr, settings, exception);
+	}).always(function() {
+		++ ROSDASH.requireLoaded[file];
 	});
 }
 
@@ -3090,7 +3113,7 @@ ROSDASH.newObjByName = function (name, arg1, arg2)
 		}
 	} else
 	{
-		//console.error("class does not exist: " + name);
+		console.error("widget instantiation failed: ", name, arg1, arg2);
 		return undefined;
 	}
 }
@@ -3117,7 +3140,6 @@ ROSDASH.checkFuncByName = function (name, context)
 		return true;
 	} else
 	{
-		//console.error("function does not exist: " + name);
 		return false;
 	}
 }
@@ -3154,13 +3176,11 @@ ROSDASH.runFuncByName = function (name, context, arg1, arg2)
 		}
 	} else
 	{
-		//console.error("function does not exist: " + name);
 		return undefined;
 	}
 }
-// the outputs for all blocks @merge with diagramConnection
-ROSDASH.diagram_output = new Object();
-// call init functions of widgets @todo change to event
+
+// call init functions of widgets
 ROSDASH.initWidgets = function ()
 {
 	for (var i in ROSDASH.diagramConnection)
@@ -3171,20 +3191,21 @@ ROSDASH.initWidgets = function ()
 			console.error("widget does not exist: ", i);
 			continue;
 		}
+		// check if required js is ready
 		if (undefined !== ROSDASH.widget_def[ROSDASH.diagram.block[i].type].js)
 		{
 			var flag = false;
 			for (var j in ROSDASH.widget_def[ROSDASH.diagram.block[i].type].js)
 			{
-				if ( ! ROSDASH.requireLoad[ROSDASH.widget_def[ROSDASH.diagram.block[i].type].js[j]] )
+				if ( ROSDASH.requireLoaded[ROSDASH.widget_def[ROSDASH.diagram.block[i].type].js[j]] < 2 )
 				{
 					flag = true;
 					break;
 				}
 			}
+			// if not ready
 			if (flag)
 			{
-				console.debug("loading js, not initialized:", i);
 				continue;
 			}
 		}
@@ -3201,6 +3222,7 @@ ROSDASH.initWidgets = function ()
 		}
 	}
 }
+//@todo change to event, consider return value
 ROSDASH.callWidgetInit = function (id)
 {
 	try
@@ -3212,32 +3234,33 @@ ROSDASH.callWidgetInit = function (id)
 	}
 }
 
-ROSDASH.done_count = 0;
+ROSDASH.doneCount = 0;
 ROSDASH.cycle = -1;
 ROSDASH.runWidgets = function ()
 {
 	++ ROSDASH.cycle;
-	ROSDASH.done_count = 0;
+	ROSDASH.doneCount = 0;
 	var last_count = -1;
 	// reset all blocks as undone
 	for (var i in ROSDASH.diagramConnection)
 	{
 		ROSDASH.diagramConnection[i].done = false;
 	}
-	// if ROSDASH.done_count does not change, the diagram execution ends
-	while (last_count < ROSDASH.done_count)
+	// if ROSDASH.doneCount does not change, the diagram execution ends
+	while (last_count < ROSDASH.doneCount)
 	{
-		last_count = ROSDASH.done_count;
+		last_count = ROSDASH.doneCount;
 		for (var i in ROSDASH.diagramConnection)
 		{
 			if (! ROSDASH.diagramConnection[i].exist || ROSDASH.diagramConnection[i].done)
 			{
 				continue;
 			}
+			// check if widget initialization succeeded
 			if (false == ROSDASH.diagramConnection[i].initialized)
 			{
+				console.log("widget init again", i);
 				ROSDASH.callWidgetInit(i);
-				console.log("widget init again", i, ROSDASH.diagramConnection[i].initialized)
 				continue;
 			}
 			var ready_flag = true;
@@ -3246,7 +3269,7 @@ ROSDASH.runWidgets = function ()
 			for (var j in ROSDASH.diagramConnection[i].parent)
 			{
 				// if the parent is not ready
-				if (! (ROSDASH.diagramConnection[i].parent[j] in ROSDASH.diagram_output) || undefined === ROSDASH.diagram_output[ROSDASH.diagramConnection[i].parent[j]])
+				if (! (ROSDASH.diagramConnection[i].parent[j] in ROSDASH.diagramConnection) || undefined === ROSDASH.diagramConnection[ROSDASH.diagramConnection[i].parent[j]].output)
 				{
 					ready_flag = false;
 					break;
@@ -3255,7 +3278,7 @@ ROSDASH.runWidgets = function ()
 					// get the corresponding order of this input
 					var count = j.substring(1);
 					// save this input
-					input[count] = ROSDASH.diagram_output[ROSDASH.diagramConnection[i].parent[j]][ROSDASH.diagramConnection[i].output[j]];
+					input[count] = ROSDASH.diagramConnection[ROSDASH.diagramConnection[i].parent[j]].output[ROSDASH.diagramConnection[i].type[j]];
 				}
 			}
 			// if the block is ready to be execute with all the inputs are ready
@@ -3268,19 +3291,19 @@ ROSDASH.runWidgets = function ()
 					var obj = ROSDASH.diagramConnection[i].instance;
 					try
 					{
-						ROSDASH.diagram_output[i] = ROSDASH.runFuncByName("run", obj, input);
+						ROSDASH.diagramConnection[i].output = ROSDASH.runFuncByName("run", obj, input);
+						ROSDASH.diagramConnection[i].done = true;
+						++ ROSDASH.doneCount;
 					} catch (err)
 					{
-						console.error("widget error:", i, err.message);
+						console.error("widget runs in error:", i, err.message);
 					}
 				}
 				else
 				{
 					console.error("widget object is not created", i);
-					//ROSDASH.diagram_output[i] = ROSDASH.runFuncByName(ROSDASH.widget_def[ROSDASH.diagram.block[i].type].run, undefined, ROSDASH.diagram.block[i], input);
+					continue;
 				}
-				ROSDASH.diagramConnection[i].done = true;
-				++ ROSDASH.done_count;
 			}
 		}
 	}
@@ -3288,17 +3311,7 @@ ROSDASH.runWidgets = function ()
 	setTimeout(ROSDASH.runWidgets, ROSDASH.userConf.run_msec);
 }
 
-///////////////////////////////////// panel callback
-
-ROSDASH.widgetMaxCallback = function (e, data)
-{}
-// init the HTML for each widget when it is added
-ROSDASH.widgetAddCallback = function (e, data)
-{}
-ROSDASH.widgetSetCallback = function (e, data)
-{}
-ROSDASH.headerSetCallback = function (e, data)
-{}
+///////////////////////////////////// others
 
 //@todo
 ROSDASH.addToDiagram = function ()
