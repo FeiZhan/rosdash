@@ -859,26 +859,14 @@ ROSDASH.Table.prototype.run = function (input)
 //////////////////////////////////// networks
 
 //@todo a uniform representation for network diagram
+// network by cytoscape.js
 ROSDASH.cyNetwork = function (block)
 {
 	this.block = block;
 	this.canvas = "cyNetwork_" + this.block.id;
-	this.cy;
-	this.init_success = false;
-}
-ROSDASH.cyNetwork.prototype.addWidget = function (widget)
-{
-	widget.widgetContent = '<div id="' + this.canvas + '" style="width:100%; height:100%;"></div>';
-	return widget;
-}
-ROSDASH.cyNetwork.prototype.init = function ()
-{
-	if ($("#" + this.canvas).length <= 0 || this.init_success)
-	{
-		return false;
-	}
+	this.cy = undefined;
 	var that = this;
-  var options = {
+	this.options = ("config" in this.block && "option" in this.block.config) ? this.block.config.option : {
     showOverlay: false,
     minZoom: 0.5,
     maxZoom: 2,
@@ -943,15 +931,29 @@ ROSDASH.cyNetwork.prototype.init = function ()
       that.cy = this;
     }
   };
-  $('#' + this.canvas).cytoscape(options);
-	this.init_success = true;
+}
+ROSDASH.cyNetwork.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas + '" style="width:100%; height:100%;"></div>';
+	return widget;
+}
+ROSDASH.cyNetwork.prototype.init = function ()
+{
+	if ($("#" + this.canvas).length <= 0)
+	{
+		return false;
+	}
+  $('#' + this.canvas).cytoscape(this.options);
 	return true;
 }
+//@input	none
+//@output	network object
 ROSDASH.cyNetwork.prototype.run = function (input)
 {
 	return {o0: this.cy};
 }
 
+//@deprecated
 ROSDASH.cyNetworkLoadOnce = function (block)
 {
 	this.block = block;
@@ -967,6 +969,8 @@ ROSDASH.cyNetworkLoadOnce.prototype.run = function (input)
 	return {o0: input[0]};
 }
 
+// rosdash diagram by cytoscape.js
+//@bug too many bugs
 ROSDASH.cyDiagram = function (block)
 {
 	this.block = block;
@@ -1001,11 +1005,12 @@ ROSDASH.cyDiagram.prototype.init = function ()
 	return true;
 }
 
+// network by arbor.js
 ROSDASH.arborNetwork = function (block)
 {
 	this.block = block;
 	this.canvas = "arborNetwork_" + this.block.id;
-	this.init_success = false;
+	this.network;
 }
 ROSDASH.arborNetwork.prototype.addWidget = function (widget)
 {
@@ -1014,23 +1019,155 @@ ROSDASH.arborNetwork.prototype.addWidget = function (widget)
 }
 ROSDASH.arborNetwork.prototype.init = function ()
 {
-	if ($("#" + this.canvas).length <= 0 || this.init_success)
+	if ($("#" + this.canvas).length <= 0)
 	{
 		return false;
 	}
-	arborInit(this.canvas);
-	this.init_success = true;
+	this.network = this.arborInit(this.canvas);
 	return true;
 }
+//@input	none
+//@output	network object
 ROSDASH.arborNetwork.prototype.run = function (input)
 {
+	return {o0 : this.network};
+}
+ROSDASH.arborNetwork.prototype.Renderer = function (canvas)
+{
+    var canvas = $(canvas).get(0)
+    var ctx = canvas.getContext("2d");
+    var particleSystem
+    var that = {
+      init:function(system){
+        //
+        // the particle system will call the init function once, right before the
+        // first frame is to be drawn. it's a good place to set up the canvas and
+        // to pass the canvas size to the particle system
+        //
+        // save a reference to the particle system for use in the .redraw() loop
+        particleSystem = system
+
+        // inform the system of the screen dimensions so it can map coords for us.
+        // if the canvas is ever resized, screenSize should be called again with
+        // the new dimensions
+        particleSystem.screenSize(canvas.width, canvas.height) 
+        particleSystem.screenPadding(80) // leave an extra 80px of whitespace per side
+        
+        // set up some event handlers to allow for node-dragging
+        that.initMouseHandling()
+      },
+      redraw:function(){
+        // 
+        // redraw will be called repeatedly during the run whenever the node positions
+        // change. the new positions for the nodes can be accessed by looking at the
+        // .p attribute of a given node. however the p.x & p.y values are in the coordinates
+        // of the particle system rather than the screen. you can either map them to
+        // the screen yourself, or use the convenience iterators .eachNode (and .eachEdge)
+        // which allow you to step through the actual node objects but also pass an
+        // x,y point in the screen's coordinate system
+        // 
+        ctx.fillStyle = "white"
+        ctx.fillRect(0,0, canvas.width, canvas.height)
+        particleSystem.eachEdge(function(edge, pt1, pt2){
+          // edge: {source:Node, target:Node, length:#, data:{}}
+          // pt1:  {x:#, y:#}  source position in screen coords
+          // pt2:  {x:#, y:#}  target position in screen coords
+          // draw a line from pt1 to pt2
+          ctx.strokeStyle = "rgba(0,0,0, .333)"
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(pt1.x, pt1.y)
+          ctx.lineTo(pt2.x, pt2.y)
+          ctx.stroke()
+        })
+        particleSystem.eachNode(function(node, pt){
+          // node: {mass:#, p:{x,y}, name:"", data:{}}
+          // pt:   {x:#, y:#}  node position in screen coords
+          // draw a rectangle centered at pt
+          var w = 10
+          ctx.fillStyle = (node.data.alone) ? "orange" : "black"
+          ctx.fillRect(pt.x-w/2, pt.y-w/2, w,w)
+        })    			
+      },
+      initMouseHandling:function(){
+        // no-nonsense drag and drop (thanks springy.js)
+        var dragged = null;
+        // set up a handler object that will initially listen for mousedowns then
+        // for moves and mouseups while dragging
+        var handler = {
+          clicked:function(e){
+            var pos = $(canvas).offset();
+            _mouseP = arbor.Point(e.pageX-pos.left, e.pageY-pos.top)
+            dragged = particleSystem.nearest(_mouseP);
+
+            if (dragged && dragged.node !== null){
+              // while we're dragging, don't let physics move the node
+              dragged.node.fixed = true
+            }
+            $(canvas).bind('mousemove', handler.dragged)
+            $(window).bind('mouseup', handler.dropped)
+            return false
+          },
+          dragged:function(e){
+            var pos = $(canvas).offset();
+            var s = arbor.Point(e.pageX-pos.left, e.pageY-pos.top)
+            if (dragged && dragged.node !== null){
+              var p = particleSystem.fromScreen(s)
+              dragged.node.p = p
+            }
+            return false
+          },
+          dropped:function(e){
+            if (dragged===null || dragged.node===undefined) return
+            if (dragged.node !== null) dragged.node.fixed = false
+            dragged.node.tempMass = 1000
+            dragged = null
+            $(canvas).unbind('mousemove', handler.dragged)
+            $(window).unbind('mouseup', handler.dropped)
+            _mouseP = null
+            return false
+          }
+        }
+        // start listening
+        $(canvas).mousedown(handler.clicked);
+      },
+    }
+    return that;
+}    
+ROSDASH.arborNetwork.prototype.arborInit = function (canvas)
+{
+    var sys = arbor.ParticleSystem(1000, 600, 0.5) // create the system with sensible repulsion/stiffness/friction
+    sys.parameters({gravity:true}) // use center-gravity to make the graph settle nicely (ymmv)
+    sys.renderer = this.Renderer("#" + canvas) // our newly created renderer will have its .init() method called shortly by sys...
+    // add some nodes to the graph and watch it go...
+    sys.addEdge('a','b')
+    sys.addEdge('a','c')
+    sys.addEdge('a','d')
+    sys.addEdge('a','e')
+    sys.addNode('f', {alone:true, mass:.25})
+    // or, equivalently:
+    //
+    // sys.graft({
+    //   nodes:{
+    //     f:{alone:true, mass:.25}
+    //   }, 
+    //   edges:{
+    //     a:{ b:{},
+    //         c:{},
+    //         d:{},
+    //         e:{}
+    //     }
+    //   }
+    // })
+    return sys;
 }
 
+// network by dracula.js
 ROSDASH.draculaNetwork = function (block)
 {
 	this.block = block;
 	this.canvas = "draculaNetwork_" + this.block.id;
-	this.init_success = false;
+	this.network = undefined;
 }
 ROSDASH.draculaNetwork.prototype.addWidget = function (widget)
 {
@@ -1039,21 +1176,138 @@ ROSDASH.draculaNetwork.prototype.addWidget = function (widget)
 }
 ROSDASH.draculaNetwork.prototype.init = function ()
 {
-	if ($("#" + this.canvas).length <= 0 || this.init_success)
+	if ($("#" + this.canvas).length <= 0)
 	{
 		return false;
 	}
-	draculaInit(this.canvas);
-	this.init_success = true;
+	this.network = this.draculaInit(this.canvas);
 	return true;
 }
+//@input	none
+//@output	network object
 ROSDASH.draculaNetwork.prototype.run = function (input)
 {
+	return {o0 : this.network};
 }
+// latest version on github does not work
+ROSDASH.draculaNetwork.prototype.draculaInit = function (canvas)
+{
+    //var canvas = "canvas";
+	if (! $("#" + canvas).length)
+	{
+		console.error("no canvas for dracula");
+		return;
+	}
+    var width = $("#" + canvas).width();
+    var height = $("#" + canvas).height();
+    
+    if (undefined != renderer)
+    {
+		renderer.r.remove();
+	}
+    var layouter = undefined;
+    var renderer = undefined;
+    
+    var g = new Graph();
+
+    /* add a simple node */
+    g.addNode("strawberry");
+    g.addNode("cherry");
+
+    /* add a node with a customized label */
+    g.addNode("1", { label : "Tomato" });
+
+	
+    /* add a node with a customized shape 
+       (the Raphael graph drawing implementation can draw this shape, please 
+       consult the RaphaelJS reference for details http://raphaeljs.com/) */
+//    var render = function(r, n) {
+//        var label = r.text(0, 30, n.label).attr({opacity:0});
+        /* the Raphael set is obligatory, containing all you want to display */
+//        var set = r.set().push(
+//            r.rect(-30, -13, 62, 86).attr({"fill": "#fa8", "stroke-width": 2, r : "9px"}))
+//            .push(label);
+        /* make the label show only on hover */
+//        set.hover(function(){ label.animate({opacity:1,"fill-opacity":1}, 500); }, function(){ label.animate({opacity:0},300); });
+
+//        tooltip = r.set()
+//            .push(
+//                r.rect(0, 0, 90, 30).attr({"fill": "#fec", "stroke-width": 1, r : "9px"})
+//            ).push(
+//                r.text(25, 15, "overlay").attr({"fill": "#000000"})
+//            );
+//        for(i in set.items) {
+//            set.items[i].tooltip(tooltip);
+//        };
+//	//            set.tooltip(r.set().push(r.rect(0, 0, 30, 30).attr({"fill": "#fec", "stroke-width": 1, r : "9px"})).hide());
+//        return set;
+//    };
+	
+    g.addNode("id35", {
+        label : "meat\nand\ngreed" //,
+        /* filling the shape with a color makes it easier to be dragged */
+        /* arguments: r = Raphael object, n : node object */
+//        render : render
+    });
+    //    g.addNode("Wheat", {
+    /* filling the shape with a color makes it easier to be dragged */
+    /* arguments: r = Raphael object, n : node object */
+    //        shapes : [ {
+    //                type: "rect",
+    //                x: 10,
+    //                y: 10,
+    //                width: 25,
+    //                height: 25,
+    //                stroke: "#f00"
+    //            }, {
+    //                type: "text",
+    //                x: 30,
+    //                y: 40,
+    //                text: "Dump"
+    //            }],
+    //        overlay : "<b>Hello <a href=\"http://wikipedia.org/\">World!</a></b>"
+    //    });
+
+    st = { directed: true, label : "Label",
+            "label-style" : {
+                "font-size": 20
+            }
+        };
+    g.addEdge("kiwi", "penguin", st);
+
+    /* connect nodes with edges */
+    g.addEdge("strawberry", "cherry");
+    g.addEdge("cherry", "apple");
+    g.addEdge("cherry", "apple")
+    g.addEdge("1", "id35");
+    g.addEdge("penguin", "id35");
+    g.addEdge("penguin", "apple");
+    g.addEdge("kiwi", "id35");
+
+    /* a directed connection, using an arrow */
+    g.addEdge("1", "cherry", { directed : true } );
+    
+    /* customize the colors of that edge */
+    g.addEdge("id35", "apple", { stroke : "#bfa" , fill : "#56f", label : "Meat-to-Apple" });
+    
+    /* add an unknown node implicitly by adding an edge */
+    g.addEdge("strawberry", "apple");
+
+    g.removeNode("1");
+
+    /* layout the graph using the Spring layout implementation */
+    layouter = new Graph.Layout.Spring(g);
+    
+    /* draw the graph using the RaphaelJS draw implementation */
+    renderer = new Graph.Renderer.Raphael(canvas, g, width, height);
+    
+    //    console.log(g.nodes["kiwi"]);
+    return g;
+};
 
 //////////////////////////////////// database
 
-//@todo sql
+//@todo sql, uniform insert and query
 ROSDASH.JsDatabase = function (block)
 {
 	this.block = block;
@@ -1884,6 +2138,15 @@ ROSDASH.Gmap = function (block)
 {
 	this.block = block;
 	this.canvas_id = "gmap_" + this.block.id;
+	var LAB = [49.276802, -122.914913];
+	this.config = ("config" in this.block) ? this.block.config : {
+		center : LAB,
+		zoom : 14,
+		markers : [{
+			position : LAB,
+			title : 'Autonomy Lab at Simon Fraser University'
+		}]
+	};
 	this.gmap = undefined;
 }
 ROSDASH.Gmap.prototype.addWidget = function (widget)
@@ -1893,25 +2156,28 @@ ROSDASH.Gmap.prototype.addWidget = function (widget)
 }
 ROSDASH.Gmap.prototype.init = function ()
 {
-	var LAB = [49.276802, -122.914913];
-	// if canvas exists
-	if ($("#" + this.canvas_id).length > 0)
+	if ($("#" + this.canvas_id).length <= 0)
 	{
-		var mapOptions = {
-		  center: new google.maps.LatLng(LAB[0], LAB[1]),
-		  zoom: 14,
-		  mapTypeId: google.maps.MapTypeId.ROADMAP
-		};
-		this.gmap = new google.maps.Map(document.getElementById(this.canvas_id),
-			mapOptions);
-		var marker = new google.maps.Marker({
-			position: new google.maps.LatLng(LAB[0], LAB[1]),
-			map: this.gmap,
-			title: 'Autonomy Lab at Simon Fraser University'
-		});
-		return true;
+		return false;
 	}
-	return false;
+	var mapOptions = {
+	  center: new google.maps.LatLng(this.config.center[0], this.config.center[1]),
+	  zoom: this.config.zoom,
+	  mapTypeId: google.maps.MapTypeId.ROADMAP
+	};
+	this.gmap = new google.maps.Map(document.getElementById(this.canvas_id), mapOptions);
+	if ("markers" in this.config)
+	{
+		for (var i in this.config.markers)
+		{
+			var marker = new google.maps.Marker({
+				position: new google.maps.LatLng(this.config.markers[i].position[0], this.config.markers[i].position[1]),
+				map: this.gmap,
+				title: this.config.markers[i].title
+			});
+		}
+	}
+	return true;
 }
 //@input	none
 //@output	gmap object
@@ -2015,7 +2281,8 @@ ROSDASH.Flot = function (block)
 {
 	this.block = block;
 	this.plot;
-	this.option = {
+	this.canvas = "flot_" + this.block.id;
+	this.option = ("config" in this.block) ? this.block.config : {
 		// drawing is faster without shadows
 		series: {
 			shadowSize: 0,
@@ -2026,8 +2293,6 @@ ROSDASH.Flot = function (block)
 		zoom: {interactive: true},
 		pan: {interactive: true},
 		// it can adjust automatically
-		//@note still some bugs
-		//yaxis: { min: 0, max: 100 },
 		yaxis: {
 			tickFormatter: function (v, axis)
 			{
@@ -2044,8 +2309,7 @@ ROSDASH.Flot = function (block)
 }
 ROSDASH.Flot.prototype.addWidget = function (widget)
 {
-	var id = "flot_" + widget.widgetId;
-	widget.widgetContent = '<div id="' + id + '" style="height:100%;width:100%;" />';
+	widget.widgetContent = '<div id="' + this.canvas + '" style="height:100%;width:100%;" />';
 	return widget;
 }
 ROSDASH.Flot.prototype.getDefaultData = function ()
@@ -2061,75 +2325,65 @@ ROSDASH.Flot.prototype.getDefaultData = function ()
 }
 ROSDASH.Flot.prototype.init = function ()
 {
-	// test multi-thread
-	//dlskfjklsdfjls
-	var id = "flot_" + this.block.id;
-	if (undefined !== this.block.config)
+	if ($("#" + this.canvas).length <= 0)
 	{
-		this.option = this.block.config;
+		return false;
 	}
-	// if the canvas exists
-	if ($("#" + id).length > 0)
-	{
-		// create the canvas with default data
-		this.plot = $.plot("#" + id, this.getDefaultData(), this.option);
-		return true;
-	}
-	return false;
+	// create the plot with default data
+	this.plot = $.plot("#" + this.canvas, this.getDefaultData(), this.option);
+	return true;
 }
-//@input	title, data, option, saferange
-//@output	none
+//@input	data
+//@output	plot object
 ROSDASH.Flot.prototype.run = function (input)
 {
-	//i0 title
-	input[0] = (undefined === input[0]) ? this.block.name : input[0];
-	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
-	if (undefined === this.plot)
+	// if plot or data do not exist
+	if (undefined === this.plot || undefined === input[0])
 	{
 		return;
 	}
 	//i1 data
-	if (undefined !== input[1])
+	// change data format into [[x, data], ...]
+	var data = new Array();
+	for (var i in input[0])
 	{
-		// change data format into [[x, data], ...]
-		var data = new Array();
-		for (var i in input[1])
+		var original;
+		if (typeof input[0][i] == "object" && undefined !== input[0][i].data)
 		{
-			var original;
-			if (typeof input[1][i] == "object" && undefined !== input[1][i].data)
-			{
-				original = input[1][i].data;
-			} else
-			{
-				original = input[1][i];
-			}
-			var d = new Array();
-			for (var j in original)
-			{
-				if (typeof original[j] != "array")
-				{
-					d.push([j, original[j]]);
-				} else if (original[j].length < 2)
-				{
-					d.push([j, original[j][0]]);
-				} else
-				{
-					d.push([original[j][0], original[j][1]]);
-				}
-			}
-			if (typeof input[1][i] == "object" && undefined !== input[1][i].data)
-			{
-				original = input[1][i];
-				original.data = d;
-			} else
-			{
-				original = d;
-			}
-			data.push(original);
+			original = input[0][i].data;
+		} else
+		{
+			original = input[0][i];
 		}
-		this.plot.setData( data );
-		this.plot.draw();
+		var d = new Array();
+		for (var j in original)
+		{
+			if (typeof original[j] != "array")
+			{
+				d.push([j, original[j]]);
+			} else if (original[j].length < 2)
+			{
+				d.push([j, original[j][0]]);
+			} else
+			{
+				d.push([original[j][0], original[j][1]]);
+			}
+		}
+		if (typeof input[0][i] == "object" && undefined !== input[0][i].data)
+		{
+			original = input[0][i];
+			original.data = d;
+		} else
+		{
+			original = d;
+		}
+		data.push(original);
 	}
+	// update dynamically
+	this.plot.setData( data );
+	//@todo ignoring options and saferange
+	this.plot.draw();
+	return {o0 : this.plot};
 }
 
 //////////////////////////////////// other outputs
@@ -2140,15 +2394,7 @@ ROSDASH.Vumeter = function (block)
 {
 	this.block = block;
 	this.canvas_id = "vumeter_" + this.block.id;
-}
-ROSDASH.Vumeter.prototype.addWidget = function (widget)
-{
-	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; margin: 0 auto;"></div>';
-	return widget;
-}
-ROSDASH.Vumeter.prototype.init = function ()
-{
-	$('#' + this.canvas_id).highcharts({
+	this.config = ("config" in this.block) ? this.block.config : {
 	    chart: {
 	        type: 'gauge',
 	        plotBorderWidth: 1,
@@ -2239,8 +2485,18 @@ ROSDASH.Vumeter.prototype.init = function ()
 	        data: [-20],
 	        yAxis: 1
 	    }]
-	
-	},
+	};
+	this.update = function (){};
+	this.meter = undefined;
+}
+ROSDASH.Vumeter.prototype.addWidget = function (widget)
+{
+	widget.widgetContent = '<div id="' + this.canvas_id + '" style="width:100%; height:100%; margin: 0 auto;"></div>';
+	return widget;
+}
+ROSDASH.Vumeter.prototype.init = function ()
+{
+	this.meter = $('#' + this.canvas_id).highcharts(this.config,
 	// Let the music play
 	function(chart) {
 	    setInterval(function() {
@@ -2264,6 +2520,12 @@ ROSDASH.Vumeter.prototype.init = function ()
 	    }, 500);
 	});
 	return true;
+}
+//@input	none
+//@output	meter object
+ROSDASH.Vumeter.prototype.run = function (input)
+{
+	return {o0 : this.meter};
 }
 
 //////////////////////////////////// robot simulation
@@ -2821,23 +3083,37 @@ ROSDASH.jsonVis.prototype.run = function (input)
 
 //////////////////////////////////// others
 
+//slide from www.slideshare.net
 ROSDASH.slide = function (block)
 {
 	this.block = block;
+	this.config = ("config" in this.block) ? this.block.config : {
+		src : "http://www.slideshare.net/slideshow/embed_code/16073451",
+		width : 427,
+		height : 356,
+		style : "border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px",
+	};
 }
 ROSDASH.slide.prototype.addWidget = function (widget)
 {
-	widget.widgetContent = '<iframe src="http://www.slideshare.net/slideshow/embed_code/16073451" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px" allowfullscreen webkitallowfullscreen mozallowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/narrendar/ros-an-opensource-robotic-framework" title="ROS - An Opensource Robotic Framework" target="_blank">ROS - An Opensource Robotic Framework</a> </strong> from <strong><a href="http://www.slideshare.net/narrendar" target="_blank">Narrendar Narren</a></strong> </div>';
+	widget.widgetContent = '<iframe src="' + this.config.src + '" width="' + this.config.width + '" height="' + this.config.height + '" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="' + this.config.style + '" allowfullscreen webkitallowfullscreen mozallowfullscreen> </iframe>';
 	return widget;
 }
 
+// video from youtube
 ROSDASH.youtube = function (block)
 {
 	this.block = block;
+	this.config = ("config" in this.block) ? this.block.config : {
+		src : "//www.youtube.com/embed/SxeVZdJFB4s",
+		width : 640,
+		height : 360
+	};
+	
 }
 ROSDASH.youtube.prototype.addWidget = function (widget)
 {
-	widget.widgetContent = '<iframe width="640" height="360" src="//www.youtube.com/embed/SxeVZdJFB4s" frameborder="0" allowfullscreen></iframe>';
+	widget.widgetContent = '<iframe width="' + this.config.width + '" height="' + this.config.height + '" src="' + this.config.src + '" frameborder="0" allowfullscreen></iframe>';
 	return widget;
 }
 

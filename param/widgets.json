@@ -757,20 +757,16 @@
 		},
 		"input": [
 			{
-				"datatype": "String",
-				"name": "title"
-			}, {
 				"datatype": "String[]",
 				"name": "data"
-			}, {
-				"datatype": "FlotOption",
-				"name": "option"
-			}, {
-				"datatype": "SafeRange",
-				"name": "SafeRange"
 			}
 		],
-		"output": [],
+		"output": [
+			{
+				"datatype": "object",
+				"name": "flot"
+			}
+		],
 		"js": [
 			"lib/flot/jquery.flot.time.js",
 			"lib/flot/jquery.flot.selection.js",
@@ -936,9 +932,13 @@
 		"class_name": "ROSDASH.arborNetwork",
 		"has_panel": "true",
 		"input": [],
-		"output": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "arborNetwork"
+			}
+		],
 		"js": [
-			"lib/arbor/docs/sample-project/main.js",
 			"lib/arbor/lib/arbor.js"
 		]
 	}, {
@@ -949,11 +949,15 @@
 		"class_name": "ROSDASH.draculaNetwork",
 		"has_panel": "true",
 		"input": [],
-		"output": [],
+		"output": [
+			{
+				"datatype": "Object",
+				"name": "draculaNetwork"
+			}
+		],
 		"js": [
 			"lib/dracula/js/dracula_graffle.js",
-			"lib/dracula/js/dracula_graph.js",
-			"lib/dracula/examples/example.js"
+			"lib/dracula/js/dracula_graph.js"
 		]
 	}, {
 		"type": "DoodleGod",

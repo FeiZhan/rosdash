@@ -2892,7 +2892,6 @@ ROSDASH.panelBindEvent = function ()
 // the main function for panel editor
 ROSDASH.startEditor = function (user, panel_name, selected)
 {
-	ROSDASH.initDialog();
 	ROSDASH.initPanelToolbar();
 	ROSDASH.userConf.view_type = "editor";
 	ROSDASH.setUser(user, panel_name);
@@ -2917,7 +2916,7 @@ ROSDASH.startEditor = function (user, panel_name, selected)
 // the main function for panel
 ROSDASH.startPanel = function (user, panel_name, selected)
 {
-	ROSDASH.initDialog();
+	//ROSDASH.initDialog();
 	ROSDASH.initPanelToolbar();
 	ROSDASH.userConf.view_type = "panel";
 	ROSDASH.setUser(user, panel_name);
@@ -2991,6 +2990,8 @@ ROSDASH.initDiagramConnection = function (id)
 		ROSDASH.diagramConnection[id].done = false;
 		// if init method succeeds or not
 		ROSDASH.diagramConnection[id].initialized = false;
+		// if in error when running
+		ROSDASH.diagramConnection[id].error = false;
 		// the output of this block
 		ROSDASH.diagramConnection[id].output = undefined;
 	}
@@ -3226,7 +3227,7 @@ ROSDASH.callWidgetInit = function (id)
 		ROSDASH.diagramConnection[id].initialized = ROSDASH.runFuncByName("init", ROSDASH.diagramConnection[id].instance, ROSDASH.diagram.block[id]);
 	} catch (err)
 	{
-		console.error("widget init error:", id, err.message);
+		console.error("widget init error:", id, err.message); //, err.fileName, err.lineNumber);
 	}
 }
 
@@ -3248,7 +3249,7 @@ ROSDASH.runWidgets = function ()
 		last_count = ROSDASH.doneCount;
 		for (var i in ROSDASH.diagramConnection)
 		{
-			if (! ROSDASH.diagramConnection[i].exist || ROSDASH.diagramConnection[i].done)
+			if (! ROSDASH.diagramConnection[i].exist || ROSDASH.diagramConnection[i].done || ROSDASH.diagramConnection[i].error)
 			{
 				continue;
 			}
@@ -3289,10 +3290,12 @@ ROSDASH.runWidgets = function ()
 					{
 						ROSDASH.diagramConnection[i].output = ROSDASH.runFuncByName("run", obj, input);
 						ROSDASH.diagramConnection[i].done = true;
+						ROSDASH.diagramConnection[i].error = false;
 						++ ROSDASH.doneCount;
 					} catch (err)
 					{
-						console.error("widget runs in error:", i, err.message);
+						console.error("widget runs in error:", i, err.message, err); //, err.fileName, err.lineNumber);
+						ROSDASH.diagramConnection[i].error = true;
 					}
 				}
 				else
