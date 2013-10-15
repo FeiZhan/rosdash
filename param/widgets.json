@@ -830,6 +830,7 @@
 		"category": [
 			"user"
 		],
+		"has_panel": "true",
 		"class_name": "ROSDASH.userWelcome",
 		"input": [],
 		"output": [
@@ -854,7 +855,7 @@
 	}, {
 		"type": "joystick",
 		"category": [
-			"user"
+			"input"
 		],
 		"class_name": "ROSDASH.VirtualJoystick",
 		"has_panel": "true",

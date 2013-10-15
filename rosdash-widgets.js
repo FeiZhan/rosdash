@@ -1,4 +1,4 @@
-//@bug input.length does not work
+//@bug@solved input.length does not work
 
 //////////////////////////////////// datatype
 
@@ -13,6 +13,7 @@ ROSDASH.Constant = function (block)
 ROSDASH.Constant.prototype.run = function (input)
 {
 	//@todo put is_number into std_msgs.json
+	// if a number
 	if ("Float32" == this.block.constname)
 	{
 		return {o0: parseFloat(this.block.value)};
@@ -40,11 +41,12 @@ ROSDASH.multiArray.prototype.run = function (input)
 	return {o0: a};
 }
 
-// memorable array - can memorize historic data with max length
+// memorable array, can memorize historic data with max length
 ROSDASH.memArray = function (block)
 {
 	this.block = block;
 	this.data = new Array();
+	//@todo change to config
 	this.max_length = 100;
 }
 //@input	one new data
@@ -555,14 +557,24 @@ ROSDASH.Param.prototype.run = function (input)
 
 //////////////////////////////////// input
 
-// toggle button (don't use the name of switch since it is used)
-//@multiple toggle buttons
+// toggle button (don't use the name of switch because it is used)
 ROSDASH.ToggleButton = function (block)
 {
 	this.block = block;
 	this.canvas_id = "togglebutton_" + this.block.id;
 	this.button_id = "togglebutton2_" + this.block.id;
 	this.value = true;
+	// if multiple toggle buttons
+	if (("config" in this.block) && ("button_num" in this.block.config))
+	{
+		this.button_id = new Array();
+		this.value = new Array();
+		for (var i = 0; i < this.block.config.button_num; ++ i)
+		{
+			this.button_id.push("togglebutton2_" + this.block.id + "_" + i);
+			this.value.push(true);
+		}
+	}
 }
 ROSDASH.ToggleButton.prototype.addWidget = function (widget)
 {
@@ -571,22 +583,39 @@ ROSDASH.ToggleButton.prototype.addWidget = function (widget)
 }
 ROSDASH.ToggleButton.prototype.init = function ()
 {
-	$('#' + this.canvas_id).wrap('<div id="' + this.button_id + '" class="switch" data-on-label="ROCK!" data-off-label="NO" />').parent().bootstrapSwitch();
 	var that = this;
-	$('#' + this.button_id).on('switch-change', function (e, data) {
-		that.value = data.value;
-	});
-	//$('#toggle-state-switch').bootstrapSwitch('toggleState');
-	//$('#toggle-state-switch').bootstrapSwitch('setState', false); // true || false
+	// if a single button
+	if (typeof this.button_id != "array")
+	{
+		$('#' + this.canvas_id).wrap('<div id="' + this.button_id + '" class="switch" data-on-label="YES" data-off-label="NO" />').parent().bootstrapSwitch();
+		$('#' + this.button_id).on('switch-change', function (e, data) {
+			that.value = data.value;
+		});
+		//$('#toggle-state-switch').bootstrapSwitch('toggleState');
+		//$('#toggle-state-switch').bootstrapSwitch('setState', false); // true || false
+	} else // if multiple buttons
+	{
+		for (var i in this.button_id)
+		{
+			$('#' + this.canvas_id).wrap('<div id="' + this.button_id[i] + '" class="switch" data-on-label="YES" data-off-label="NO" />').parent().bootstrapSwitch();
+			$('#' + this.button_id[i]).on('switch-change', function (e, data) {
+				//@bug [i] does not work?
+				that.value[i] = data.value;
+			});
+		}
+	}
 	return true;
 
 }
+//@input	none
+//@output	the value of button or value list of buttons
 ROSDASH.ToggleButton.prototype.run = function (input)
 {
 	return {o0: this.value};
 }
 
 //@todo show the zhunxin
+// a virtual joystick, support tablet
 ROSDASH.VirtualJoystick = function (block)
 {
 	this.block = block;
@@ -607,6 +636,8 @@ ROSDASH.VirtualJoystick.prototype.init = function ()
 	});
 	return true;
 }
+//@input	none
+//@output	joystick message
 ROSDASH.VirtualJoystick.prototype.run = function (input)
 {
 	if (undefined === this.joystick)
@@ -629,27 +660,38 @@ ROSDASH.VirtualJoystick.prototype.run = function (input)
 ROSDASH.Text = function (block)
 {
 	this.block = block;
-	this.title;
-	this.content;
+	// title and content of last cycle
+	this.title = undefined;
+	this.content = undefined;
+	// count how many times it is invoked
 	this.once = false;
 }
 //@input	header and content strings
 //@output	none
 ROSDASH.Text.prototype.run = function (input)
 {
+	// run just once, so users can input 
 	if (undefined !== this.block.config && this.block.config.once && this.once)
 	{
 		return;
 	}
 	// default value for inputs
 	input[0] = (undefined === input[0]) ? this.block.name : input[0];
+	// default value for content
 	if (undefined === input[1])
 	{
 		input[1] = "(empty content)";
 	} else
 	{
+		// if not empty
 		this.once = true;
+		// if json, transform into string
+		if (typeof input[1] == "object" || typeof input[1] == "array")
+		{
+			input[1] = JSON.stringify(input[1]);
+		}
 	}
+	// if not the same
 	if (this.title != input[0])
 	{
 		this.title = input[0];
@@ -663,30 +705,31 @@ ROSDASH.Text.prototype.run = function (input)
 }
 
 // text widget with speaking widget
-ROSDASH.speak_content = "";
+ROSDASH.speakContent = "";
 ROSDASH.Speech = function (block)
 {
 	this.block = block;
-	this.content = "";
 	this.canvas_id = "Speech" + this.block.id;
+	this.content = "";
 }
 ROSDASH.Speech.prototype.addWidget = function (widget)
 {
+	// add a button for speak
 	widget.widgetTitle = this.block.id + ' <input type="button" id="' + this.canvas_id + '" value="speak" /><span id="audio"></span>';
-	widget.widgetContent = "";
+	widget.widgetContent = this.content;
 	return widget;
-}
-// speak by speak.js
-ROSDASH.Speech.prototype.speak = function ()
-{
-	speak(ROSDASH.speak_content);
 }
 // add callback function to speak button
 ROSDASH.Speech.prototype.init = function ()
 {
 	if ($("#" + this.canvas_id).length > 0)
 	{
-		$("#" + this.canvas_id).click(this.speak);
+		// append the callback function to button
+		$("#" + this.canvas_id).click(function ()
+		{
+			// speak by speak.js
+			speak(ROSDASH.speakContent);
+		});
 		return true;
 	}
 	return false;
@@ -701,7 +744,8 @@ ROSDASH.Speech.prototype.run = function (input)
 		// if new message comes, speak
 		//this.speak();
 		this.content = input[0];
-		ROSDASH.speak_content = input[0];
+		// class variable does not work
+		ROSDASH.speakContent = input[0];
 	}
 	$("#myDashboard").sDashboard("setContentById", this.block.id, input[0]);
 }
@@ -718,24 +762,38 @@ ROSDASH.Table.prototype.run = function (input)
 	// default value for header
 	input[0] = (undefined === input[0]) ? this.block.name : input[0];
 	$("#myDashboard").sDashboard("setHeaderById", this.block.id, input[0]);
-	if (typeof input[2] != "array" && typeof input[2] != "object")
-	{
-		return;
-	}
 	// for titles
+	// if not an array, transform into array
+	if (typeof input[1] != "array" && typeof input[1] != "object")
+	{
+		var tmp = input[1];
+		input[1] = new Array();
+		input[1].push(tmp);
+	}
 	var aoColumns = new Array();
+	// handle special cases
 	for (var i in input[1])
 	{
+		// transform into string
 		if (typeof input[1][i] == "number")
 		{
 			aoColumns.push({sTitle: "" + input[1][i]});
-		} else if (undefined === input[1][i])
+		}
+		else if (undefined === input[1][i])
 		{
 			aoColumns.push({sTitle: " "});
 		} else
 		{
 			aoColumns.push({sTitle: input[1][i]});
 		}
+	}
+	// if not a matrix, transform into matrix
+	if (typeof input[2] != "array" && typeof input[2] != "object")
+	{
+		var tmp = input[2];
+		input[2] = new Array();
+		input[2].push(new Array());
+		input[2][0].push(tmp);
 	}
 	// for content
 	var aaData = new Array();
@@ -744,6 +802,7 @@ ROSDASH.Table.prototype.run = function (input)
 		var tmp = new Array();
 		for (var j in input[2][i])
 		{
+			// handle special cases
 			if (typeof input[2][i][j] == "number")
 			{
 				tmp.push("" + input[2][i][j]);
@@ -757,6 +816,7 @@ ROSDASH.Table.prototype.run = function (input)
 		}
 		aaData.push(tmp);
 	}
+	// if empty
 	if (aaData.length == 0)
 	{
 		var tmp = new Array();
@@ -773,6 +833,7 @@ ROSDASH.Table.prototype.run = function (input)
 			aaData[0].push(" ");
 		}
 	}
+	// if titles too short
 	if (input[1].length < aaData[0].length)
 	{
 		for (var i = input[1].length; i < aaData[0].length; ++ i)
@@ -2284,23 +2345,13 @@ ROSDASH.GmapSimRobotByJoystick.prototype.run = function (input)
 
 //////////////////////////////////// user interfaces
 
-ROSDASH.userConfig = function (block)
-{
-	this.block = block;
-}
-ROSDASH.userConfig.prototype.run = function (input)
-{
-	return {o0: ROSDASH.userConf};
-}
-
 ROSDASH.UserLogin = function (block)
 {
 	this.block = block;
 }
 ROSDASH.UserLogin.prototype.addWidget = function (widget)
 {
-	widget.widgetContent = 
-		'<div id="janrainEngageEmbed"></div>';
+	widget.widgetContent = '<div id="janrainEngageEmbed"></div>';
 	return widget;
 }
 ROSDASH.UserLogin.prototype.init = function ()
@@ -2332,10 +2383,14 @@ ROSDASH.UserLogin.prototype.init = function ()
     isReady();
 }
 
-// user list
+// a list of user names
 ROSDASH.userList = function (block)
 {
 	this.block = block;
+	this.column = 3;
+	// a list of user names
+	this.users = new Array();
+	// a list of links to users' pages
 	this.list = new Array();
 	this.ajax_return = false;
 }
@@ -2343,7 +2398,7 @@ ROSDASH.userList.prototype.init = function ()
 {
 	if (this.ajax_return)
 	{
-		return false;
+		return true;
 	}
 	var self = this;
 	$.ajax({
@@ -2354,24 +2409,29 @@ ROSDASH.userList.prototype.init = function ()
 		},
 		success: function( data, textStatus, jqXHR )
 		{
-			console.log("userList success: ", data);
+			self.ajax_return = true;
 			self.list = new Array();
-			var d = data.split(" ");
-			for (var i in d)
+			self.users = data.split(" ");
+			var list = new Array();
+			for (var i in self.users)
 			{
-				if ("" != d[i] && " " != d[i])
+				if ("" != self.users[i] && " " != self.users[i])
 				{
-					self.list.push('<a href="panel.html?user=' + d[i] + '">' + d[i] + '</a>');
+					// a link to user's personal page
+					list.push('<a href="panel.html?user=' + self.users[i] + '">' + self.users[i] + '</a>');
+				}
+				if (list.length >= self.column)
+				{
+					self.list.push(list);
+					list = new Array();
 				}
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
-			console.log("userList error: ", jqXHR, textStatus, errorThrown);
+			console.error("userList error: ", jqXHR, textStatus, errorThrown);
 		}
-	}).always(function() {
-		self.ajax_return = true;
-	});
+	}).always(function() {});
 	return true;
 }
 ROSDASH.userList.prototype.run = function (input)
@@ -2387,8 +2447,8 @@ ROSDASH.userList.prototype.run = function (input)
 ROSDASH.userWelcome = function (block)
 {
 	this.block = block;
-	this.success = false;
 }
+// callback function for signup button
 ROSDASH.userWelcome.prototype.signup = function (name)
 {
 	var self = this;
@@ -2402,15 +2462,16 @@ ROSDASH.userWelcome.prototype.signup = function (name)
 		success: function( data, textStatus, jqXHR )
 		{
 			console.log("newUser success", data);
+			// relocate to new user's personal page
 			location.replace("panel.html?user=" + name);
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
-			console.log("newUser error", jqXHR, textStatus, errorThrown);
+			console.error("newUser error", jqXHR, textStatus, errorThrown);
 		}
-	}).always(function( data, textStatus, jqXHR ) {
-	});
+	}).always(function( data, textStatus, jqXHR ) {});
 }
+// callback function for new panel button
 ROSDASH.userWelcome.prototype.newPanel = function (name)
 {
 	var self = this;
@@ -2425,64 +2486,79 @@ ROSDASH.userWelcome.prototype.newPanel = function (name)
 		success: function( data, textStatus, jqXHR )
 		{
 			console.log("newUser success: ", data);
+			// relocate to new panel page
 			location.replace("panel.html?user=" + ROSDASH.userConf.name + "&panel=" + name);
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
-			console.log("newUser error: ", jqXHR, textStatus, errorThrown);
+			console.error("newUser error: ", jqXHR, textStatus, errorThrown);
 		}
-	}).always(function( data, textStatus, jqXHR ) {
-	});
+	}).always(function( data, textStatus, jqXHR ) {});
 }
-ROSDASH.userWelcome.prototype.run = function (input)
+ROSDASH.userWelcome.prototype.addWidget = function (widget)
 {
-	var output = "";
-	var that = this;
+	widget.widgetTitle = 'Welcome ^_^';
+	// if index page
 	if ("index" == ROSDASH.userConf.name)
 	{
-		output += '<h1 style="color:blue;">Welcome to ROSDASH !</h1>'
+		// add sign up
+		widget.widgetContent = '<h1 style="color:blue;">Welcome to ROSDASH !</h1>'
 			+ '<p style="color:Navy;">A web-based platform of dashboards for roboticists and ROS users.</p>'
-			+ '<p>Please select your user name from the list on the right, or</p>'
+			+ '<p>Please select your user name from the list, or</p>'
 			+ '<p>Sign up '
 				+ '<input type="text" name="name" id="newname_' + this.block.id + '">'
 				+ '<input type="button" value="Submit" id="submit_' + this.block.id + '">'
 			+ '</p>';
-		if (! this.success && $("#submit_" + that.block.id).length > 0)
-		{
-			$("#submit_" + that.block.id).click(function ()
-			{
-				that.signup($("#newname_" + that.block.id).val());
-			});
-			this.success = true;
-		}
 	} else
 	{
-		output += '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.userConf.name + ' !</h1>';
+		// add welcome
+		widget.widgetContent = '<h1 style="color:blue;">Welcome to ROSDASH, ' + ROSDASH.userConf.name + ' !</h1>';
+		// add user discription
 		if (undefined !== ROSDASH.userConf.discrip && "" != ROSDASH.userConf.discrip)
 		{
-			output += '<p style="color:Navy;">' + ROSDASH.userConf.discrip + '</p>';
+			widget.widgetContent += '<p style="color:Navy;">' + ROSDASH.userConf.discrip + '</p>';
 		}
-		output += '<p>Please select your panel or diagram from the list to the right, or</p>'
+		// add "add new page"
+		widget.widgetContent += '<p>Please select your panel or diagram from the list, or</p>'
 			+ '<p>Add a new one '
 				+ '<input type="text" name="name" id="newname_' + this.block.id + '">'
 				+ '<input type="button" value="Submit" id="submit_' + this.block.id + '">'
 			+ '</p>';
-		if (! this.success && $("#submit_" + that.block.id).length > 0)
-		{
-			$("#submit_" + that.block.id).click(function ()
-			{
-				that.newPanel($("#newname_" + that.block.id).val());
-			});
-			this.success = true;
-		}
 	}
-	return {o0: output};
+	return widget;
+}
+ROSDASH.userWelcome.prototype.init = function (input)
+{
+	if ($("#submit_" + this.block.id).length <= 0)
+	{
+		return;
+	}
+	var that = this;
+	// if index page
+	if ("index" == ROSDASH.userConf.name)
+	{
+		// append signup callback function to that button
+		$("#submit_" + that.block.id).click(function ()
+		{
+			// send user input to function
+			that.signup($("#newname_" + that.block.id).val());
+		});
+	} else
+	{
+		$("#submit_" + that.block.id).click(function ()
+		{
+			that.newPanel($("#newname_" + that.block.id).val());
+		});
+	}
 }
 
-// panel list
+// a list of panel names for a user
 ROSDASH.panelList = function (block)
 {
 	this.block = block;
+	// a list of panel names
+	this.panels = new Array();
+	// a list of links to panels
 	this.list = new Array();
 	this.ajax_return = false;
 }
@@ -2490,7 +2566,7 @@ ROSDASH.panelList.prototype.init = function ()
 {
 	if (this.ajax_return)
 	{
-		return false;
+		return true;
 	}
 	var self = this;
 	$.ajax({
@@ -2500,55 +2576,74 @@ ROSDASH.panelList.prototype.init = function ()
 			func: "getPanelList",
 			user: ROSDASH.userConf.name
 		},
-		success: function( data, textStatus, jqXHR )
+		success: function ( data, textStatus, jqXHR )
 		{
-			console.log("panelList success: ", data);
+			self.ajax_return = true;
 			self.list = new Array();
-			var d = data.split(" ");
-			for (var i in d)
+			self.panels = data.split(" ");
+			var list = new Array();
+			for (var i in self.panels)
 			{
-				if ("" != d[i] && " " != d[i])
+				if ("" == self.panels[i] || " " == self.panels[i])
 				{
-					var pos = d[i].indexOf("-");
-					var file_name = d[i].substring(0, pos);
-					if (pos < 0)
+					continue;
+				}
+				var pos = self.panels[i].indexOf("-");
+				// get the name of panel
+				var file_name = self.panels[i].substring(0, pos);
+				if (pos < 0)
+				{
+					continue;
+				}
+				// if a panel
+				else if (self.panels[i].substring(pos) == "-panel.json")
+				{
+					// first show the panel name
+					list.push(file_name);
+					// a link to that panel
+					list.push('<a href="panel.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '" target="_blank">Panel</a>');
+					// a link to editor
+					list.push('<a href="editor.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '" target="_blank">Editor</a>');
+					// if exists diagram
+					if (self.panels.indexOf(file_name + "-diagram.json") != -1)
 					{
-						continue;
-					} else if (d[i].substring(pos) == "-panel.json")
+						// a link to diagram
+						list.push('<a href="diagram.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '" target="_blank">Diagram</a>');
+						// delete diagram from name list
+						self.panels.splice(self.panels.indexOf(file_name + "-diagram.json"), 1);
+					} else // if diagram does not exist
 					{
-						self.list.push(file_name);
-						self.list.push('<a href="panel.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
-						if (d.indexOf(file_name + "-diagram.json") != -1)
-						{
-							self.list.push('<a href="diagram.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
-							d.splice(d.indexOf(file_name + "-diagram.json"), 1);
-						} else
-						{
-							self.list.push(" ");
-						}
-					} else if (d[i].substring(pos) == "-diagram.json")
-					{
-						self.list.push(file_name);
-						if (d.indexOf(file_name + "-panel.json") != -1)
-						{
-							self.list.push('<a href="panel.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Panel</a>');
-							d.splice(d.indexOf(file_name + "-panel.json"), 1);
-						} else
-						{
-							self.list.push(" ");
-						}
-						self.list.push('<a href="diagram.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '&host=192.168.1.125" target="_blank">Diagram</a>');
+						list.push(" ");
 					}
 				}
+				// if diagram
+				else if (self.panels[i].substring(pos) == "-diagram.json")
+				{
+					list.push(file_name);
+					// if panel exists
+					if (self.panels.indexOf(file_name + "-panel.json") != -1)
+					{
+						list.push('<a href="panel.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '" target="_blank">Panel</a>');
+						list.push('<a href="editor.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '" target="_blank">Editor</a>');
+						self.panels.splice(self.panels.indexOf(file_name + "-panel.json"), 1);
+					} else
+					{
+						list.push(" ");
+					}
+					list.push('<a href="diagram.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '" target="_blank">Diagram</a>');
+				} else
+				{
+					continue;
+				}
+				self.list.push(list);
+				list = new Array();
 			}
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
 			console.log("userList error: ", jqXHR, textStatus, errorThrown);
 		}
-	}).always(function() {
-		self.ajax_return = true;
-	});
+	}).always(function() {});
 	return true;
 }
 ROSDASH.panelList.prototype.run = function (input)
