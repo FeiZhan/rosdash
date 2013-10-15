@@ -280,7 +280,6 @@ if(strlen($token) == 40) {//test the length of the token; it should be 40 charac
        This will depend on your website implementation, and you should add your own
        code here. The user profile is in $auth_info.
     */
-    var_dump($auth_info);
 
     } else {
       // Gracefully handle auth_info error.  Hook this into your native error handling system.

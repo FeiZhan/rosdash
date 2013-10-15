@@ -14,7 +14,7 @@ ob_start();
 // PATH_TO_API_KEY_FILE should contain a path to a plain text file containing only
 // your API key. This file should exist in a path that can be read by your web server,
 // but not publicly accessible to the Internet.
-$rpx_api_key = trim( file_get_contents( "http://localhost/janrain/apikey.txt"/*"PATH_TO_API_KEY_FILE"*/ ) );
+$rpx_api_key = trim( file_get_contents( "http://localhost/rosdash-devel/test/janrain/apikey.txt"/*"PATH_TO_API_KEY_FILE"*/ ) );
 
 /*
  Set this to true if your application is Pro or Enterprise.
@@ -280,7 +280,6 @@ if(strlen($token) == 40) {//test the length of the token; it should be 40 charac
        This will depend on your website implementation, and you should add your own
        code here. The user profile is in $auth_info.
     */
-    var_dump($auth_info);
 
     } else {
       // Gracefully handle auth_info error.  Hook this into your native error handling system.

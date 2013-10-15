@@ -2620,7 +2620,7 @@ ROSDASH.UserLogin.prototype.init = function ()
 {
     if (typeof window.janrain !== 'object') window.janrain = {};
     if (typeof window.janrain.settings !== 'object') window.janrain.settings = {};
-    janrain.settings.tokenUrl = 'token-url.php'; //'__REPLACE_WITH_YOUR_TOKEN_URL__';
+    janrain.settings.tokenUrl = 'http://localhost/rosdash-devel/token-url.php'; //'__REPLACE_WITH_YOUR_TOKEN_URL__';
     function isReady()
     {
 		janrain.ready = true;
@@ -2862,6 +2862,7 @@ ROSDASH.panelList.prototype.init = function ()
 				{
 					// first show the panel name
 					list.push(file_name);
+					list.push('<input type="text" name="ros">');
 					// a link to that panel
 					list.push('<a href="panel.html?user=' + ROSDASH.userConf.name + '&panel=' + file_name + '" target="_blank">Panel</a>');
 					// a link to editor
@@ -2882,6 +2883,7 @@ ROSDASH.panelList.prototype.init = function ()
 				else if (self.panels[i].substring(pos) == "-diagram.json")
 				{
 					list.push(file_name);
+					list.push('<input type="text" name="ros">');
 					// if panel exists
 					if (self.panels.indexOf(file_name + "-panel.json") != -1)
 					{

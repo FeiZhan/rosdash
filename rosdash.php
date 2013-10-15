@@ -1,8 +1,9 @@
 <?php
 function saveFile ()
 {
+	echo $_POST['file_name'].'.json';
 	// must test if the directory exists
-	file_put_contents('file/'.$_POST['file_name'].'.json', json_encode($_POST['data']));
+	file_put_contents($_POST['file_name'].'.json', json_encode($_POST['data']));
 }
 function getUserList ()
 {

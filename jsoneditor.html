@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="lib/FlexiJsonEditor/json2.js"></script>
+		<script src="lib/FlexiJsonEditor/jquery.jsoneditor.js"></script>
+		<link rel="stylesheet" href="lib/FlexiJsonEditor/jsoneditor.css"/>
+		<!-- eventemitter -->
+		<script type="text/javascript" src="lib/EventEmitter/EventEmitter.min.js"></script>
+		<!-- rosdash -->
+		<script src="rosdash.js"></script>
+		<script src="rosdash-widgets.js"></script>
+    <title>JSON Editor and Inspector</title>
+    <style>
+        body {
+          padding: 0 70px;
+        }
+        #json {
+          margin: 10px 10px 10px 32px;
+          width: 50%;
+          min-height: 70px;
+        }
+        h1 {
+          font-family: Arial;
+          color: #EBBC6E;
+          text-align: center;
+          text-shadow: 1px 1px 1px black;
+          border-bottom: 1px solid gray;
+          padding-bottom: 50px;
+          width: 500px;
+          margin: 20px auto;
+        }
+        h1 img {
+          float: left;
+        }
+        h1 b {
+          color: black;
+          font-weight: normal;
+          display: block;
+          font-size: 12px;
+          text-shadow: none;
+        }
+
+        #legend {
+          display: inline;
+          margin-left: 30px;
+        }
+        #legend h2 {
+           display: inline;
+           font-size: 18px;
+           margin-right: 20px;
+        }
+        #legend a {
+          color: white;
+          margin-right: 20px;
+        }
+        #legend span {
+          padding: 2px 4px;
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+          color: white;
+          font-weight: bold;
+          text-shadow: 1px 1px 1px black;
+          background-color: black;
+        }
+        #legend .string  { background-color: #009408; }
+        #legend .array   { background-color: #2D5B89; }
+        #legend .object  { background-color: #E17000; }
+        #legend .number  { background-color: #497B8D; }
+        #legend .boolean { background-color: #B1C639; }
+        #legend .null    { background-color: #B1C639; }
+
+        #expander {
+          cursor: pointer;
+          margin-right: 20px;
+        }
+
+        #footer {
+          font-size: 13px;
+        }
+
+        #rest {
+          margin: 20px 0 20px 30px;
+        }
+        #rest label {
+          font-weight: bold;
+        }
+        #rest-callback {
+          width: 70px;
+        }
+        #rest-url {
+          width: 700px;
+        }
+        label[for="json"] {
+          margin-left: 30px;
+          display: block;
+        }
+        #json-note {
+          margin-left: 30px;
+          font-size: 12px;
+        }
+
+        .addthis_toolbox {
+          position: relative;
+          top: -10px;
+          margin-left: 30px;
+        }
+
+        #disqus_thread {
+          margin-top: 50px;
+          padding-top: 20px;
+          padding-bottom: 20px;
+          border-top: 1px solid gray;
+          border-bottom: 1px solid gray;
+        }
+
+    </style>
+	<script type="text/javascript">
+var src = "<?php echo $_GET["src"]; ?>";
+var src_success = false;
+var json = {
+	"string": "test",
+	"number": 5,
+	"array": [1, 2, 3],
+	"object": {
+		"property": "test1",
+		"subobj": {
+			"arr": ["test2", "test3"],
+			"numero": 1
+		}
+	}
+};
+if (undefined !== src && "" != src)
+{
+	ROSDASH.userConf.view_type = "jsoneditor";
+	ROSDASH.readJson(src);
+	ROSDASH.waitJson();
+} else
+{
+	$(document).ready(function() {
+		startJsonEditor();
+	});
+}
+function printJSON() {
+    $('#json').val(JSON.stringify(json));
+
+}
+function updateJSON(data) {
+    json = data;
+    printJSON();
+}
+function showPath(path) {
+    $('#path').text(path);
+}
+function startJsonEditor() {
+    $('#rest > button').click(function() {
+        var url = $('#rest-url').val();
+        $.ajax({
+            url: url,
+            dataType: 'jsonp',
+            jsonp: $('#rest-callback').val(),
+            success: function(data) {
+                json = data;
+                $('#editor').jsonEditor(json, { change: updateJSON, propertyclick: showPath });
+                printJSON();
+            },
+            error: function() {
+                alert('Something went wrong, double-check the URL and callback parameter.');
+            }
+        });
+    });
+    $('#json').change(function() {
+        var val = $('#json').val();
+        if (val) {
+            try { json = JSON.parse(val); }
+            catch (e) { alert('Error in parsing json. ' + e); }
+        } else {
+            json = {};
+        }
+        $('#editor').jsonEditor(json, { change: updateJSON, propertyclick: showPath });
+    });
+    $('#expander').click(function() {
+        var editor = $('#editor');
+        editor.toggleClass('expanded');
+        $(this).text(editor.hasClass('expanded') ? 'Collapse' : 'Expand all');
+    });
+    $('#save').click(function() {
+		if (src_success)
+		{
+			ROSDASH.saveJson(json, src);
+		}
+    });
+    printJSON();
+    $('#editor').jsonEditor(json, { change: updateJSON, propertyclick: showPath });
+}
+	</script>
+</head>
+<body>
+    <h1>
+        <span>JSON Editor and Inspector</span>
+    </h1>
+    <div id="legend">
+        <span id="expander">Expand all</span>
+        <span class="array">array</span>
+        <span class="object">object</span>
+        <span class="string">string</span>
+        <span class="number">number</span>
+        <span class="boolean">boolean</span>
+        <span class="null">null</span>
+        <span>Remove item by deleting a property name.</span>
+        <button type="button" id="save">save</button>
+    </div>
+    <div id="editor" class="json-editor"></div>
+    <p id="json-note">Note that you can edit your JSON directly in the textarea below. The JSON viewer will get updated when you leave the field.</p>
+    <textarea id="json" rows="20" cols="60"></textarea>
+</body>
+</html>

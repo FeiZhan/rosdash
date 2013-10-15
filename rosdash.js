@@ -5,7 +5,7 @@ var ROSDASH = new Object();
 
 ///////////////////////////////////// events
 
-ROSDASH.ee = new EventEmitter();
+ROSDASH.ee = ("EventEmitter" in window) ? new EventEmitter() : undefined;
 
 ///////////////////////////////////// sidebars
 
@@ -1038,7 +1038,12 @@ ROSDASH.readJson = function (file)
 	{
 		ROSDASH.jsonReadArray[file].data = data;
 		++ ROSDASH.jsonReadArray[file].status;
-	}).always(function() {
+	})
+	.fail(function (jqXHR, textStatus) {
+		console.error("load json file", file, "failed", jqXHR, textStatus);
+		ROSDASH.jsonReadArray[file].status = -1;
+	})
+	.always(function () {
 		++ ROSDASH.jsonReadArray[file].status;
 	});
 }
@@ -1055,13 +1060,18 @@ ROSDASH.waitJson = function ()
 	var flag = true;
 	for (var i in ROSDASH.jsonReadArray)
 	{
-		if (ROSDASH.jsonReadArray[i].status < 2)
+		if (ROSDASH.jsonReadArray[i].status < 0)
+		{
+			flag = false;
+			break;
+		}
+		else if (ROSDASH.jsonReadArray[i].status < 2)
 		{
 			flag = false;
 			// if returned but not succeed, read again
 			if (1 == ROSDASH.jsonReadArray[i].status)
 			{
-				console.warning("load json file", i, "failed");
+				console.warn("load json file", i, "failed");
 				ROSDASH.readJson(i);
 			}
 			break;
@@ -1083,13 +1093,13 @@ ROSDASH.waitJson = function ()
 // functions called after jsons are ready
 ROSDASH.jsonReadyFunc = function ()
 {
-	// parse msgs after loading json
-	ROSDASH.parseMsg();
-	// load widgets and blocks
-	ROSDASH.loadWidgetDef();
 	switch (ROSDASH.userConf.view_type)
 	{
 	case "panel":
+		// parse msgs after loading json
+		ROSDASH.parseMsg();
+		// load widgets and blocks
+		ROSDASH.loadWidgetDef();
 		// run panel after loading json
 		ROSDASH.readDiagram(ROSDASH.jsonReadArray['file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-diagram"].data);
 		ROSDASH.loadPanel(ROSDASH.jsonReadArray['file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-panel"].data);
@@ -1097,6 +1107,10 @@ ROSDASH.jsonReadyFunc = function ()
 		setTimeout(ROSDASH.exePanel, 100);
 		break;
 	case "editor":
+		// parse msgs after loading json
+		ROSDASH.parseMsg();
+		// load widgets and blocks
+		ROSDASH.loadWidgetDef();
 		// show panel editor after loading json
 		//ROSDASH.readDiagram(ROSDASH.jsonReadArray['file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-diagram"].data);
 		ROSDASH.loadPanel(ROSDASH.jsonReadArray['file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-panel"].data);
@@ -1104,8 +1118,17 @@ ROSDASH.jsonReadyFunc = function ()
 		//setTimeout(ROSDASH.exePanel, 100);
 		break;
 	case "diagram":
+		// parse msgs after loading json
+		ROSDASH.parseMsg();
+		// load widgets and blocks
+		ROSDASH.loadWidgetDef();
 		// run diagram after loading json
 		ROSDASH.runDiagram(ROSDASH.jsonReadArray['file/' + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-diagram"].data);
+		break;
+	case "jsoneditor":
+		json = ROSDASH.jsonReadArray[src].data;
+		src_success = true;
+		startJsonEditor();
 		break;
 	}
 }
@@ -1124,11 +1147,11 @@ ROSDASH.saveJson = function (data, filename)
 		},
 		success: function( data, textStatus, jqXHR )
 		{
-			console.log("saveJson success: ", textStatus);
+			console.log("saveJson success: ", filename, textStatus);
 		},
 		error: function(jqXHR, textStatus, errorThrown)
 		{
-			console.log("saveJson error: ", jqXHR, textStatus, errorThrown);
+			console.log("saveJson error: ", filename, jqXHR.responseText, textStatus, errorThrown);
 		}
 	});
 }
@@ -2360,7 +2383,7 @@ ROSDASH.addBlockComment = function (content)
 
 ROSDASH.defaultStyle = undefined;
 // depend on cytoscape.js
-if (cytoscape)
+if ("cytoscape" in window)
 {
 	ROSDASH.defaultStyle = cytoscape.stylesheet()
 		.selector('node').css({
@@ -2436,7 +2459,7 @@ ROSDASH.saveDiagram = function ()
 		};
 		json.edge.push(e);
 	});
-	ROSDASH.saveJson(json, json.user + "/" + json.panel_name + "-diagram");
+	ROSDASH.saveJson(json, "file/" + json.user + "/" + json.panel_name + "-diagram");
 }
 // load diagram from json
 ROSDASH.loadDiagram = function (json)
@@ -2869,7 +2892,7 @@ ROSDASH.savePanel = function ()
 		content_height: ROSDASH.userConf.content_height,
 		widgets: ROSDASH.widgets
 	};
-	ROSDASH.saveJson(json, ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-panel");
+	ROSDASH.saveJson(json, "file/" + ROSDASH.userConf.name + "/" + ROSDASH.userConf.panel_name + "-panel");
 }
 // bind callback functions
 ROSDASH.panelBindEvent = function ()
