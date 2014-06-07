@@ -67,9 +67,7 @@ ROSDASH.loadDash = function ()
 	});
 	ROSDASH.dashBindEvent("panel");
 	// show it
-	$("#panel").css("visibility", "visible");
-	// fade in
-	$("#panel").fadeIn("slow");
+	$("#panel").hide().css({visibility: "inherit"}).fadeIn("slow");
 
 	$("#cy").empty();
 	// create an empty cytoscape diagram
@@ -127,9 +125,7 @@ ROSDASH.showView = function (from, to)
 	if (undefined !== from_canvas)
 	{
 		// hide it
-		$("#" + from_canvas).css("visibility", "hidden");
-		// fade out
-		$("#" + from_canvas).fadeOut("slow");
+		$("#" + from_canvas).css({visibility: "hidden"}).fadeOut("slow");
 	}
 	var to_canvas;
 	// show the new view
@@ -164,9 +160,7 @@ ROSDASH.showView = function (from, to)
 	if (undefined !== to_canvas)
 	{
 		// show it
-		$("#" + to_canvas).css("visibility", "inherit");
-		// fade in
-		$("#" + to_canvas).fadeIn("slow");
+		$("#" + to_canvas).hide().css({visibility: "inherit"}).fadeIn("slow");
 	}
 	// switch to new view type
 	ROSDASH.dashConf.view = to;
@@ -299,6 +293,13 @@ ROSDASH.loadPanel = function (blocks)
 	{
 		return;
 	}
+	for (var i in ROSDASH.connection)
+	{
+		if (undefined !== ROSDASH.connection[i].initialized)
+		{
+			ROSDASH.connection[i].initialized = false;
+		}
+	}
 	// create an empty panel
 	$("#panel").empty();
 	$("#panel").sDashboard({
@@ -411,11 +412,11 @@ ROSDASH.loadJsonEditor = function (src)
 				// update jsontext
 				$('#jsontext').val(JSON.stringify(json));
 				// reload everything
-				//ROSDASH.loadEditor(data.block);
+				ROSDASH.loadPanel(data.block);
 				ROSDASH.loadDiagram(data);
 			}, propertyclick: null });
 			// reload everything
-			//ROSDASH.loadEditor(ROSDASH.jsonEditorJson.block);
+			ROSDASH.loadPanel(ROSDASH.jsonEditorJson.block);
 			ROSDASH.loadDiagram(ROSDASH.jsonEditorJson);
         } else
         {
@@ -433,10 +434,15 @@ ROSDASH.loadJsonEditor = function (src)
 	$('#jsontext').val(JSON.stringify(ROSDASH.jsonEditorJson));
     $('#jsoneditor').jsonEditor(ROSDASH.jsonEditorJson, { change: function (data) {
 		ROSDASH.jsonEditorJson  = data;
+		try {
+			var str = JSON.stringify(json)
+		} catch (err) {
+			console.error(err);
+		}
 		// update jsontext
-		$('#jsontext').val(JSON.stringify(json));
+		$('#jsontext').val(str);
 		// reload everything
-		//ROSDASH.loadEditor(data.block);
+		ROSDASH.loadPanel(data.block);
 		ROSDASH.loadDiagram(data);
 	}, propertyclick: null });
 }
@@ -695,24 +701,26 @@ ROSDASH.checkMsgTypeValid = function (name)
 
 // the data list from json files
 ROSDASH.jsonLoadList = new Object();
-ROSDASH.frontpageJson = 'data/network.json';
+ROSDASH.frontpageJson = 'data/demo.json';
 // init loading msg type and widget definitions from json files
 ROSDASH.initJson = function ()
 {
 	ROSDASH.loadMsgJson();
 	ROSDASH.loadBlockFiles(ROSDASH.blockFiles);
-	// load the frontpage from json file
-	ROSDASH.loadJson(ROSDASH.frontpageJson, function (json)
-	{
-		//@todo
-		//ROSDASH.connectROS(ROSDASH.dashConf.host, ROSDASH.dashConf.port);
-		// load diagram
-		ROSDASH.loadDiagram(json);
-		// parse diagrma for loading panel
-		ROSDASH.parseDiagram(json);
-		ROSDASH.loadPanel(ROSDASH.blocks);
-	});
-	ROSDASH.waitJson();
+	setTimeout(function () {
+		// load the frontpage from json file
+		ROSDASH.loadJson(ROSDASH.frontpageJson, function (json)
+		{
+			//@todo
+			//ROSDASH.connectROS(ROSDASH.dashConf.host, ROSDASH.dashConf.port);
+			// load diagram
+			ROSDASH.loadDiagram(json);
+			// parse diagrma for loading panel
+			ROSDASH.parseDiagram(json);
+			ROSDASH.loadPanel(ROSDASH.blocks);
+		});
+		ROSDASH.waitJson();
+	}, 300);
 }
 
 // status if all json loading are ready
@@ -1064,16 +1072,15 @@ ROSDASH.addWidgetByType = function (name, num)
 		height: ("height" in ROSDASH.blockDef[name]) ? ROSDASH.blockDef[name].height : ROSDASH.dashConf.widget_height,
 		header_height: ROSDASH.dashConf.header_height,
 		content_height: ROSDASH.dashConf.content_height,
-		config: ROSDASH.blockDef[name].config
 	};
 	// move other widgets backward by one
 	for (var i in ROSDASH.blocks)
 	{
-		if (! ("widget" in ROSDASH.blocks[i]))
+		if (! ("has_panel" in ROSDASH.blocks[i]))
 		{
 			continue;
 		}
-		++ ROSDASH.blocks[i].widget.pos;
+		++ ROSDASH.blocks[i].order;
 	}
 	//@todo
 	ROSDASH.initConnection(widget.widgetId);
@@ -1085,13 +1092,14 @@ ROSDASH.addWidgetByType = function (name, num)
 ROSDASH.addWidget = function (def)
 {
 	// save the definition of this widget
-	if (undefined === ROSDASH.blocks[def.widgetId])
+	ROSDASH.blocks[def.widgetId] = ROSDASH.blocks[def.widgetId] || new Object();
+	for (var i in def)
 	{
-		ROSDASH.blocks[def.widgetId] = def;
-		ROSDASH.blocks[def.widgetId].title = def.widgetTitle;
-		ROSDASH.blocks[def.widgetId].id = def.widgetId;
-		ROSDASH.blocks[def.widgetId].type = def.widgetType;
+		ROSDASH.blocks[def.widgetId][i] = def[i];
 	}
+	ROSDASH.blocks[def.widgetId].title = def.widgetTitle;
+	ROSDASH.blocks[def.widgetId].id = def.widgetId;
+	ROSDASH.blocks[def.widgetId].type = def.widgetType;
 	ROSDASH.blocks[def.widgetId].has_panel = true;
 	//def = ROSDASH.setWidgetContent(def);
 	// fail to set content
@@ -1342,10 +1350,10 @@ ROSDASH.initWidget = function (id)
 	{
 		if (false == ROSDASH.blocks[id].require[i])
 		{
-			setTimeout(function ()
-			{
+			console.warn("required files not ready", id, i, ROSDASH.blocks[id].require[i]);
+			setTimeout(function () {
 				ROSDASH.initWidget(id);
-			}, 100);
+			}, 300);
 			return;
 		}
 	}*/
@@ -1354,11 +1362,15 @@ ROSDASH.initWidget = function (id)
 		var flag = false;
 		for (var j in ROSDASH.blockDef[ROSDASH.connection[id].block.type].js)
 		{
-			if ( ROSDASH.loadList[ROSDASH.blockDef[ROSDASH.connection[id].block.type].js[j]] < 0 )
+			if (undefined === ROSDASH.loadList[ROSDASH.blockDef[ROSDASH.connection[id].block.type].js[j]])
+			{
+				continue;
+			}
+			if ( ROSDASH.loadList[ROSDASH.blockDef[ROSDASH.connection[id].block.type].js[j]].status < 0 )
 			{
 				//ROSDASH.connection[i].error = true;
 			}
-			if ( ROSDASH.loadList[ROSDASH.blockDef[ROSDASH.connection[id].block.type].js[j]] < 2 )
+			if ( ROSDASH.loadList[ROSDASH.blockDef[ROSDASH.connection[id].block.type].js[j]].status < 2 )
 			{
 				flag = true;
 				break;
@@ -1367,7 +1379,10 @@ ROSDASH.initWidget = function (id)
 		// if not ready
 		if (flag)
 		{
-			console.error("required files not ready", id);
+			console.warn("required files not ready", id);
+			setTimeout(function () {
+				ROSDASH.initWidget(id);
+			}, 300);
 			return;
 		}
 	}
